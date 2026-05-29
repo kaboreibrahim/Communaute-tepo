@@ -184,29 +184,19 @@ WSGI_APPLICATION = 'config.wsgi.application'
 #Database production
 
 DATABASES = {
-
-    'default': {
-
-        'ENGINE': 'django.db.backends.postgresql',
-
-        'NAME': 'c2805526c_tepov1',
-
-        'USER': 'c2805526c_admin',
-
-        'PASSWORD': '.(6Ty~i)^dGM,HF@',
-
-        'HOST': 'localhost',  # Essayez 'localhost' au lieu de '127.0.0.1'
-
-        'PORT': '5432',
-
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME":'c2805526c_tepov1',
+        "USER":'c2805526c_user',
+        "PASSWORD": "!-v&zd^&u(ZHGT-@",  # mettre le vrai mot de passe
+        "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),   # ou l’host fourni par ton hébergeur
+        "PORT": os.environ.get("MYSQL_PORT", "3306"),
         'OPTIONS': {
-
-            'client_encoding': 'UTF8',
-
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
         },
-
     }
 }
+
 
 
 # Password validation
