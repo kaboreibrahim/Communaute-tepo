@@ -87,7 +87,7 @@ class Article(SafeDeleteModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     titre = models.CharField("Titre", max_length=255)
-    slug = models.SlugField("Slug URL", max_length=280, unique=True, blank=True)
+    slug = models.SlugField("Slug URL", max_length=255, unique=True, blank=True)
     auteur = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="Auteur",

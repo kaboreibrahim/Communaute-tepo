@@ -308,6 +308,10 @@ SITE_NAME = 'Olodio Platform'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# MariaDB doesn't support partial unique indexes (UniqueConstraint with condition=).
+# Uniqueness is enforced at the application level via model.clean().
+SILENCED_SYSTEM_CHECKS = ['models.W036']
+
 SITE_ID = 1
 
 LOGGING = {

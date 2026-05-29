@@ -1,4 +1,5 @@
 from django.conf            import settings
+from django.core.exceptions import ValidationError
 from django.db              import models
 from django.db.models       import Q
 from django.utils           import timezone
@@ -76,7 +77,17 @@ class Family(SafeDeleteModel):
  
     def __str__(self):
         return f"Famille {self.nom_famille} — {self.village}"
- 
+
+    def clean(self):
+        if Family.objects.filter(
+            nom_famille=self.nom_famille,
+            village=self.village,
+            deleted__isnull=True,
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError({
+                'nom_famille': "Une famille avec ce nom existe déjà dans ce village."
+            })
+
     # ── Properties ───────────────────────────────────────────
  
     @property

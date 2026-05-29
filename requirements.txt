@@ -9,6 +9,7 @@ sqlparse==0.5.5
 
 # Base de données
 psycopg2-binary==2.9.11
+PyMySQL==1.2.0
 
 # Fichiers statiques
 whitenoise==6.12.0

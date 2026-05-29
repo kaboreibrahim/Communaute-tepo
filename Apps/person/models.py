@@ -1,5 +1,6 @@
  
 from django.conf            import settings
+from django.core.exceptions import ValidationError
 from django.db              import models
 from django.db.models       import Q
 from django.utils           import timezone
@@ -316,6 +317,17 @@ class Person(SafeDeleteModel):
             compteur += 1
             candidate = f"{prefix}-{compteur:04d}"
         return candidate
+
+    def clean(self):
+        if self.est_chef_famille and self.famille_id:
+            if Person.objects.filter(
+                famille=self.famille_id,
+                est_chef_famille=True,
+                deleted__isnull=True,
+            ).exclude(pk=self.pk).exists():
+                raise ValidationError({
+                    'est_chef_famille': "Cette famille a déjà un chef de famille actif."
+                })
 
     def save(self, *args, **kwargs):
         if not self.code:
