@@ -25,7 +25,7 @@ from django.utils.translation import gettext_lazy as _
 SECRET_KEY = 'django-insecure-j!(0=e3a$gb1v--&)raxvg$0*t+=bxa$ti&r^z4kwb$_!ml2^)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 def _env_list(name: str) -> list[str]:
     raw_value = os.getenv(name, "")
