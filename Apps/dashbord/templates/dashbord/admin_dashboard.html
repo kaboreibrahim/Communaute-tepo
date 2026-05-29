@@ -1,0 +1,257 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <span class="font-medium text-slate-700 dark:text-slate-200">Tableau de bord</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-white to-primary/5 px-6 py-6 shadow-sm dark:from-slate-900 dark:via-slate-900 dark:to-primary/10 md:px-8">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-3xl">
+        <div class="mb-3 flex items-center gap-2">
+          <div class="h-1 w-12 rounded-full bg-[#FF8200]"></div>
+          <span class="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">
+            Donnees en direct
+          </span>
+        </div>
+        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">
+          Vue d'ensemble du recensement
+        </h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400 md:text-base">
+          Ce dashboard affiche les donnees reelles issues des tables personnes, familles et villages.
+          Les cartes, la repartition par genre et les dernieres inscriptions sont maintenant
+          alimentees par la base de donnees.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="{% url 'dashbord:family-list' %}"
+          class="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-primary hover:text-primary dark:bg-slate-900 dark:text-slate-200"
+        >
+          <span class="material-symbols-outlined text-lg">family_restroom</span>
+          Voir les familles
+        </a>
+        <a
+          href="{% url 'dashbord:person-list' %}"
+          class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-transform hover:bg-primary/90 active:scale-95"
+        >
+          <span class="material-symbols-outlined text-lg">groups</span>
+          Voir les personnes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+    {% for card in stats_cards %}
+    <article class="group relative overflow-hidden rounded-2xl border border-primary/10 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900">
+      <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform duration-500 group-hover:scale-125"></div>
+      <div class="relative flex items-start justify-between gap-4">
+        <div class="rounded-2xl p-3 {{ card.icon_classes }}">
+          <span class="material-symbols-outlined">{{ card.icon }}</span>
+        </div>
+        <span class="rounded-full px-3 py-1 text-[11px] font-bold {{ card.badge_classes }}">
+          {{ card.badge }}
+        </span>
+      </div>
+      <p class="relative mt-5 text-sm font-semibold text-slate-500 dark:text-slate-400">{{ card.label }}</p>
+      <h3 class="relative mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ card.value }}</h3>
+      <p class="relative mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ card.caption }}</p>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <article class="xl:col-span-2 rounded-3xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Population par village</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Top des villages avec le plus de personnes reellement rattachees au registre.
+          </p>
+        </div>
+        <div class="rounded-2xl bg-primary/10 px-4 py-3 text-right">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Couverture</p>
+          <p class="mt-1 text-lg font-black text-slate-900 dark:text-white">
+            {{ dashboard_stats.villages_with_population_display }}/{{ dashboard_stats.total_villages_display }}
+          </p>
+        </div>
+      </div>
+
+      {% if village_population_rows and village_chart_has_data %}
+      <div class="flex min-h-[20rem] items-end gap-3 overflow-x-auto pb-2">
+        {% for village in village_population_rows %}
+        <div class="flex min-w-[92px] flex-1 flex-col justify-end">
+          <div class="mb-3 rounded-2xl border border-primary/10 bg-primary/5 px-3 py-3 text-center dark:bg-slate-800/80">
+            <p class="text-lg font-black text-slate-900 dark:text-white">{{ village.total_population_display }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              {{ village.total_families_display }} famille{{ village.total_families|pluralize }}
+            </p>
+          </div>
+          <div class="relative flex h-44 items-end rounded-t-3xl bg-slate-100/70 px-1 pt-4 dark:bg-slate-800/60">
+            <div
+              class="w-full rounded-t-3xl shadow-lg shadow-primary/10 transition-all duration-300 {{ village.bar_classes }}"
+              style="height: {{ village.bar_height }}%; min-height: {% if village.total_population %}28px{% else %}10px{% endif %};"
+            ></div>
+          </div>
+          <p class="mt-3 truncate text-center text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200">
+            {{ village.nom }}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="flex min-h-[18rem] items-center justify-center rounded-3xl border border-dashed border-primary/20 bg-primary/5 px-6 text-center dark:bg-slate-800/60">
+        <div class="max-w-md">
+          <span class="material-symbols-outlined text-5xl text-primary/40">bar_chart</span>
+          <p class="mt-4 text-lg font-bold text-slate-900 dark:text-white">Aucune population exploitable pour le graphique</p>
+          <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Le graphique s'affichera automatiquement des qu'au moins une personne sera rattachee a un village.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+    </article>
+
+    <article class="rounded-3xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Repartition par genre</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Lecture directe des profils lies aux familles enregistrees.
+          </p>
+        </div>
+        <span class="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
+          {{ dashboard_stats.total_personnes_display }} profils
+        </span>
+      </div>
+
+      {% if dashboard_stats.total_personnes %}
+      <div class="relative mx-auto flex h-52 w-52 items-center justify-center">
+        <svg class="h-full w-full -rotate-90" viewBox="0 0 36 36">
+          <circle class="stroke-primary/10" cx="18" cy="18" fill="none" r="16" stroke-width="4"></circle>
+          <circle
+            class="stroke-primary"
+            cx="18"
+            cy="18"
+            fill="none"
+            r="16"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-dasharray="{{ gender_circle_value }} 100"
+          ></circle>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-3xl font-black text-slate-900 dark:text-white">{{ dashboard_stats.female_percentage_display }}%</span>
+          <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Femmes</span>
+        </div>
+      </div>
+      {% else %}
+      <div class="flex min-h-[13rem] items-center justify-center rounded-3xl border border-dashed border-primary/20 bg-primary/5 px-6 text-center dark:bg-slate-800/60">
+        <div class="max-w-xs">
+          <span class="material-symbols-outlined text-4xl text-primary/40">pie_chart</span>
+          <p class="mt-4 text-base font-bold text-slate-900 dark:text-white">Aucune personne recensee</p>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            La repartition apparaitra des les premiers enregistrements.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mt-8 space-y-4">
+        {% for row in gender_rows %}
+        <div class="rounded-2xl border border-primary/10 bg-primary/5 p-4 dark:bg-slate-800/70">
+          <div class="mb-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <div class="h-3 w-3 rounded-full {{ row.dot_classes }}"></div>
+              <span class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ row.label }}</span>
+            </div>
+            <span class="text-sm font-bold text-slate-900 dark:text-white">
+              {{ row.count_display }} | {{ row.percentage_display }}%
+            </span>
+          </div>
+          <div class="h-2 rounded-full bg-white dark:bg-slate-900">
+            <div class="h-2 rounded-full {{ row.bar_classes }}" style="width: {{ row.width_value }}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+
+  <article class="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
+    <div class="flex flex-col gap-4 border-b border-primary/10 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Dernieres inscriptions de familles</h4>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Les lignes ci-dessous sont calculees a partir des dernieres familles creees dans la base.
+        </p>
+      </div>
+      <a
+        href="{% url 'dashbord:family-list' %}"
+        class="inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-dark"
+      >
+        Voir toutes les familles
+        <span class="material-symbols-outlined text-base">north_east</span>
+      </a>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-left">
+        <thead class="bg-primary/5 dark:bg-slate-800/70">
+          <tr>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Chef / referent</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Village</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Membres</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Statut</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Ajoute le</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-primary/5">
+          {% for row in recent_family_rows %}
+          <tr class="transition-colors hover:bg-primary/5">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                  {{ row.head_initials }}
+                </div>
+                <div class="min-w-0">
+                  <a
+                    href="{% url 'dashbord:family-detail' row.family_id %}"
+                    class="block truncate font-semibold text-slate-900 transition-colors hover:text-primary dark:text-white"
+                  >
+                    {{ row.head_name }}
+                  </a>
+                  <p class="truncate text-xs text-slate-500 dark:text-slate-400">Famille {{ row.family_name }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{{ row.village_name }}</td>
+            <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">{{ row.members_count }}</td>
+            <td class="px-6 py-4">
+              <span class="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide {{ row.status_classes }}">
+                {{ row.status_label }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{{ row.date_added|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+              Aucune famille enregistree pour le moment.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if titre_filtre %}{{ titre_filtre }} — {% endif %}Événements — Communauté Tepo{% endblock %}
+{% block meta_description %}{% if titre_filtre %}{{ titre_filtre }} — {% endif %}Découvrez les événements communautaires de Tepo : naissances, mariages, fêtes, réunions et annonces officielles.{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'website:evenement-list' %}{% endblock %}
+{% block og_title_fallback %}Événements — Communauté Tepo{% endblock %}
+{% block og_description %}Découvrez les événements communautaires de Tepo : naissances, mariages, fêtes, réunions et annonces officielles.{% endblock %}
+
+{% block content %}
+
+{# ── Hero Banner ── #}
+<section class="relative bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden">
+  <div class="absolute inset-0 opacity-10"
+       style="background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.4) 1px,transparent 0);background-size:28px 28px;"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-20">
+    <div class="max-w-2xl">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold text-white/90 uppercase tracking-wider mb-4">
+        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">celebration</span>
+        Événements communautaires
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight mb-4">
+        {% if titre_filtre %}{{ titre_filtre }}{% else %}Vie & Événements<br>de la Communauté{% endif %}
+      </h1>
+      <p class="text-white/75 text-base sm:text-lg leading-relaxed mb-6">
+        Naissances, mariages, diplômes, fêtes — toutes les grandes occasions de la communauté TEPO.
+      </p>
+
+      {# Stats chips #}
+      <div class="flex flex-wrap gap-3 mb-6">
+        <span class="flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold text-white">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">library_books</span>
+          {{ total }} événement{{ total|pluralize }}
+        </span>
+        {% if a_venir %}
+        <span class="flex items-center gap-1.5 rounded-full bg-accent/90 px-4 py-1.5 text-sm font-bold text-white">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">upcoming</span>
+          {{ a_venir }} à venir
+        </span>
+        {% endif %}
+      </div>
+
+      {# Search #}
+      <form method="get" action="{% url 'website:evenement-list' %}" class="flex gap-2 max-w-lg">
+        <div class="flex-1 relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/50 text-lg">search</span>
+          <input type="text" name="q" value="{{ q }}"
+                 placeholder="Rechercher un événement..."
+                 class="w-full rounded-xl bg-white/20 border border-white/20 pl-10 pr-4 py-3 text-sm text-white placeholder-white/50 outline-none focus:bg-white/30 focus:border-white/40 transition">
+        </div>
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl bg-accent text-white text-sm font-bold shadow-lg shadow-accent/30 hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
+          Chercher
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{# ── Type filter bar ── #}
+<div class="bg-white border-b border-slate-100 shadow-sm lg:sticky lg:top-[73px] z-30">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+    <a href="{% url 'website:evenement-list' %}{% if q %}?q={{ q }}{% endif %}"
+       class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-colors
+              {% if not filtre_type %}bg-primary text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary{% endif %}">
+      <span class="material-symbols-outlined text-sm">apps</span>
+      Tous ({{ total }})
+    </a>
+    {% for type in types %}
+    <a href="{% url 'website:evenement-type' type.slug %}"
+       class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-colors
+              {% if filtre_type == type.slug %}bg-primary text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary{% endif %}">
+      <span class="material-symbols-outlined text-sm">{{ type.icone }}</span>
+      {{ type.nom }} {% if type.nb %}({{ type.nb }}){% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+{# ── Main layout ── #}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
+  <div class="flex flex-col lg:flex-row gap-10">
+
+    {# ── Events grid ── #}
+    <main class="flex-1 min-w-0">
+
+      {# Periode filter + village filter #}
+      <div class="mb-6">
+        <form method="get" class="flex flex-wrap items-center gap-2">
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+          {% if filtre_type %}<input type="hidden" name="type" value="{{ filtre_type }}">{% endif %}
+          <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1">
+            <a href="?{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if q %}q={{ q }}&{% endif %}periode="
+               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {% if not filtre_periode %}bg-primary text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+              Tous
+            </a>
+            <a href="?{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if q %}q={{ q }}&{% endif %}periode=avenir"
+               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {% if filtre_periode == 'avenir' %}bg-primary text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+              À venir
+            </a>
+            <a href="?{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if q %}q={{ q }}&{% endif %}periode=passe"
+               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {% if filtre_periode == 'passe' %}bg-primary text-white{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
+              Passés
+            </a>
+          </div>
+          {% if villages %}
+          <select name="village" onchange="this.form.submit()"
+                  class="flex-1 min-w-0 sm:flex-none rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 outline-none focus:border-primary transition bg-white">
+            <option value="">Tous les villages</option>
+            {% for v in villages %}
+            <option value="{{ v.pk }}" {% if filtre_village == v.pk|stringformat:'s' %}selected{% endif %}>
+              {{ v.nom }} ({{ v.nb }})
+            </option>
+            {% endfor %}
+          </select>
+          {% endif %}
+          {% if q or filtre_type or filtre_periode or filtre_village %}
+          <a href="{% url 'website:evenement-list' %}"
+             class="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 transition-colors">
+            <span class="material-symbols-outlined text-sm">close</span>
+            <span class="hidden sm:inline">Effacer</span>
+          </a>
+          {% endif %}
+        </form>
+      </div>
+
+      {% if evenements %}
+
+      {# ── Featured top event ── #}
+      {% with evenements.0 as featured %}
+      {% if forloop.parentloop.counter0 == 0 or featured.date_evenement %}
+      <article class="group relative rounded-3xl overflow-hidden shadow-xl mb-8 reveal">
+        {% if featured.photo %}
+        <div class="aspect-[2.5/1] overflow-hidden">
+          <img src="{{ featured.photo.url }}" alt="{{ featured.titre }}"
+               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+        </div>
+        {% else %}
+        <div class="aspect-[2.5/1] flex items-center justify-center {{ featured.theme.surface }}">
+          <span class="material-symbols-outlined {{ featured.theme.icon }}" style="font-size:80px;opacity:0.25">
+            {{ featured.icone }}
+          </span>
+        </div>
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+          <div class="flex items-center gap-3 mb-3 flex-wrap">
+            {% if featured.type %}
+            <span class="rounded-full px-3 py-1 text-xs font-bold {{ featured.theme.badge }}">
+              <span class="material-symbols-outlined text-sm align-middle mr-0.5">{{ featured.icone }}</span>
+              {{ featured.type.nom }}
+            </span>
+            {% endif %}
+            <span class="text-white/60 text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">calendar_today</span>
+              {{ featured.date_evenement|date:"d F Y" }}
+            </span>
+            {% if featured.lieu_affichage %}
+            <span class="text-white/60 text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">location_on</span>
+              {{ featured.lieu_affichage }}
+            </span>
+            {% endif %}
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight mb-2 line-clamp-2">
+            {{ featured.titre }}
+          </h2>
+          <p class="text-white/75 text-sm line-clamp-2 mb-4 max-w-2xl">{{ featured.resume_affichage }}</p>
+          <a href="{% url 'website:evenement-detail' featured.pk %}"
+             class="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/30 hover:scale-105 active:scale-95 transition-transform">
+            Voir les détails
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
+          </a>
+        </div>
+      </article>
+      {% endif %}
+      {% endwith %}
+
+      {# ── Cards grid ── #}
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for ev in evenements %}
+        <article class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col reveal"
+                 style="transition-delay: {{ forloop.counter0|add:1 }}00ms">
+
+          {# Date badge + photo or colored surface #}
+          <a href="{% url 'website:evenement-detail' ev.pk %}" class="block relative overflow-hidden aspect-[16/9]">
+            {% if ev.photo %}
+            <img src="{{ ev.photo.url }}" alt="{{ ev.titre }}"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+            {% else %}
+            <div class="w-full h-full {{ ev.theme.surface }} flex items-center justify-center">
+              <span class="material-symbols-outlined {{ ev.theme.icon }}" style="font-size:48px;opacity:0.3">{{ ev.icone }}</span>
+            </div>
+            {% endif %}
+            {# Date badge overlay #}
+            <div class="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-white/95 shadow-md text-center">
+              <span class="text-lg font-black {{ ev.theme.date_text }} leading-none">{{ ev.date_evenement|date:"d" }}</span>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">
+                {% with ev.date_evenement.month as m %}
+                {{ month_fr|slice:m|last|upper }}
+                {% endwith %}
+              </span>
+            </div>
+          </a>
+
+          <div class="p-4 flex flex-col flex-1">
+            <div class="flex items-center gap-2 mb-2.5">
+              {% if ev.type %}
+              <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ ev.theme.badge }}">
+                {{ ev.type.nom }}
+              </span>
+              {% endif %}
+              {% if ev.village %}
+              <span class="text-xs text-slate-400 flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-sm">location_on</span>{{ ev.village.nom }}
+              </span>
+              {% endif %}
+            </div>
+            <a href="{% url 'website:evenement-detail' ev.pk %}" class="flex-1">
+              <h3 class="font-bold text-slate-800 leading-snug mb-1.5 line-clamp-2 group-hover:text-primary transition-colors text-base">
+                {{ ev.titre }}
+              </h3>
+              <p class="text-slate-500 text-sm leading-relaxed line-clamp-2">{{ ev.resume_affichage }}</p>
+            </a>
+            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs text-slate-400 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">calendar_today</span>
+                {{ ev.date_evenement|date:"d M Y" }}
+              </span>
+              <a href="{% url 'website:evenement-detail' ev.pk %}"
+                 class="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
+                Détails <span class="material-symbols-outlined text-sm">chevron_right</span>
+              </a>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      {# ── Pagination ── #}
+      {% if is_paginated %}
+      <div class="mt-10 flex justify-center">
+        <nav class="flex items-center gap-1">
+          {% if page_obj.has_previous %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if filtre_periode %}periode={{ filtre_periode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-lg">chevron_left</span>
+          </a>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-sm">{{ num }}</span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if filtre_periode %}periode={{ filtre_periode }}&{% endif %}page={{ num }}"
+               class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors text-sm">
+              {{ num }}
+            </a>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if filtre_type %}type={{ filtre_type }}&{% endif %}{% if filtre_periode %}periode={{ filtre_periode }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-lg">chevron_right</span>
+          </a>
+          {% endif %}
+        </nav>
+      </div>
+      {% endif %}
+
+      {% else %}
+      {# Empty state #}
+      <div class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-slate-300" style="font-size:36px">celebration</span>
+        </div>
+        <h3 class="text-xl font-bold text-slate-700 mb-2">Aucun événement trouvé</h3>
+        <p class="text-slate-400 text-sm max-w-sm mb-6">
+          {% if q %}Aucun résultat pour « {{ q }} ». Essayez d'autres mots-clés.
+          {% elif filtre_type %}Aucun événement de ce type pour le moment.
+          {% else %}Aucun événement publié pour le moment.{% endif %}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          {% if q or filtre_type or filtre_periode %}
+          <a href="{% url 'website:evenement-list' %}"
+             class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-base">refresh</span>
+            Voir tous les événements
+          </a>
+          {% endif %}
+          <a href="{% url 'website:event-submit' %}"
+             class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-primary text-primary text-sm font-bold hover:bg-primary/5 transition-colors">
+            <span class="material-symbols-outlined text-base">add_circle</span>
+            Soumettre un événement
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </main>
+
+    {# ── Sidebar ── #}
+    <aside class="w-full lg:w-80 shrink-0 space-y-6">
+
+      {# Submit CTA #}
+      <div class="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white reveal">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-white/80" style="font-variation-settings:'FILL' 1">add_circle</span>
+          <h3 class="font-bold text-base">Partager un événement</h3>
+        </div>
+        <p class="text-white/75 text-sm mb-4 leading-relaxed">
+          Un mariage, une naissance, un diplôme ? Annoncez-le à toute la communauté !
+        </p>
+        <a href="{% url 'website:event-submit' %}"
+           class="block w-full text-center rounded-xl bg-accent py-2.5 text-sm font-bold text-white hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-accent/30">
+          Soumettre un événement
+        </a>
+      </div>
+
+      {# Upcoming events #}
+      {% if prochains %}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">upcoming</span>
+          Prochainement
+        </h3>
+        <ul class="space-y-3">
+          {% for ev in prochains %}
+          <li class="group flex gap-3">
+            {# Mini date badge #}
+            <div class="shrink-0 w-11 h-11 rounded-xl {{ ev.theme.surface }} {{ ev.theme.border }} border flex flex-col items-center justify-center">
+              <span class="text-sm font-black {{ ev.theme.date_text }} leading-none">{{ ev.date_evenement|date:"d" }}</span>
+              <span class="text-[8px] font-bold text-slate-400 uppercase">
+                {% with ev.date_evenement.month as m %}{{ month_fr|slice:m|last|upper }}{% endwith %}
+              </span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <a href="{% url 'website:evenement-detail' ev.pk %}"
+                 class="block text-xs font-semibold text-slate-700 hover:text-primary transition-colors line-clamp-2 leading-snug">
+                {{ ev.titre }}
+              </a>
+              {% if ev.lieu_affichage %}
+              <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-xs">location_on</span>{{ ev.lieu_affichage }}
+              </p>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {# Types / Categories #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">category</span>
+          Types d'événements
+        </h3>
+        <ul class="space-y-1.5">
+          {% for type in types %}
+          {% if type.nb > 0 %}
+          <li>
+            <a href="{% url 'website:evenement-type' type.slug %}"
+               class="flex items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors
+                      {% if filtre_type == type.slug %}bg-primary text-white font-semibold{% else %}text-slate-600 hover:bg-primary/5 hover:text-primary{% endif %}">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">{{ type.icone }}</span>
+                {{ type.nom }}
+              </span>
+              <span class="text-[11px] {% if filtre_type == type.slug %}text-white/70{% else %}text-slate-400{% endif %}">
+                {{ type.nb }}
+              </span>
+            </a>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# Villages #}
+      {% if villages %}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">location_city</span>
+          Par village
+        </h3>
+        <div class="flex flex-wrap gap-1.5">
+          {% for v in villages %}
+          <a href="?village={{ v.pk }}"
+             class="rounded-full px-3 py-1 text-xs font-medium border transition-colors
+                    {% if filtre_village == v.pk|stringformat:'s' %}bg-primary text-white border-primary{% else %}border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+            {{ v.nom }} <span class="opacity-60">({{ v.nb }})</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </aside>
+  </div>
+</div>
+
+<style>.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}</style>
+
+{% endblock %}

@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% load blog_tags %}
+
+{% block page_title %}{{ article.meta_title_effective }} — Blog TEPO{% endblock %}
+{% block meta_description %}{{ article.meta_description_effective }}{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-detail' article.slug %}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title_fallback %}{{ article.meta_title_effective }}{% endblock %}
+{% block og_description %}{{ article.meta_description_effective }}{% endblock %}
+{% if article.og_image %}{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}{% endblock %}
+{% elif article.image_couverture %}{% block og_image_cover %}{% endblock %}{% endif %}
+{% block twitter_title %}{{ article.meta_title_effective }}{% endblock %}
+{% block twitter_description %}{{ article.meta_description_effective }}{% endblock %}
+{% if article.og_image %}{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}{% endblock %}{% endif %}
+
+{% block extra_head %}
+{# ── Open Graph article spécifique ── #}
+{% if article.og_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}">
+{% elif article.image_couverture %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ article.image_couverture.url }}">{% endif %}
+<meta property="article:published_time" content="{{ article.date_publication|date:'c' }}">
+<meta property="article:modified_time" content="{{ article.date_maj|date:'c' }}">
+{% if article.auteur %}<meta property="article:author" content="{{ article.auteur.get_full_name }}">{% endif %}
+{% if article.categorie %}<meta property="article:section" content="{{ article.categorie.nom }}">{% endif %}
+{% for tag in article.tags.all %}<meta property="article:tag" content="{{ tag.nom }}">
+{% endfor %}
+
+{# ── JSON-LD Article ── #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ article.titre|escapejs }}",
+  "description": "{{ article.meta_description_effective|escapejs }}",
+  {% if article.og_image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ article.og_image.url }}",
+  {% elif article.image_couverture %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ article.image_couverture.url }}",
+  {% endif %}"datePublished": "{{ article.date_publication|date:'c' }}",
+  "dateModified": "{{ article.date_maj|date:'c' }}",
+  {% if article.auteur %}"author": {
+    "@type": "Person",
+    "name": "{{ article.auteur.get_full_name|escapejs }}"
+  },{% endif %}
+  "publisher": {
+    "@type": "Organization",
+    "name": "Communauté d'Olodio",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-detail' article.slug %}"
+  }
+}
+</script>
+
+{# ── JSON-LD Breadcrumb ── #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:accueil' %}"},
+    {"@type": "ListItem", "position": 2, "name": "Blog", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-list' %}"}{% if article.categorie %},
+    {"@type": "ListItem", "position": 3, "name": "{{ article.categorie.nom|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:categorie' article.categorie.slug %}"},
+    {"@type": "ListItem", "position": 4, "name": "{{ article.titre|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-detail' article.slug %}"}
+    {% else %},
+    {"@type": "ListItem", "position": 3, "name": "{{ article.titre|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-detail' article.slug %}"}
+    {% endif %}
+  ]
+}
+</script>
+
+<style>
+  .article-content { line-height: 1.9; color: #374151; }
+  .article-content p { margin-bottom: 1.25rem; }
+  .article-content h2 { font-size: 1.5rem; font-weight: 800; color: #111827; margin: 2rem 0 1rem; }
+  .article-content h3 { font-size: 1.2rem; font-weight: 700; color: #1f2937; margin: 1.5rem 0 0.75rem; }
+  .article-content ul, .article-content ol { margin: 1rem 0 1rem 1.5rem; }
+  .article-content ul { list-style-type: disc; }
+  .article-content ol { list-style-type: decimal; }
+  .article-content li { margin-bottom: 0.5rem; }
+  .article-content blockquote { border-left: 4px solid #00613a; padding: 0.75rem 1.25rem; margin: 1.5rem 0; background: #f0f9f4; border-radius: 0 12px 12px 0; font-style: italic; color: #374151; }
+  .article-content a { color: #00613a; text-decoration: underline; text-underline-offset: 3px; }
+  .article-content img { border-radius: 12px; max-width: 100%; margin: 1.5rem auto; display: block; }
+  .article-content strong { font-weight: 700; color: #111827; }
+  .article-content code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; font-family: monospace; }
+  .article-content pre { background: #1e293b; color: #e2e8f0; padding: 1.25rem; border-radius: 12px; overflow-x: auto; margin: 1.5rem 0; }
+  .article-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 2rem 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ── #}
+<div class="bg-white border-b border-slate-100">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+    <nav class="flex items-center gap-2 text-xs text-slate-400">
+      <a href="{% url 'website:accueil' %}" class="hover:text-primary transition-colors">Accueil</a>
+      <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <a href="{% url 'blog:article-list' %}" class="hover:text-primary transition-colors">Blog</a>
+      {% if article.categorie %}
+      <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <a href="{% url 'blog:categorie' article.categorie.slug %}" class="hover:text-primary transition-colors">{{ article.categorie.nom }}</a>
+      {% endif %}
+      <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <span class="text-slate-600 font-medium truncate max-w-[200px]">{{ article.titre }}</span>
+    </nav>
+  </div>
+</div>
+
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
+  <div class="flex flex-col lg:flex-row gap-10">
+
+    {# ── Article content ── #}
+    <main class="flex-1 min-w-0">
+      <article>
+
+        {# Header #}
+        <header class="mb-8">
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            {% if article.categorie %}
+            <a href="{% url 'blog:categorie' article.categorie.slug %}"
+               class="rounded-full px-3 py-1 text-xs font-bold text-white"
+               style="background-color:{{ article.categorie.couleur }}">
+              {{ article.categorie.nom }}
+            </a>
+            {% endif %}
+            {% for tag in article.tags.all %}
+            <a href="{% url 'blog:tag' tag.slug %}"
+               class="rounded-full px-3 py-1 text-xs font-medium border border-slate-200 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+              #{{ tag.nom }}
+            </a>
+            {% endfor %}
+            {% if article.featured %}
+            <span class="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+              <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">star</span>
+              À la une
+            </span>
+            {% endif %}
+          </div>
+
+          <h1 class="text-3xl sm:text-4xl font-black text-slate-900 leading-tight mb-4 reveal">
+            {{ article.titre }}
+          </h1>
+
+          {% if article.extrait %}
+          <p class="text-lg text-slate-500 leading-relaxed mb-6 border-l-4 border-primary/30 pl-4 reveal">
+            {{ article.extrait }}
+          </p>
+          {% endif %}
+
+          <div class="flex flex-wrap items-center gap-4 py-4 border-t border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm">
+                {% if article.auteur %}
+                  {% if article.auteur.photo_profil %}
+                  <img src="{{ article.auteur.photo_profil.url }}" alt="" class="w-10 h-10 rounded-full object-cover">
+                  {% else %}
+                  {{ article.auteur.first_name|first|upper }}{{ article.auteur.last_name|first|upper }}
+                  {% endif %}
+                {% else %}R{% endif %}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">
+                  {% if article.auteur %}{{ article.auteur.get_full_name|default:article.auteur.username }}{% else %}Rédaction TEPO{% endif %}
+                </p>
+                <p class="text-xs text-slate-400">{{ article.date_publication|date:"d F Y" }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 ml-auto text-xs text-slate-400">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">schedule</span>
+                {{ article.temps_lecture }} min de lecture
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">visibility</span>
+                {{ article.vues }} vue{{ article.vues|pluralize }}
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">chat_bubble</span>
+                {{ article.nombre_commentaires }}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {# Cover image #}
+        {% if article.image_couverture %}
+        <div class="rounded-2xl overflow-hidden mb-8 aspect-[16/7] shadow-lg reveal">
+          <img src="{{ article.image_couverture.url }}" alt="{{ article.titre }}"
+               class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+
+        {# Content #}
+        <div class="article-content prose-lg max-w-none mb-10 reveal">
+          {{ article.contenu|safe }}
+        </div>
+
+        {# Like + Share bar #}
+        <div class="flex flex-wrap items-center gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100 mb-10">
+          <button id="like-btn"
+                  data-url="{% url 'blog:like-toggle' article.slug %}"
+                  data-liked="{{ user_a_like|yesno:'true,false' }}"
+                  class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold border transition-all
+                         {% if user_a_like %}bg-red-50 border-red-200 text-red-600{% else %}bg-white border-slate-200 text-slate-600 hover:border-red-200 hover:text-red-500{% endif %}
+                         {% if not request.user.is_authenticated %}opacity-60 cursor-not-allowed{% endif %}">
+            <span id="like-icon" class="material-symbols-outlined text-base"
+                  style="font-variation-settings:'FILL' {{ user_a_like|yesno:'1,0' }}">favorite</span>
+            <span id="like-count">{{ article.nombre_likes }}</span>
+            <span>{{ article.nombre_likes|pluralize:"j'aime,j'aimes" }}</span>
+          </button>
+          <span class="text-slate-200">|</span>
+          <span class="text-sm font-semibold text-slate-600 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-primary">share</span>
+            Partager :
+          </span>
+          <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+             target="_blank" rel="noopener"
+             class="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+            <span class="material-symbols-outlined text-sm">public</span> Facebook
+          </a>
+          <a href="https://twitter.com/intent/tweet?text={{ article.titre|urlencode }}&url={{ request.build_absolute_uri }}"
+             target="_blank" rel="noopener"
+             class="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold bg-sky-500 text-white hover:bg-sky-600 transition-colors">
+            <span class="material-symbols-outlined text-sm">alternate_email</span> Twitter
+          </a>
+          <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>alert('Lien copié !'))"
+                  class="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-sm">link</span> Copier
+          </button>
+        </div>
+
+        {# ── Comments section ── #}
+        <section id="commentaires" class="mb-10">
+          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">chat_bubble</span>
+            {{ article.nombre_commentaires }} Commentaire{{ article.nombre_commentaires|pluralize }}
+          </h2>
+
+          {% for commentaire in commentaires %}
+          <div class="group mb-4 reveal">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                {% if commentaire.auteur and commentaire.auteur.photo_profil %}
+                <img src="{{ commentaire.auteur.photo_profil.url }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}
+                {{ commentaire.initiales }}
+                {% endif %}
+              </div>
+              <div class="flex-1 bg-white border border-slate-100 rounded-2xl rounded-tl-sm p-4 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="font-bold text-slate-800 text-sm">{{ commentaire.nom_affiche }}</span>
+                  <span class="text-xs text-slate-400">{{ commentaire.date_creation|date:"d M Y à H:i" }}</span>
+                </div>
+                <p class="text-sm text-slate-600 leading-relaxed">{{ commentaire.contenu }}</p>
+              </div>
+            </div>
+            {# Replies #}
+            {% for reponse in commentaire.reponses.all %}
+            {% if reponse.approuve %}
+            <div class="ml-12 mt-3 flex gap-3">
+              <div class="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-xs shrink-0">
+                {{ reponse.initiales }}
+              </div>
+              <div class="flex-1 bg-accent/5 border border-accent/10 rounded-2xl rounded-tl-sm p-3">
+                <div class="flex items-center gap-3 mb-1.5">
+                  <span class="font-bold text-slate-800 text-xs">{{ reponse.nom_affiche }}</span>
+                  <span class="text-[11px] text-slate-400">{{ reponse.date_creation|date:"d M Y à H:i" }}</span>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">{{ reponse.contenu }}</p>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% empty %}
+          <div class="text-center py-8 text-slate-400 text-sm">
+            Soyez le premier à commenter cet article !
+          </div>
+          {% endfor %}
+
+          {# Comment form #}
+          <div class="mt-8 bg-slate-50 rounded-2xl p-6 border border-slate-100 reveal">
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings:'FILL' 1">add_comment</span>
+              Laisser un commentaire
+            </h3>
+            {% if not request.user.is_authenticated %}
+            <div class="mb-4 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-700">
+              <span class="material-symbols-outlined text-amber-500 text-sm">info</span>
+              <a href="{% url 'accounts:login' %}" class="font-semibold underline">Connectez-vous</a>
+              &nbsp;pour commenter plus rapidement, ou remplissez le formulaire ci-dessous.
+            </div>
+            {% endif %}
+            <form method="post" action="{% url 'blog:commenter' article.slug %}">
+              {% csrf_token %}
+              {% if not request.user.is_authenticated %}
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <input type="text" name="auteur_nom" placeholder="Votre nom *" required
+                       class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition">
+                <input type="email" name="auteur_email" placeholder="Votre email (non publié)"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition">
+              </div>
+              {% endif %}
+              <textarea name="contenu" placeholder="Votre commentaire..." required rows="4"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition resize-none mb-3"></textarea>
+              <button type="submit"
+                      class="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:scale-105 active:scale-95 transition-transform shadow-md shadow-primary/20">
+                <span class="material-symbols-outlined text-base">send</span>
+                Envoyer le commentaire
+              </button>
+              <p class="text-xs text-slate-400 mt-2">Votre commentaire sera visible après modération.</p>
+            </form>
+          </div>
+        </section>
+
+        {# Similar articles #}
+        {% if articles_similaires %}
+        <section>
+          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">auto_stories</span>
+            Articles similaires
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {% for art in articles_similaires %}
+            <article class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md hover:-translate-y-0.5 transition-all reveal">
+              <a href="{% url 'blog:article-detail' art.slug %}" class="block aspect-[16/9] overflow-hidden">
+                {% if art.image_couverture %}
+                <img src="{{ art.image_couverture.url }}" alt="{{ art.titre }}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full bg-primary/5 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary/30 text-3xl">article</span>
+                </div>
+                {% endif %}
+              </a>
+              <div class="p-4">
+                <a href="{% url 'blog:article-detail' art.slug %}"
+                   class="block text-sm font-bold text-slate-800 hover:text-primary transition-colors line-clamp-2 leading-snug mb-1">
+                  {{ art.titre }}
+                </a>
+                <p class="text-xs text-slate-400">{{ art.date_publication|date:"d M Y" }}</p>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+      </article>
+    </main>
+
+    {# ── Sidebar ── #}
+    <aside class="w-full lg:w-72 shrink-0 space-y-6">
+
+      {# Newsletter #}
+      <div class="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white sticky top-24">
+        <h3 class="font-bold text-base mb-1">Newsletter</h3>
+        <p class="text-white/75 text-xs mb-4">Recevez nos actualités par email.</p>
+        <form method="post" action="{% url 'blog:newsletter-subscribe' %}">
+          {% csrf_token %}
+          <input type="email" name="email" placeholder="Votre email *" required
+                 class="w-full rounded-xl bg-white/15 border border-white/20 px-3 py-2 text-sm text-white placeholder-white/50 outline-none focus:bg-white/25 transition mb-2">
+          <button type="submit"
+                  class="w-full rounded-xl bg-accent py-2 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-transform">
+            S'abonner
+          </button>
+        </form>
+      </div>
+
+      {# Categories #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">category</span>
+          Catégories
+        </h3>
+        <ul class="space-y-1.5">
+          {% for cat in categories %}
+          <li>
+            <a href="{% url 'blog:categorie' cat.slug %}"
+               class="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-600 hover:bg-primary/5 hover:text-primary transition-colors">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full" style="background-color:{{ cat.couleur }}"></span>
+                {{ cat.nom }}
+              </span>
+              <span class="text-xs text-slate-400">{{ cat.nombre_articles }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# Recent articles #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+          Articles récents
+        </h3>
+        <ul class="space-y-3">
+          {% for art in articles_recents %}
+          <li>
+            <a href="{% url 'blog:article-detail' art.slug %}"
+               class="text-xs font-semibold text-slate-700 hover:text-primary transition-colors line-clamp-2 block">
+              {{ art.titre }}
+            </a>
+            <p class="text-[10px] text-slate-400 mt-0.5">{{ art.date_publication|date:"d M Y" }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('like-btn');
+  if (!btn) return;
+  const isAuth = {{ request.user.is_authenticated|yesno:"true,false" }};
+  if (!isAuth) {
+    btn.addEventListener('click', () => {
+      alert('Connectez-vous pour liker cet article.');
+    });
+    return;
+  }
+  btn.addEventListener('click', async function() {
+    try {
+      const res = await fetch(btn.dataset.url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'},
+      });
+      const data = await res.json();
+      const icon = document.getElementById('like-icon');
+      const count = document.getElementById('like-count');
+      count.textContent = data.count;
+      if (data.liked) {
+        icon.style.fontVariationSettings = "'FILL' 1";
+        btn.classList.add('bg-red-50', 'border-red-200', 'text-red-600');
+        btn.classList.remove('bg-white', 'border-slate-200', 'text-slate-600');
+      } else {
+        icon.style.fontVariationSettings = "'FILL' 0";
+        btn.classList.remove('bg-red-50', 'border-red-200', 'text-red-600');
+        btn.classList.add('bg-white', 'border-slate-200', 'text-slate-600');
+      }
+    } catch(e) {}
+  });
+});
+</script>
+{% endblock %}

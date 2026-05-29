@@ -1,0 +1,40 @@
+{# components/_stat_card.html #}
+{#
+  Variables :
+    icon        → nom icône Material Symbols (ex: "groups")
+    label       → libellé de la carte
+    value       → valeur principale (ex: "45 280")
+    badge       → texte du badge (ex: "+2.4%")
+    badge_color → "green" | "red" | "amber" | "slate"
+    url         → lien optionnel (href)
+#}
+
+{% with badge_color|default:"slate" as bc %}
+<div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow
+            {% if url %}cursor-pointer hover:border-primary/30{% endif %}">
+
+  {% if url %}<a href="{{ url }}" class="block">{% endif %}
+
+  <div class="flex justify-between items-start mb-3 md:mb-4">
+    <div class="p-2.5 md:p-3 bg-primary/10 rounded-xl text-primary">
+      <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">{{ icon }}</span>
+    </div>
+
+    {% if badge %}
+    <span class="text-[10px] md:text-xs font-bold px-2 py-0.5 md:py-1 rounded-full
+      {% if bc == 'green' %}bg-green-100 text-green-700
+      {% elif bc == 'red' %}bg-red-100 text-red-700
+      {% elif bc == 'amber' %}bg-amber-100 text-amber-700
+      {% else %}bg-slate-100 text-slate-500
+      {% endif %}">
+      {{ badge }}
+    </span>
+    {% endif %}
+  </div>
+
+  <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium">{{ label }}</p>
+  <h3 class="text-xl md:text-2xl font-black mt-0.5 md:mt-1 tabular-nums">{{ value }}</h3>
+
+  {% if url %}</a>{% endif %}
+</div>
+{% endwith %}

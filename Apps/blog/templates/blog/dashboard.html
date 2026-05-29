@@ -1,0 +1,218 @@
+{% extends "base_admin.html" %}
+{% load blog_tags %}
+
+{% block title %}Blog — Tableau de bord{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <span class="text-primary font-semibold">Blog</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">Blog & Actualités</h1>
+    <p class="text-sm text-slate-500 mt-0.5">Gestionnaire centralisé de vos contenus éditoriaux</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'dashbord:blog-article-list' %}"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 text-primary text-sm font-medium hover:bg-primary/5 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:18px">list</span>
+      Articles
+    </a>
+    <a href="{% url 'dashbord:blog-article-create' %}"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+      <span class="material-symbols-outlined" style="font-size:18px">add</span>
+      Nouvel article
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# ── Stats grid ── #}
+<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-primary" style="font-size:22px;font-variation-settings:'FILL' 1">article</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ total_articles }}</p>
+      <p class="text-xs text-slate-500 font-medium">Total articles</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-emerald-600" style="font-size:22px;font-variation-settings:'FILL' 1">check_circle</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ articles_publies }}</p>
+      <p class="text-xs text-slate-500 font-medium">Publiés</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-slate-500" style="font-size:22px;font-variation-settings:'FILL' 1">draft</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ articles_brouillons }}</p>
+      <p class="text-xs text-slate-500 font-medium">Brouillons</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-sky-600" style="font-size:22px;font-variation-settings:'FILL' 1">visibility</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ total_vues }}</p>
+      <p class="text-xs text-slate-500 font-medium">Total vues</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-amber-600" style="font-size:22px;font-variation-settings:'FILL' 1">chat_bubble</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ commentaires_en_attente }}</p>
+      <p class="text-xs text-slate-500 font-medium">Commentaires en attente</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-violet-600" style="font-size:22px;font-variation-settings:'FILL' 1">mail</span>
+    </div>
+    <div>
+      <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ abonnes_newsletter }}</p>
+      <p class="text-xs text-slate-500 font-medium">Abonnés</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  {# ── Recent articles ── #}
+  <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Articles récents</h2>
+      <a href="{% url 'dashbord:blog-article-list' %}"
+         class="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+        Voir tout
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+    <div class="divide-y divide-slate-100 dark:divide-slate-700">
+      {% for article in articles_recents %}
+      <div class="flex items-center gap-4 px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+        {% if article.image_couverture %}
+        <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+          <img src="{{ article.image_couverture.url }}" alt="" class="w-full h-full object-cover">
+        </div>
+        {% else %}
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-primary/40">article</span>
+        </div>
+        {% endif %}
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{{ article.titre }}</p>
+          <p class="text-xs text-slate-400 mt-0.5">
+            {{ article.date_creation|date:"d M Y" }}
+            {% if article.auteur %} · {{ article.auteur.get_full_name|default:article.auteur.username }}{% endif %}
+          </p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          {% with article.statut|badge_statut as badge %}
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ badge.0 }}">{{ badge.1 }}</span>
+          {% endwith %}
+          <a href="{% url 'dashbord:blog-article-update' article.pk %}"
+             class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-all">
+            <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="py-12 text-center text-sm text-slate-400">
+        Aucun article pour le moment.
+        <a href="{% url 'dashbord:blog-article-create' %}" class="text-primary font-semibold">Créer le premier</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── Right column ── #}
+  <div class="space-y-6">
+
+    {# Quick actions #}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-4">Actions rapides</h2>
+      <div class="space-y-2">
+        <a href="{% url 'dashbord:blog-article-create' %}"
+           class="flex items-center gap-3 rounded-xl px-4 py-3 bg-primary/5 hover:bg-primary/10 transition-colors text-sm font-medium text-primary">
+          <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">add_circle</span>
+          Rédiger un article
+        </a>
+        <a href="{% url 'dashbord:blog-commentaire-list' %}?filtre=attente"
+           class="flex items-center justify-between gap-3 rounded-xl px-4 py-3 bg-amber-50 hover:bg-amber-100 transition-colors text-sm font-medium text-amber-700">
+          <span class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">chat_bubble</span>
+            Modérer les commentaires
+          </span>
+          {% if commentaires_en_attente %}
+          <span class="bg-amber-200 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full">{{ commentaires_en_attente }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'dashbord:blog-categorie-list' %}"
+           class="flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span class="material-symbols-outlined text-base">category</span>
+          Gérer les catégories
+        </a>
+        <a href="{% url 'dashbord:blog-tag-list' %}"
+           class="flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span class="material-symbols-outlined text-base">label</span>
+          Gérer les tags
+        </a>
+        <a href="{% url 'dashbord:blog-newsletter-list' %}"
+           class="flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span class="material-symbols-outlined text-base">mail</span>
+          Newsletter ({{ abonnes_newsletter }} abonnés)
+        </a>
+        <a href="{% url 'blog:article-list' %}" target="_blank"
+           class="flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span class="material-symbols-outlined text-base">open_in_new</span>
+          Voir le blog public
+        </a>
+      </div>
+    </div>
+
+    {# Top categories #}
+    {% if categories_stats %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 text-sm mb-4">Top catégories</h2>
+      <ul class="space-y-2.5">
+        {% for cat in categories_stats %}
+        <li class="flex items-center justify-between text-sm">
+          <span class="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:{{ cat.couleur }}"></span>
+            {{ cat.nom }}
+          </span>
+          <span class="text-xs font-bold text-slate-400">{{ cat.nb }} article{{ cat.nb|pluralize }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}

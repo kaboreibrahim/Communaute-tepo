@@ -1,0 +1,480 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Liste des Villages — Olodio{% endblock %}
+{% block topbar_title %}Villages{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center justify-between gap-2 text-sm text-slate-400">
+  <div class="flex items-center gap-2">
+    <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+    <span class="material-symbols-outlined text-base">chevron_right</span>
+    <span class="text-slate-700 dark:text-slate-200 font-medium">Villages</span>
+  </div>
+  
+</nav>
+
+
+{% endblock %}
+
+
+{% block content %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# STATS CARDS                                                  #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  {# Total Villages #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/5 shadow-sm flex items-center gap-4">
+    <div class="size-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
+      <span class="material-symbols-outlined text-3xl">location_city</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-slate-500">Total Villages</p>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.total_villages }}</h3>
+    </div>
+    <div class="ml-auto text-primary text-xs font-bold px-2 py-1 bg-primary/5 rounded flex-shrink-0">
+      Olodio
+    </div>
+  </div>
+
+  {# Population totale #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/5 shadow-sm flex items-center gap-4">
+    <div class="size-12 bg-accent/10 rounded-lg flex items-center justify-center text-accent flex-shrink-0">
+      <span class="material-symbols-outlined text-3xl">groups</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-slate-500">Population totale</p>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white">
+        {{ stats.population_totale|floatformat:0 }}
+      </h3>
+    </div>
+    <div class="ml-auto text-green-600 text-xs font-bold flex items-center flex-shrink-0">
+      <span class="material-symbols-outlined text-sm">trending_up</span>
+      estimée
+    </div>
+  </div>
+
+  {# Familles recensées #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/5 shadow-sm flex items-center gap-4">
+    <div class="size-12 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+      <span class="material-symbols-outlined text-3xl">family_restroom</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-slate-500">Familles recensées</p>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white">
+        {{ stats.total_familles }}
+      </h3>
+    </div>
+    <div class="ml-auto text-green-600 text-xs font-bold px-2 py-1 bg-green-500/5 rounded flex-shrink-0">
+      Actif
+    </div>
+  </div>
+
+  {# Infrastructures #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/5 shadow-sm flex items-center gap-4">
+    <div class="size-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
+      <span class="material-symbols-outlined text-3xl">corporate_fare</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-slate-500">Infrastructures</p>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white">
+        {{ stats.total_infrastructures }}
+      </h3>
+    </div>
+    <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden flex-shrink-0">
+      <div class="h-full bg-blue-500 rounded-full" style="width: {{ stats.pct_infras }}%;"></div>
+    </div>
+  </div>
+
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# MESSAGES DJANGO                                              #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for message in messages %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+        {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+        {% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+        {% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200
+        {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+        <span class="material-symbols-outlined text-lg">
+          {% if message.tags == 'success' %}check_circle
+          {% elif message.tags == 'error' %}error
+          {% elif message.tags == 'warning' %}warning
+          {% else %}info{% endif %}
+        </span>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# TABLE VILLAGES                                               #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-primary/5 shadow-sm overflow-hidden mb-6">
+
+  {# ── En-tête avec recherche ── #}
+  <div class="p-4 border-b border-slate-100 dark:border-primary/10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-bold text-slate-800 dark:text-white">Répertoire des Villages</h2>
+      <span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full font-bold">
+        {{ total }} au total
+      </span>
+    </div>
+
+    <form method="GET" action="" class="flex flex-wrap items-center gap-3">
+      <input type="hidden" name="pop" value="{{ pop }}">
+      <input type="hidden" name="par_page" value="{{ par_page }}">
+
+      {# Barre de recherche #}
+      <div class="relative flex-1 min-w-[240px]">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+        <input
+          type="text"
+          name="q"
+          value="{{ q }}"
+          placeholder="Rechercher par nom..."
+          class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all outline-none text-slate-700 dark:text-slate-200"
+        >
+      </div>
+
+      {# Filtre par état d'infrastructure #}
+      <select
+        name="infra"
+        onchange="this.form.submit()"
+        class="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 focus:border-primary outline-none transition-all"
+      >
+        <option value="">Tous les villages</option>
+        <option value="ecole"        {% if request.GET.infra == 'ecole' %}selected{% endif %}>Avec école</option>
+        <option value="centre_sante"      {% if request.GET.infra == 'centre_sante' %}selected{% endif %}>Avec Centre de santé</option>
+        <option value="electricite"  {% if request.GET.infra == 'electricite' %}selected{% endif %}>Avec électricité</option>
+        <option value="internet"     {% if request.GET.infra == 'internet' %}selected{% endif %}>Avec internet</option>
+      </select>
+
+      <button
+        type="submit"
+        class="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-all"
+      >
+        <span class="material-symbols-outlined text-lg">filter_list</span>
+        Filtrer
+      </button>
+
+      {% if request.user.est_agent_saisie %}
+      <a
+        href="{% url 'dashbord:village-create' %}"
+        class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+      >
+        <span class="material-symbols-outlined text-lg">add</span>
+        Nouveau village
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  {# ── Filtres rapides ── #}
+  <div class="px-4 py-2 bg-slate-50/50 dark:bg-primary/5 border-b border-slate-100 dark:border-primary/10 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+    <span class="text-[10px] font-bold text-slate-400 uppercase mr-2">Filtres rapides :</span>
+    <a href="?q={{ q|urlencode }}&infra={{ infra|urlencode }}&pop=5000&par_page={{ par_page }}" class="px-3 py-1 bg-white dark:bg-slate-800 border {% if request.GET.pop == '5000' %}border-primary text-primary{% else %}border-slate-200 text-slate-600 hover:border-primary{% endif %} rounded-full text-xs font-medium transition-all">
+      Population &gt; 5000
+    </a>
+    <a href="?q={{ q|urlencode }}&infra=ecole&pop={{ pop|urlencode }}&par_page={{ par_page }}" class="px-3 py-1 bg-white dark:bg-slate-800 border {% if request.GET.infra == 'ecole' %}border-primary text-primary{% else %}border-slate-200 text-slate-600 hover:border-primary{% endif %} rounded-full text-xs font-medium transition-all">
+      Avec école
+    </a>
+    <a href="?q={{ q|urlencode }}&infra=centre_sante&pop={{ pop|urlencode }}&par_page={{ par_page }}" class="px-3 py-1 bg-white dark:bg-slate-800 border {% if request.GET.infra == 'centre_sante' %}border-primary text-primary{% else %}border-slate-200 text-slate-600 hover:border-primary{% endif %} rounded-full text-xs font-medium transition-all">
+      Centres de santé
+    </a>
+    <a href="?par_page={{ par_page }}" class="px-3 py-1 bg-white dark:bg-slate-800 border border-slate-200 text-slate-600 hover:border-primary rounded-full text-xs font-medium transition-all">
+      Réinitialiser
+    </a>
+  </div>
+
+  {# ── Table ── #}
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-slate-50/50 dark:bg-primary/5 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
+          <th class="px-6 py-4">Nom du village</th>
+          <th class="px-6 py-4 text-center">Infrastructures</th>
+          <th class="px-6 py-4">Population</th>
+          <th class="px-6 py-4">Familles</th>
+          <th class="px-6 py-4">Chef de village</th>
+          <th class="px-6 py-4 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-primary/5">
+
+        {% for village in villages %}
+        <tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+
+          {# Nom + initiale #}
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="size-9 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center font-bold text-primary text-sm flex-shrink-0">
+                {{ village.nom|first|upper }}
+              </div>
+              <div>
+                <p class="font-bold text-slate-800 dark:text-white text-sm">{{ village.nom }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  {{ village.nombre_total_infrastructures }} infrastructure{{ village.nombre_total_infrastructures|pluralize }}
+                </p>
+              </div>
+            </div>
+          </td>
+
+          {# Icônes d'infrastructures #}
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-center gap-1.5">
+              {# École #}
+              <span
+                class="material-symbols-outlined text-lg {% if village.nombre_ecoles > 0 %}text-primary{% else %}text-slate-200 dark:text-slate-700{% endif %}"
+                title="{% if village.nombre_ecoles > 0 %}{{ village.nombre_ecoles }} école(s){% else %}Pas d'école{% endif %}"
+              >school</span>
+
+              {# Santé #}
+              <span
+                class="material-symbols-outlined text-lg {% if village.nombre_hopitaux > 0 or village.nombre_centres_sante > 0 or village.nombre_dispensaires > 0 %}text-accent{% else %}text-slate-200 dark:text-slate-700{% endif %}"
+                title="{% if village.nombre_hopitaux > 0 or village.nombre_centres_sante > 0 %}Santé disponible{% else %}Pas de santé{% endif %}"
+              >medical_services</span>
+
+              {# Eau #}
+              <span
+                class="material-symbols-outlined text-lg {% if village.infrastructures.filter.exists %}text-blue-500{% else %}text-slate-200 dark:text-slate-700{% endif %}"
+                title="Eau"
+              >water_drop</span>
+
+              {# Électricité #}
+              {% with elec=village.infrastructures.all %}
+              <span
+                class="material-symbols-outlined text-lg text-slate-200 dark:text-slate-700"
+                title="Électricité"
+              >bolt</span>
+              {% endwith %}
+            </div>
+          </td>
+
+          {# Population #}
+          <td class="px-6 py-4">
+            <p class="text-sm font-semibold text-slate-800 dark:text-white">
+              {{ village.population_estimee|floatformat:0 }}
+            </p>
+            <p class="text-xs text-slate-400">estimée</p>
+          </td>
+
+          {# Familles #}
+          <td class="px-6 py-4">
+            <p class="text-sm font-semibold text-slate-800 dark:text-white">
+              {{ village.nombre_familles }}
+            </p>
+            <p class="text-xs text-slate-400">famille{{ village.nombre_familles|pluralize }}</p>
+          </td>
+
+          {# Chef de village #}
+          <td class="px-6 py-4">
+            {% if village.chef_village %}
+              <p class="text-sm text-slate-700 dark:text-slate-300">{{ village.chef_village }}</p>
+            {% else %}
+              <span class="text-xs text-slate-400 italic">Non renseigné</span>
+            {% endif %}
+          </td>
+
+          {# Actions #}
+          <td class="px-6 py-4 text-right">
+            <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+              {# Voir détail #}
+              <a
+                href="{% url 'dashbord:village-detail' village.id %}"
+                class="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors"
+                title="Voir le détail"
+              >
+                <span class="material-symbols-outlined text-xl">visibility</span>
+              </a>
+
+              {% if request.user.est_agent_saisie %}
+              {# Modifier #}
+              <a
+                href="{% url 'dashbord:village-update' village.id %}"
+                class="p-2 hover:bg-accent/10 text-accent rounded-lg transition-colors"
+                title="Modifier"
+              >
+                <span class="material-symbols-outlined text-xl">edit</span>
+              </a>
+              {% endif %}
+              {% if request.user.peut_supprimer_registre %}
+              {# Supprimer #}
+              <button
+                type="button"
+                onclick="confirmerSuppression('{{ village.id }}', '{{ village.nom|escapejs }}')"
+                class="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+                title="Supprimer"
+                aria-label="Supprimer {{ village.nom }}"
+              >
+                <span class="material-symbols-outlined text-xl">delete</span>
+              </button>
+              {% endif %}
+
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-6 py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <span class="material-symbols-outlined text-5xl text-slate-200">location_off</span>
+              <p class="text-slate-400 font-medium">Aucun village trouvé</p>
+              {% if q %}
+                <p class="text-slate-400 text-sm">Aucun résultat pour "<strong>{{ q }}</strong>"</p>
+                <a href="?" class="text-primary text-sm hover:underline">Réinitialiser la recherche</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Pagination ── #}
+  {% include "components/_pagination_fixed.html" %}
+
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# RÉSUMÉ INFRASTRUCTURES                                       #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border-l-4 border-primary shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="material-symbols-outlined text-primary">school</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase">Éducation</span>
+    </div>
+    <h4 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ stats.villages_avec_ecole }}<span class="text-slate-300 font-normal">/{{ stats.total_villages }}</span>
+    </h4>
+    <p class="text-xs text-slate-500 mt-1">Villages avec école</p>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border-l-4 border-accent shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="material-symbols-outlined text-accent">medical_services</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase">Santé</span>
+    </div>
+    <h4 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ stats.villages_avec_sante }}<span class="text-slate-300 font-normal">/{{ stats.total_villages }}</span>
+    </h4>
+    <p class="text-xs text-slate-500 mt-1">Villages avec centre de santé</p>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border-l-4 border-blue-500 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="material-symbols-outlined text-blue-500">water_drop</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase">Eau</span>
+    </div>
+    <h4 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ stats.villages_avec_eau }}<span class="text-slate-300 font-normal">/{{ stats.total_villages }}</span>
+    </h4>
+    <p class="text-xs text-slate-500 mt-1">Accès à l'eau potable</p>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border-l-4 border-slate-400 shadow-sm">
+    <div class="flex justify-between items-start mb-2">
+      <span class="material-symbols-outlined text-slate-400">bolt</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase">Énergie</span>
+    </div>
+    <h4 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ stats.villages_avec_electricite }}<span class="text-slate-300 font-normal">/{{ stats.total_villages }}</span>
+    </h4>
+    <p class="text-xs text-slate-500 mt-1">Connectés au réseau électrique</p>
+  </div>
+
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# MODAL CONFIRMATION SUPPRESSION                              #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div
+  id="modal-suppression"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+  style="background: rgba(0,0,0,0.45);"
+>
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md p-6">
+    <div class="flex items-start gap-4 mb-5">
+      <div class="size-12 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-red-500 text-2xl">warning</span>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-900 dark:text-white text-lg">Confirmer la suppression</h3>
+        <p class="text-slate-500 text-sm mt-1">
+          Vous allez supprimer le village
+          <strong id="modal-nom-village" class="text-slate-800 dark:text-white"></strong>.
+          Cette action est réversible (soft-delete).
+        </p>
+      </div>
+    </div>
+
+    <form id="form-suppression" method="POST" action="">
+      {% csrf_token %}
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          onclick="fermerModal()"
+          class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-all"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all shadow-md shadow-red-200"
+        >
+          Supprimer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+  const villageDeleteUrlTemplate = "{% url 'dashbord:village-delete' village_id='00000000-0000-0000-0000-000000000000' %}";
+  // ── Modal suppression ────────────────────────────────────
+  function confirmerSuppression(villageId, villageNom) {
+    document.getElementById('modal-nom-village').textContent = villageNom;
+    document.getElementById('form-suppression').action =
+      villageDeleteUrlTemplate.replace('00000000-0000-0000-0000-000000000000', villageId);
+    document.getElementById('modal-suppression').classList.remove('hidden');
+  }
+
+  function fermerModal() {
+    document.getElementById('modal-suppression').classList.add('hidden');
+  }
+
+  // Fermer en cliquant hors du modal
+  document.getElementById('modal-suppression').addEventListener('click', function(e) {
+    if (e.target === this) fermerModal();
+  });
+
+  // ── Recherche auto-submit au bout de 400ms ───────────────
+  let searchTimer;
+  const searchInput = document.querySelector('input[name="q"]');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => this.form.submit(), 400);
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,590 @@
+{% extends 'connexion/base_login.html' %}
+{% load static %}
+{% load static i18n %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo Section -->
+        <div class="auth-logo">
+            <div class="logo-circle">
+                <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-img">
+            </div>
+            <h1 class="app-name">Sourcing</h1>
+        </div>
+
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="email-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <h2>{% trans "Vérifiez votre email" %}</h2>
+            <p class="subtitle">{% trans "Nous avons envoyé un code à 6 chiffres" %}</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form Section -->
+        <form method="post" id="auth-form" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="code-input-container">
+                <input type="hidden" name="{{ form.code.html_name }}" id="hidden-code-input" value="">
+                
+                <div class="code-boxes">
+                    <input type="text" class="code-box" maxlength="1" data-index="0" autocomplete="off">
+                    <input type="text" class="code-box" maxlength="1" data-index="1" autocomplete="off">
+                    <input type="text" class="code-box" maxlength="1" data-index="2" autocomplete="off">
+                    <div class="separator"></div>
+                    <input type="text" class="code-box" maxlength="1" data-index="3" autocomplete="off">
+                    <input type="text" class="code-box" maxlength="1" data-index="4" autocomplete="off">
+                    <input type="text" class="code-box" maxlength="1" data-index="5" autocomplete="off">
+                </div>
+                
+                {% if form.code.errors %}
+                    <div class="error-message">
+                        {% for error in form.code.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-submit" id="submit-btn" disabled>
+                <span class="btn-text">{% trans "Vérifier" %}</span>
+                <span class="btn-loader"></span>
+            </button>
+
+            <!-- Resend Section -->
+            <div class="resend-section">
+                <p class="resend-text">{% trans "Vous n'avez pas reçu le code ?" %}</p>
+                <button type="button" class="btn-resend" id="resend-btn">
+                    <i class="fas fa-redo"></i>
+                    <span>{% trans "Renvoyer" %}</span>
+                </button>
+                <div class="resend-timer" id="timer" style="display: none;">
+                    <i class="fas fa-clock"></i>
+                    <span>{% trans "Renvoyer dans" %} <strong id="countdown">60</strong>s</span>
+                </div>
+            </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <a href="#" class="help-link">
+                <i class="fas fa-question-circle"></i>
+                <span>{% trans "Besoin d'aide ?" %}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary: #2d5c2d;
+    --primary-light: #4a7c4a;
+    --success: #10b981;
+    --error: #ef4444;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --bg: #f9fafb;
+    --white: #ffffff;
+    --border: #e5e7eb;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Logo Section */
+.auth-logo {
+    text-align: center;
+    padding: 3rem 2rem 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+}
+
+.logo-circle {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.logo-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.app-name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+/* Header */
+.auth-header {
+    text-align: center;
+    padding: 2.5rem 2rem 2rem;
+}
+
+.email-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e40af;
+    font-size: 1.75rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.auth-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.3px;
+}
+
+.subtitle {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Messages */
+.messages-container {
+    padding: 0 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.alert i {
+    font-size: 1.1rem;
+}
+
+/* Form */
+.auth-form {
+    padding: 0 2rem 2rem;
+}
+
+.code-input-container {
+    margin-bottom: 2rem;
+}
+
+.code-boxes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.code-box {
+    width: 50px;
+    height: 60px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-align: center;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    color: var(--text);
+    transition: all 0.2s;
+    outline: none;
+}
+
+.code-box:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(45, 92, 45, 0.1);
+}
+
+.code-box.filled {
+    border-color: var(--primary);
+    background: #f0f9f0;
+}
+
+.code-box.error {
+    border-color: var(--error);
+    animation: shake 0.4s;
+}
+
+.separator {
+    width: 12px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 0.25rem;
+}
+
+.error-message {
+    text-align: center;
+    color: var(--error);
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+/* Submit Button */
+.btn-submit {
+    width: 100%;
+    height: 54px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.btn-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(45, 92, 45, 0.3);
+}
+
+.btn-submit:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-submit.loading .btn-text {
+    opacity: 0;
+}
+
+.btn-submit.loading .btn-loader {
+    opacity: 1;
+}
+
+.btn-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Resend Section */
+.resend-section {
+    text-align: center;
+}
+
+.resend-text {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.btn-resend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-resend:hover {
+    border-color: var(--primary);
+    background: #f0f9f0;
+    transform: translateY(-1px);
+}
+
+.btn-resend:active {
+    transform: translateY(0);
+}
+
+.btn-resend i {
+    font-size: 0.875rem;
+    transition: transform 0.3s;
+}
+
+.btn-resend:hover i {
+    transform: rotate(180deg);
+}
+
+.resend-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+.resend-timer i {
+    color: var(--primary);
+}
+
+.resend-timer strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Footer */
+.auth-footer {
+    text-align: center;
+    padding: 1.5rem 2rem 2.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.help-link:hover {
+    color: var(--primary);
+}
+
+/* Animations */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .auth-card {
+        margin: 1rem;
+    }
+    
+    .code-box {
+        width: 42px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+    
+    .separator {
+        width: 8px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const codeBoxes = document.querySelectorAll('.code-box');
+    const hiddenInput = document.getElementById('hidden-code-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const form = document.getElementById('auth-form');
+    const resendBtn = document.getElementById('resend-btn');
+    const timer = document.getElementById('timer');
+    const countdown = document.getElementById('countdown');
+    
+    let resendTimeout;
+    let countdownInterval;
+    
+    // Focus first box on load
+    codeBoxes[0].focus();
+    
+    // Handle input in code boxes
+    codeBoxes.forEach((box, index) => {
+        box.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            if (this.value) {
+                this.classList.add('filled');
+                
+                if (index < codeBoxes.length - 1) {
+                    codeBoxes[index + 1].focus();
+                }
+                
+                checkComplete();
+            } else {
+                this.classList.remove('filled');
+            }
+        });
+        
+        box.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && index > 0) {
+                codeBoxes[index - 1].focus();
+                codeBoxes[index - 1].value = '';
+                codeBoxes[index - 1].classList.remove('filled');
+            }
+            
+            if (e.key === 'ArrowLeft' && index > 0) {
+                codeBoxes[index - 1].focus();
+            }
+            if (e.key === 'ArrowRight' && index < codeBoxes.length - 1) {
+                codeBoxes[index + 1].focus();
+            }
+        });
+        
+        box.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+            
+            for (let i = 0; i < pastedData.length && index + i < codeBoxes.length; i++) {
+                codeBoxes[index + i].value = pastedData[i];
+                codeBoxes[index + i].classList.add('filled');
+            }
+            
+            const lastIndex = Math.min(index + pastedData.length, codeBoxes.length - 1);
+            codeBoxes[lastIndex].focus();
+            
+            checkComplete();
+        });
+    });
+    
+    function checkComplete() {
+        let code = '';
+        let allFilled = true;
+        
+        codeBoxes.forEach(box => {
+            if (box.value) {
+                code += box.value;
+            } else {
+                allFilled = false;
+            }
+        });
+        
+        if (allFilled && code.length === 6) {
+            hiddenInput.value = code;
+            submitBtn.disabled = false;
+            
+            setTimeout(() => {
+                submitBtn.classList.add('loading');
+                form.submit();
+            }, 300);
+        } else {
+            submitBtn.disabled = true;
+        }
+    }
+    
+    // Handle resend button
+    resendBtn.addEventListener('click', function() {
+        // Simulate resend (replace with actual AJAX call)
+        this.style.display = 'none';
+        timer.style.display = 'flex';
+        
+        let timeLeft = 60;
+        countdown.textContent = timeLeft;
+        
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            countdown.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                timer.style.display = 'none';
+                resendBtn.style.display = 'inline-flex';
+            }
+        }, 1000);
+        
+        // TODO: Add your AJAX call here to resend the code
+        // Example:
+        // fetch('/resend-code/', { method: 'POST', ... })
+    });
+    
+    // Handle form errors
+    {% if form.code.errors %}
+        codeBoxes.forEach(box => box.classList.add('error'));
+        setTimeout(() => {
+            codeBoxes.forEach(box => box.classList.remove('error'));
+        }, 400);
+    {% endif %}
+});
+</script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}

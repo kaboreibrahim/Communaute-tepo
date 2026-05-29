@@ -1,0 +1,155 @@
+{# partials/_topbar.html #}
+
+<header class="h-14 md:h-16 bg-white dark:bg-slate-900 border-b border-primary/10 px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-30">
+
+  {# Bouton hamburger + recherche #}
+  <div class="flex items-center gap-3 flex-1 min-w-0">
+
+    <button type="button"
+            onclick="toggleSidebar()"
+            class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-light dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors shrink-0"
+            title="Afficher ou masquer le menu lateral"
+            aria-label="Afficher ou masquer le menu lateral">
+      <span class="material-symbols-outlined" style="font-size:20px">menu</span>
+    </button>
+
+    <span class="lg:hidden text-sm font-bold text-slate-700 dark:text-slate-300 truncate">
+      {% block topbar_title %}Tableau de bord{% endblock %}
+    </span>
+
+    <form method="get" action="{% url 'dashbord:search' %}" class="hidden lg:flex relative w-full max-w-md">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" style="font-size:18px">search</span>
+      <input
+        type="search"
+        name="q"
+        value="{{ request.GET.q|default:'' }}"
+        placeholder="Rechercher villages, familles, personnes..."
+        class="w-full bg-bg-light dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-12 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-300"
+      />
+      <button
+        type="submit"
+        class="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white hover:text-primary dark:hover:bg-slate-700"
+        aria-label="Lancer la recherche"
+        title="Lancer la recherche"
+      >
+        <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+      </button>
+    </form>
+  </div>
+
+  {# Actions droite #}
+  <div class="flex items-center gap-1 md:gap-2 shrink-0">
+
+    <div class="relative">
+	      <button id="notif-btn"
+	              onclick="toggleNotifications()"
+	              class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-bg-light dark:hover:bg-slate-800 hover:text-primary transition-colors relative">
+	        <span class="material-symbols-outlined" style="font-size:20px">notifications</span>
+	        {% if notif_count %}
+	          <span class="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-black leading-none text-white border-2 border-white dark:border-slate-900">
+	            {% if notif_count > 99 %}99+{% else %}{{ notif_count }}{% endif %}
+	          </span>
+	        {% endif %}
+	      </button>
+
+      <div id="notif-dropdown"
+           class="hidden absolute right-0 top-12 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+        <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <h4 class="font-bold text-sm">Notifications</h4>
+          <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+            {{ notif_count|default:"0" }} nouvelles
+          </span>
+        </div>
+	        <div class="divide-y divide-slate-50 dark:divide-slate-700 max-h-64 overflow-y-auto">
+	          {% if notification_items %}
+	            {% for item in notification_items %}
+	            <a
+	              href="{{ item.url }}"
+	              class="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/40"
+	            >
+	              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl {{ item.icon_classes }}">
+	                <span class="material-symbols-outlined text-lg">{{ item.icon }}</span>
+	              </span>
+	              <div class="min-w-0 flex-1">
+	                <div class="flex items-center justify-between gap-3">
+	                  <p class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">
+	                    {{ item.title }}
+	                  </p>
+	                  <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-100">
+	                    {{ item.count }}
+	                  </span>
+	                </div>
+	                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+	                  {{ item.description }}
+	                </p>
+	              </div>
+	            </a>
+	            {% endfor %}
+	          {% else %}
+	          <p class="text-center text-xs text-slate-400 py-6">Aucune notification</p>
+	          {% endif %}
+	        </div>
+	        <a href="{% url 'dashbord:admin_dashboard' %}" class="block text-center text-xs font-bold text-primary py-3 hover:bg-primary/5 transition-colors">
+	          Ouvrir le tableau de bord
+	        </a>
+	      </div>
+	    </div>
+
+    <a href=""
+       class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-bg-light dark:hover:bg-slate-800 hover:text-primary transition-colors">
+      <span class="material-symbols-outlined" style="font-size:20px">settings</span>
+    </a>
+
+    <form method="post" action="{% url 'accounts:logout' %}" class="shrink-0">
+      {% csrf_token %}
+      <button
+        type="submit"
+        class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-bg-light dark:hover:bg-slate-800 hover:text-red-500 transition-colors"
+        title="Se deconnecter"
+        aria-label="Se deconnecter"
+      >
+        <span class="material-symbols-outlined" style="font-size:20px">logout</span>
+      </button>
+    </form>
+
+    <div class="hidden md:block h-7 w-px bg-primary/10 mx-1"></div>
+
+    <div class="hidden md:flex items-center gap-2.5">
+      <div class="text-right hidden lg:block">
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </p>
+        <p class="text-[10px] text-primary font-semibold">
+          {{ request.user.get_role_display|default:"Agent" }}
+        </p>
+      </div>
+      {% if request.user.photo_profil %}
+      <img
+        src="{{ request.user.photo_profil.url }}"
+        alt="Photo de profil"
+        class="h-9 w-9 rounded-full border-2 border-primary/20 object-cover shrink-0"
+      />
+      {% else %}
+      <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs border-2 border-primary/20 shrink-0">
+        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</header>
+
+<script>
+  function toggleNotifications() {
+    const d = document.getElementById('notif-dropdown');
+    d.classList.toggle('hidden');
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!d.contains(e.target) && e.target.id !== 'notif-btn') {
+          d.classList.add('hidden');
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
+</script>

@@ -1,0 +1,437 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Bibliothèque — Médias{% endblock %}
+
+{% block extra_head %}
+<style>
+  .media-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .media-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,97,58,0.12); }
+  .media-card .overlay { opacity: 0; transition: opacity 0.2s ease; }
+  .media-card:hover .overlay { opacity: 1; }
+  .list-row { transition: background 0.15s ease; }
+
+  /* Drag & drop zone */
+  #drop-zone { transition: border-color 0.2s, background 0.2s; }
+  #drop-zone.drag-over { border-color: #00613a; background: rgba(0,97,58,0.05); }
+
+  /* View toggle */
+  .view-btn.active { background: #00613a; color: #fff; }
+  .view-btn:not(.active) { color: #64748b; }
+  .view-btn:not(.active):hover { background: #f1f5f9; }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <a href="{% url 'medias:dashboard' %}" class="hover:text-primary transition-colors">Médiathèque</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">Bibliothèque</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">Bibliothèque</h1>
+    <p class="text-sm text-slate-500 mt-0.5">
+      {% if total_resultats %}{{ total_resultats }} média{{ total_resultats|pluralize }}{% else %}Aucun résultat{% endif %}
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    {# Vue grille / liste #}
+    <div class="flex rounded-xl border border-slate-200 overflow-hidden" id="view-toggle">
+      <button onclick="setView('grid')" id="btn-grid" class="view-btn active px-3 py-2 text-sm font-medium transition-colors" title="Vue grille">
+        <span class="material-symbols-outlined" style="font-size:18px">grid_view</span>
+      </button>
+      <button onclick="setView('list')" id="btn-list" class="view-btn px-3 py-2 text-sm font-medium transition-colors" title="Vue liste">
+        <span class="material-symbols-outlined" style="font-size:18px">view_list</span>
+      </button>
+    </div>
+    <a href="{% url 'medias:media-upload' %}"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm">
+      <span class="material-symbols-outlined" style="font-size:18px">upload</span>
+      Importer
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col lg:flex-row gap-6">
+
+  {# ── Panneau de filtres ── #}
+  <aside class="w-full lg:w-64 shrink-0">
+    <form method="get" id="filter-form" class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 space-y-5 sticky top-6">
+      <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px">filter_list</span>
+        Filtres
+      </h3>
+
+      {# Recherche #}
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Recherche</label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400" style="font-size:16px">search</span>
+          <input type="text" name="q" value="{{ recherche }}" placeholder="Titre du média…"
+                 class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none">
+        </div>
+      </div>
+
+      {# Type #}
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Type</label>
+        <div class="space-y-1">
+          <label class="flex items-center gap-2 cursor-pointer py-1">
+            <input type="radio" name="type" value="" {% if not type_filtre %}checked{% endif %} class="text-primary" onchange="this.form.submit()">
+            <span class="text-sm text-slate-600 dark:text-slate-300">Tous</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer py-1">
+            <input type="radio" name="type" value="image" {% if type_filtre == 'image' %}checked{% endif %} class="text-primary" onchange="this.form.submit()">
+            <span class="material-symbols-outlined text-sky-500" style="font-size:16px;font-variation-settings:'FILL' 1">image</span>
+            <span class="text-sm text-slate-600 dark:text-slate-300">Images</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer py-1">
+            <input type="radio" name="type" value="video" {% if type_filtre == 'video' %}checked{% endif %} class="text-primary" onchange="this.form.submit()">
+            <span class="material-symbols-outlined text-violet-500" style="font-size:16px;font-variation-settings:'FILL' 1">play_circle</span>
+            <span class="text-sm text-slate-600 dark:text-slate-300">Vidéos</span>
+          </label>
+        </div>
+      </div>
+
+      {# Catégorie #}
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Catégorie</label>
+        <select name="categorie" onchange="this.form.submit()"
+                class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none">
+          <option value="">Toutes</option>
+          {% for cat in categories %}
+          <option value="{{ cat.slug }}" {% if categorie_filtre == cat.slug %}selected{% endif %}>{{ cat.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# Date #}
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Période</label>
+        <div class="space-y-2">
+          <input type="date" name="date_debut" value="{{ date_debut }}"
+                 class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                 placeholder="Du">
+          <input type="date" name="date_fin" value="{{ date_fin }}"
+                 class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                 placeholder="Au">
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">
+          Filtrer
+        </button>
+        <a href="{% url 'medias:media-list' %}"
+           class="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium text-center hover:bg-slate-50 transition-colors">
+          Réinit.
+        </a>
+      </div>
+    </form>
+  </aside>
+
+  {# ── Contenu principal ── #}
+  <div class="flex-1 min-w-0 space-y-4">
+
+    {# Zone drag & drop d'upload rapide #}
+    <div id="drop-zone"
+         class="border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-2xl px-6 py-5 flex items-center justify-center gap-3 cursor-pointer hover:border-primary transition-colors bg-white dark:bg-slate-800"
+         onclick="window.location='{% url 'medias:media-upload' %}'"
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:28px">cloud_upload</span>
+      <div>
+        <p class="text-sm font-semibold text-slate-500">Glissez vos fichiers ici</p>
+        <p class="text-xs text-slate-400">ou <span class="text-primary font-semibold">cliquez pour importer</span></p>
+      </div>
+    </div>
+
+    {% if page_obj.object_list %}
+
+    {# Vue Grille #}
+    <div id="view-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+      {% for media in page_obj %}
+      <div class="media-card bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 group">
+        <a href="{% url 'medias:media-detail' media.pk %}" class="block relative aspect-square bg-slate-100 dark:bg-slate-700">
+          {% if media.est_image and media.fichier %}
+            <img src="{{ media.fichier.url }}" alt="{{ media.titre }}"
+                 class="w-full h-full object-cover" loading="lazy">
+          {% elif media.miniature %}
+            <img src="{{ media.miniature.url }}" alt="{{ media.titre }}"
+                 class="w-full h-full object-cover" loading="lazy">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-white" style="font-size:20px;font-variation-settings:'FILL' 1">play_arrow</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="w-full h-full flex flex-col items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-slate-300" style="font-size:36px;font-variation-settings:'FILL' 1">
+                {% if media.est_video %}play_circle{% else %}image{% endif %}
+              </span>
+              <span class="text-[10px] text-slate-400 font-semibold">{{ media.format_fichier }}</span>
+            </div>
+          {% endif %}
+          <div class="overlay absolute inset-0 bg-black/30 flex items-end p-2">
+            <div class="flex gap-1 ml-auto">
+              <a href="{% url 'medias:media-update' media.pk %}"
+                 class="w-7 h-7 rounded-lg bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
+                 title="Modifier" onclick="event.stopPropagation()">
+                <span class="material-symbols-outlined text-slate-700" style="font-size:14px">edit</span>
+              </a>
+              <button onclick="confirmDelete(event, '{% url 'medias:media-delete-ajax' media.pk %}', '{{ media.titre|escapejs }}')"
+                      class="w-7 h-7 rounded-lg bg-white/90 flex items-center justify-center hover:bg-red-50 transition-colors"
+                      title="Supprimer">
+                <span class="material-symbols-outlined text-red-500" style="font-size:14px">delete</span>
+              </button>
+            </div>
+          </div>
+          {% if media.est_video %}
+          <div class="absolute top-2 left-2">
+            <span class="bg-violet-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+              <span class="material-symbols-outlined" style="font-size:10px">play_arrow</span>
+              VID
+            </span>
+          </div>
+          {% endif %}
+        </a>
+        <div class="p-2">
+          <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate" title="{{ media.titre }}">{{ media.titre }}</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">
+            {{ media.taille_affichage }}
+            {% if media.duree_affichage %} · {{ media.duree_affichage }}{% endif %}
+          </p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Vue Liste #}
+    <div id="view-list" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700">
+          <tr>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Média</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell">Catégorie</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Taille</th>
+            <th class="text-left px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider hidden xl:table-cell">Date</th>
+            <th class="text-right px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          {% for media in page_obj %}
+          <tr class="list-row hover:bg-slate-50 dark:hover:bg-slate-700/30">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 shrink-0 flex items-center justify-center">
+                  {% if media.est_image and media.fichier %}
+                    <img src="{{ media.fichier.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+                  {% elif media.miniature %}
+                    <img src="{{ media.miniature.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+                  {% else %}
+                    <span class="material-symbols-outlined text-slate-400" style="font-size:18px;font-variation-settings:'FILL' 1">
+                      {% if media.est_video %}play_circle{% else %}image{% endif %}
+                    </span>
+                  {% endif %}
+                </div>
+                <div class="min-w-0">
+                  <a href="{% url 'medias:media-detail' media.pk %}"
+                     class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary truncate block max-w-[160px]">
+                    {{ media.titre }}
+                  </a>
+                  <p class="text-xs text-slate-400">{{ media.format_fichier }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3 hidden sm:table-cell">
+              {% if media.est_image %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                  <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1">image</span>Image
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold">
+                  <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1">play_circle</span>Vidéo
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 hidden md:table-cell">
+              <span class="text-xs text-slate-500">{{ media.categorie.nom|default:"—" }}</span>
+            </td>
+            <td class="px-4 py-3 hidden lg:table-cell">
+              <span class="text-xs text-slate-500">{{ media.taille_affichage }}</span>
+            </td>
+            <td class="px-4 py-3 hidden xl:table-cell">
+              <span class="text-xs text-slate-500">{{ media.date_creation|date:"d/m/Y" }}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <a href="{% url 'medias:media-detail' media.pk %}"
+                   class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-400 hover:text-primary transition-colors" title="Voir">
+                  <span class="material-symbols-outlined" style="font-size:16px">visibility</span>
+                </a>
+                <a href="{% url 'medias:media-update' media.pk %}"
+                   class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-400 hover:text-primary transition-colors" title="Modifier">
+                  <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+                </a>
+                <button onclick="confirmDelete(event, '{% url 'medias:media-delete-ajax' media.pk %}', '{{ media.titre|escapejs }}')"
+                        class="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors" title="Supprimer">
+                  <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Pagination ── #}
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2 pt-2">
+      {% if page_obj.has_previous %}
+      <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+         class="flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_left</span>
+        Préc.
+      </a>
+      {% endif %}
+
+      <span class="text-sm text-slate-500 px-3">
+        Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+      </span>
+
+      {% if page_obj.has_next %}
+      <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+         class="flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+        Suiv.
+        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center py-20 text-slate-400">
+      <span class="material-symbols-outlined" style="font-size:56px">search_off</span>
+      <p class="mt-4 font-semibold text-slate-500">Aucun média trouvé</p>
+      <p class="text-sm mt-1">Essayez de modifier vos filtres ou importez un nouveau fichier.</p>
+      <a href="{% url 'medias:media-upload' %}"
+         class="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors">
+        <span class="material-symbols-outlined" style="font-size:18px">upload</span>
+        Importer
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ── Modal de confirmation de suppression ── #}
+<div id="delete-modal" class="fixed inset-0 z-[9999] hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 relative">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-red-500" style="font-size:28px;font-variation-settings:'FILL' 1">delete_forever</span>
+        </div>
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-lg">Supprimer ce média ?</h3>
+        <p class="text-sm text-slate-500 mt-2">
+          <strong id="delete-media-name" class="text-slate-700 dark:text-slate-300"></strong> sera supprimé définitivement.
+        </p>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="closeDeleteModal()"
+                class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+          Annuler
+        </button>
+        <button id="confirm-delete-btn"
+                class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Vue grille / liste ──
+  const VIEW_KEY = 'media-view';
+  function setView(v) {
+    document.getElementById('view-grid').classList.toggle('hidden', v !== 'grid');
+    document.getElementById('view-list').classList.toggle('hidden', v !== 'list');
+    document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+    document.getElementById('btn-list').classList.toggle('active', v === 'list');
+    localStorage.setItem(VIEW_KEY, v);
+  }
+  const savedView = localStorage.getItem(VIEW_KEY) || 'grid';
+  setView(savedView);
+
+  // ── Drag & drop ──
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.add('drag-over');
+  }
+  function handleDragLeave(e) {
+    document.getElementById('drop-zone').classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').classList.remove('drag-over');
+    window.location = '{% url "medias:media-upload" %}';
+  }
+
+  // ── Suppression via AJAX ──
+  let _deleteUrl = '';
+  let _deleteCard = null;
+
+  function confirmDelete(e, url, titre) {
+    e.preventDefault();
+    e.stopPropagation();
+    _deleteUrl = url;
+    _deleteCard = e.target.closest('.media-card') || e.target.closest('tr');
+    document.getElementById('delete-media-name').textContent = titre;
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.add('hidden');
+  }
+
+  document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Suppression…';
+    try {
+      const res = await fetch(_deleteUrl, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeDeleteModal();
+        if (_deleteCard) _deleteCard.remove();
+      } else {
+        alert('Erreur lors de la suppression.');
+      }
+    } catch {
+      alert('Erreur réseau.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Supprimer';
+    }
+  });
+</script>
+{% endblock %}

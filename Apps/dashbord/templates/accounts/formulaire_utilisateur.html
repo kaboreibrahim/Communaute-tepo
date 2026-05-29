@@ -1,0 +1,240 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Creer un utilisateur - Olodio{% endblock %}
+{% block topbar_title %}Nouvel utilisateur{% endblock %}
+
+{% block extra_head %}
+<style>
+  .map-pattern {
+    background-image:
+      radial-gradient(circle at 20px 20px, rgba(0, 97, 58, 0.18) 1.2px, transparent 1.2px),
+      linear-gradient(135deg, rgba(0, 97, 58, 0.04), transparent 55%);
+    background-size: 32px 32px, 100% 100%;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center justify-between gap-3 text-sm text-slate-400">
+  <div class="flex items-center gap-2">
+    <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+    <span class="material-symbols-outlined text-base">chevron_right</span>
+    <a href="{% url 'dashbord:user-list' %}" class="hover:text-primary transition-colors">Utilisateurs</a>
+    <span class="material-symbols-outlined text-base">chevron_right</span>
+    <span class="text-slate-700 dark:text-slate-200 font-medium">Nouveau</span>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="relative min-h-full">
+  <div class="map-pattern pointer-events-none absolute inset-0 rounded-[2rem] opacity-30"></div>
+
+  <div class="relative z-10 mx-auto max-w-5xl">
+    <div class="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="mb-2 text-3xl font-black tracking-tight text-emerald-900 dark:text-white">Creer un nouvel utilisateur</h1>
+        <p class="font-medium text-slate-500 dark:text-slate-400">Enregistrement administratif pour la plateforme de recensement Olodio.</p>
+      </div>
+      <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+        <span>Dashboard</span>
+        <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+        <span>Utilisateurs</span>
+        <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+        <span class="text-emerald-700">Nouveau</span>
+      </div>
+    </div>
+
+    {% if form.non_field_errors or form.errors %}
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+      <p class="font-bold uppercase tracking-wide text-red-600">Le formulaire contient des erreurs.</p>
+      <ul class="mt-2 space-y-1">
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+        {% for field in form %}
+          {% for error in field.errors %}
+          <li>{{ field.label }} : {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form action="" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      {% csrf_token %}
+
+      <div class="space-y-6 lg:col-span-2">
+        <section class="rounded-xl border-t-4 border-emerald-800 bg-white p-8 shadow-xl dark:bg-slate-900">
+          <div class="mb-6 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">fingerprint</span>
+            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Identite Administrative</h2>
+          </div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+              {{ form.username }}
+              {% if form.username.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.username.errors.0 }}</p>
+              {% endif %}
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.email.id_for_label }}">Email officiel</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.email.errors.0 }}</p>
+              {% endif %}
+            </div>
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.temporary_password.id_for_label }}">Mot de passe provisoire</label>
+              <div class="relative">
+                {{ form.temporary_password }}
+                <button type="button" id="toggle-password-visibility" class="absolute right-4 top-4 text-slate-400 transition-colors hover:text-primary" aria-label="Afficher ou masquer le mot de passe">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+              </div>
+              {% if form.temporary_password.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.temporary_password.errors.0 }}</p>
+              {% else %}
+              <p class="text-xs text-slate-400">Minimum 8 caracteres pour le mot de passe provisoire.</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-xl bg-white p-8 shadow-xl dark:bg-slate-900">
+          <div class="mb-6 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">contact_phone</span>
+            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Profil et Contact</h2>
+          </div>
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.telephone.id_for_label }}">Telephone</label>
+              {{ form.telephone }}
+              {% if form.telephone.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.telephone.errors.0 }}</p>
+              {% endif %}
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400">Photo de profil</label>
+              <div class="flex items-center gap-4">
+                <div class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-100 text-slate-400">
+                  <span class="material-symbols-outlined">add_a_photo</span>
+                </div>
+                <label class="cursor-pointer rounded bg-emerald-50 px-4 py-2 text-[10px] font-bold uppercase text-emerald-800 transition-colors hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-300">
+                  Televerser
+                  {{ form.photo_profil }}
+                </label>
+              </div>
+              <p id="photo-upload-name" class="text-xs text-slate-400">Aucun fichier selectionne.</p>
+              {% if form.photo_profil.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.photo_profil.errors.0 }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="space-y-6">
+        <section class="rounded-xl bg-white p-8 shadow-xl dark:bg-slate-900">
+          <div class="mb-6 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">assignment_ind</span>
+            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Affectation</h2>
+          </div>
+          <div class="space-y-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.role.id_for_label }}">Role</label>
+              {{ form.role }}
+              {% if form.role.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.role.errors.0 }}</p>
+              {% endif %}
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-400" for="{{ form.village.id_for_label }}">Village de rattachement</label>
+              {{ form.village }}
+              {% if form.village.errors %}
+              <p class="text-xs font-medium text-red-500">{{ form.village.errors.0 }}</p>
+              {% else %}
+              <p class="text-xs text-slate-400">Optionnel si le compte n'est pas rattache a un village.</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-xl bg-white p-8 shadow-xl dark:bg-slate-900">
+          <div class="mb-6 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400">verified</span>
+            <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Verification</h2>
+          </div>
+          <div class="space-y-4">
+            <label class="group flex cursor-pointer items-center gap-3">
+              {{ form.is_verified }}
+              <span class="text-sm font-medium text-slate-600 transition-colors group-hover:text-emerald-900 dark:text-slate-300 dark:group-hover:text-emerald-300">Email verifie (is_verified)</span>
+            </label>
+            <label class="group flex cursor-pointer items-center gap-3">
+              {{ form.is_active }}
+              <span class="text-sm font-medium text-slate-600 transition-colors group-hover:text-emerald-900 dark:text-slate-300 dark:group-hover:text-emerald-300">Acces actif</span>
+            </label>
+          </div>
+        </section>
+
+        <div class="group relative overflow-hidden rounded-xl bg-emerald-900 p-6 text-white shadow-2xl">
+          <div class="absolute -bottom-4 -right-4 opacity-10 transition-transform duration-700 group-hover:scale-110">
+            <span class="material-symbols-outlined text-9xl">gavel</span>
+          </div>
+          <h3 class="relative z-10 mb-4 text-xs font-bold uppercase tracking-[0.2em]">Note Juridique</h3>
+          <p class="relative z-10 text-xs leading-relaxed opacity-80">L'ajout d'un nouvel utilisateur engage la responsabilite de l'administrateur. Toutes les actions effectuees par ce profil seront tracees dans le registre d'activite de la plateforme.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 pt-2 md:flex-row lg:col-span-3">
+        <button class="flex h-14 flex-1 items-center justify-center gap-3 rounded-lg bg-primary text-sm font-bold uppercase tracking-widest text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-emerald-900/30 md:flex-none md:min-w-[280px]" type="submit">
+          Enregistrer l'utilisateur
+          <span class="material-symbols-outlined">save</span>
+        </button>
+        <a href="{% url 'dashbord:user-list' %}" class="flex h-14 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-bold uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 md:flex-none md:min-w-[180px]">
+          Annuler
+        </a>
+      </div>
+    </form>
+
+    <div class="mt-20 flex items-center justify-between border-t border-emerald-900/10 pt-8 opacity-50">
+      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Olodio Census Platform (c) 2024</div>
+      <div class="flex gap-4">
+        <div class="h-2 w-2 rounded-full bg-emerald-700"></div>
+        <div class="h-2 w-2 rounded-full bg-emerald-400"></div>
+        <div class="h-2 w-2 rounded-full bg-emerald-200"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const passwordInput = document.getElementById('password-input');
+  const togglePasswordButton = document.getElementById('toggle-password-visibility');
+  const photoInput = document.getElementById('id_photo_profil');
+  const photoLabel = document.getElementById('photo-upload-name');
+
+  if (togglePasswordButton && passwordInput) {
+    togglePasswordButton.addEventListener('click', () => {
+      const nextType = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = nextType;
+      togglePasswordButton.innerHTML = nextType === 'password'
+        ? '<span class="material-symbols-outlined">visibility</span>'
+        : '<span class="material-symbols-outlined">visibility_off</span>';
+    });
+  }
+
+  if (photoInput && photoLabel) {
+    photoInput.addEventListener('change', () => {
+      const fileName = photoInput.files && photoInput.files[0]
+        ? photoInput.files[0].name
+        : 'Aucun fichier selectionne.';
+      photoLabel.textContent = fileName;
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /dashbord/
+Disallow: /accounts/
+Disallow: /diaspora/
+Disallow: /families/
+Disallow: /fr/accounts/
+Disallow: /fr/dashbord/
+Disallow: /fr/diaspora/
+Disallow: /fr/families/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

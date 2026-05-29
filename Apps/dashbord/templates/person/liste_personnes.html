@@ -1,0 +1,608 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% load pagination_tags %}
+
+{% block title %}Gestion des Personnes — Olodio{% endblock %}
+{% block topbar_title %}Personnes{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-emerald-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-emerald-700 transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:village-list' %}" class="hover:text-emerald-700 transition-colors">Familles</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-emerald-950 dark:text-white font-medium">Personnes</span>
+</nav>
+{% endblock %}
+
+
+{% block content %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# HEADER                                                       #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+  <div>
+    <div class="flex items-center space-x-2 mb-2">
+      <div class="h-1 w-12 bg-[#FF8200] rounded-full"></div>
+      <span class="font-bold text-[12px] uppercase tracking-[0.2em] text-emerald-600">
+        Portail Administratif
+      </span>
+    </div>
+    <h2 class="text-[40px] font-black tracking-tighter text-emerald-950 dark:text-white leading-none">
+      Gestion des Personnes
+    </h2>
+    <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">
+      Registre complet des citoyens et résidents. Gérez les identités,
+      groupements familiaux et statuts démographiques.
+    </p>
+  </div>
+
+  {% if request.user.est_agent_saisie %}
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <a
+      href="{% url 'dashbord:public-person-submission-list' %}"
+      class="h-14 px-6 bg-white text-emerald-700 font-bold rounded-lg border border-emerald-200 shadow-sm flex items-center space-x-3 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+    >
+      <span>Pre-inscriptions publiques</span>
+      <span class="inline-flex min-w-8 items-center justify-center rounded-full bg-amber-100 px-2 py-1 text-[11px] font-black text-amber-700">
+        {{ pending_public_submissions }}
+      </span>
+    </a>
+
+    <a
+      href="{% url 'dashbord:person-create' %}{% if famille_id %}?famille={{ famille_id }}{% endif %}"
+      class="h-14 px-8 bg-emerald-700 text-white font-bold rounded-lg shadow-xl flex items-center space-x-3 hover:scale-95 transition-transform duration-200 whitespace-nowrap group"
+    >
+      <span>Enregistrer une personne</span>
+      <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">person_add</span>
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# MESSAGES DJANGO                                              #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% if messages %}
+<div class="mb-6 space-y-2">
+  {% for message in messages %}
+  <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+    {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+    {% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+    {% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200
+    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+    <span class="material-symbols-outlined text-lg">
+      {% if message.tags == 'success' %}check_circle
+      {% elif message.tags == 'error' %}error
+      {% elif message.tags == 'warning' %}warning
+      {% else %}info{% endif %}
+    </span>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# STATS CARDS                                                  #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-emerald-50 dark:border-emerald-900/30">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Total personnes</p>
+    <h3 class="text-3xl font-black text-emerald-950 dark:text-white">{{ total }}</h3>
+    <p class="text-[10px] text-slate-400 mt-1">dans la sélection</p>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-emerald-50 dark:border-emerald-900/30">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Vivants</p>
+    <h3 class="text-3xl font-black text-emerald-950 dark:text-white">{{ stats.total_vivants }}</h3>
+    <div class="flex items-center gap-1 mt-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      <p class="text-[10px] text-emerald-600 font-bold">Actifs</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-emerald-50 dark:border-emerald-900/30">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-1">Diaspora</p>
+    <h3 class="text-3xl font-black text-emerald-950 dark:text-white">{{ stats.total_diaspora }}</h3>
+    <div class="flex items-center gap-1 mt-1">
+      <span class="material-symbols-outlined text-amber-500 text-sm">public</span>
+      <p class="text-[10px] text-amber-600 font-bold">Hors CI</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-emerald-50 dark:border-emerald-900/30">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Familles</p>
+    <h3 class="text-3xl font-black text-emerald-950 dark:text-white">{{ stats.total_familles }}</h3>
+    <p class="text-[10px] text-slate-400 mt-1">recensées</p>
+  </div>
+
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# RECHERCHE & FILTRES                                          #}
+{# ═══════════════════════════════════════════════════════════ #}
+<form method="GET" action="" id="form-filtres">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+
+  {# Recherche identité #}
+  <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-xl border border-emerald-50 dark:border-emerald-900/30 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50/50 rounded-bl-full -mr-16 -mt-16 pointer-events-none"></div>
+    <label class="block font-bold text-[10px] uppercase tracking-widest text-emerald-800 dark:text-emerald-400 mb-3">
+      Recherche identité
+    </label>
+    <div class="relative">
+      <input
+        type="text"
+        name="q"
+        value="{{ q }}"
+        placeholder="Nom, prénom, code, numéro CNI..."
+        class="w-full h-12 bg-emerald-50/50 dark:bg-slate-800 border-none rounded-lg pl-12 pr-4 text-sm text-emerald-950 dark:text-white placeholder-emerald-400 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+      >
+      <span class="material-symbols-outlined absolute left-4 top-3 text-emerald-600">fingerprint</span>
+    </div>
+  </div>
+
+  {# Filtre village #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-xl border border-emerald-50 dark:border-emerald-900/30">
+    <label class="block font-bold text-[10px] uppercase tracking-widest text-emerald-800 dark:text-emerald-400 mb-3">
+      Village
+    </label>
+    <select
+      name="village"
+      onchange="document.getElementById('form-filtres').submit()"
+      class="w-full h-12 bg-emerald-50/50 dark:bg-slate-800 border-none rounded-lg px-3 text-sm text-emerald-950 dark:text-white focus:ring-2 focus:ring-emerald-200 outline-none"
+    >
+      <option value="">Tous les villages</option>
+      {% for v in villages %}
+        <option value="{{ v.id }}" {% if village_id == v.id|stringformat:"s" %}selected{% endif %}>
+          {{ v.nom }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {# Filtres avancés #}
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-xl border border-emerald-50 dark:border-emerald-900/30">
+    <div class="flex justify-between items-center mb-4">
+      <label class="font-bold text-[10px] uppercase tracking-widest text-emerald-800 dark:text-emerald-400">
+        Filtres avancés
+      </label>
+      <a href="?" class="text-[10px] text-emerald-600 font-bold uppercase underline hover:text-emerald-800">
+        Réinitialiser
+      </a>
+    </div>
+    <div class="flex gap-2">
+      {# Genre #}
+      <select
+        name="genre"
+        onchange="document.getElementById('form-filtres').submit()"
+        class="flex-1 h-10 bg-emerald-50 dark:bg-slate-800 text-emerald-900 dark:text-white text-xs font-bold rounded border border-emerald-100 px-2 outline-none"
+      >
+        <option value="">Genre</option>
+        <option value="M" {% if genre == 'M' %}selected{% endif %}>Masculin</option>
+        <option value="F" {% if genre == 'F' %}selected{% endif %}>Féminin</option>
+      </select>
+
+      {# Résidence #}
+      <select
+        name="residence"
+        onchange="document.getElementById('form-filtres').submit()"
+        class="flex-1 h-10 bg-emerald-50 dark:bg-slate-800 text-emerald-900 dark:text-white text-xs font-bold rounded border border-emerald-100 px-2 outline-none"
+      >
+        <option value="">Statut</option>
+        <option value="village"  {% if request.GET.residence == 'village' %}selected{% endif %}>Village</option>
+        <option value="ci"       {% if request.GET.residence == 'ci' %}selected{% endif %}>CI</option>
+        <option value="diaspora" {% if request.GET.residence == 'diaspora' %}selected{% endif %}>Diaspora</option>
+      </select>
+    </div>
+
+    {# Bouton submit #}
+    <button
+      type="submit"
+      class="w-full mt-3 h-9 bg-emerald-700 text-white text-xs font-bold rounded hover:bg-emerald-800 transition-colors flex items-center justify-center gap-1"
+    >
+      <span class="material-symbols-outlined text-sm">search</span>
+      Rechercher
+    </button>
+  </div>
+
+</div>
+</form>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# TABLE PERSONNES                                              #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-emerald-50 dark:border-emerald-900/30">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-emerald-50/50 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/30">
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Nom complet
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Genre
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Date de naissance
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Village
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Famille
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400">
+            Statut
+          </th>
+          <th class="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-emerald-900 dark:text-emerald-400 text-right">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-emerald-50 dark:divide-emerald-900/20">
+
+        {% for personne in personnes %}
+        <tr class="hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-colors group">
+
+          {# Nom + photo #}
+          <td class="px-6 py-4">
+            <div class="flex items-center space-x-3">
+
+              {# Avatar / Photo #}
+              <div class="h-10 w-10 rounded-full overflow-hidden border border-emerald-100 bg-emerald-50 flex-shrink-0">
+                {% if personne.photo %}
+                  <img
+                    src="{{ personne.photo }}"
+                    alt="{{ personne.nom_complet }}"
+                    class="object-cover h-full w-full"
+                  >
+                {% else %}
+                  <div class="h-full w-full flex items-center justify-center font-black text-sm
+                    {% if personne.genre == 'M' %}bg-emerald-100 text-emerald-700
+                    {% else %}bg-pink-100 text-pink-700{% endif %}">
+                    {{ personne.prenom|first|upper }}{{ personne.nom|first|upper }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <p class="font-bold text-emerald-950 dark:text-white text-sm">
+                  {{ personne.nom_complet }}
+                </p>
+                <p class="text-[10px] text-emerald-600 font-mono">
+                  CODE: {{ personne.code }}
+                </p>
+              </div>
+            </div>
+          </td>
+
+          {# Genre #}
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base
+                {% if personne.genre == 'M' %}text-emerald-600{% else %}text-pink-500{% endif %}">
+                {% if personne.genre == 'M' %}male{% else %}female{% endif %}
+              </span>
+              <span class="text-sm text-slate-500 dark:text-slate-400">
+                {{ personne.genre_label }}
+              </span>
+            </div>
+          </td>
+
+          {# Date de naissance #}
+          <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+            {% if personne.age %}
+              {{ personne.age }} ans
+              {% if personne.date_naissance %}
+                <span class="block text-[10px] text-slate-400">
+                  {{ personne.date_naissance|date:"d/m/Y" }}
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="text-slate-300 italic text-xs">Non renseigné</span>
+            {% endif %}
+          </td>
+
+          {# Village #}
+          <td class="px-6 py-4">
+            <p class="text-sm text-slate-600 dark:text-slate-300 font-medium">
+              {{ personne.village }}
+            </p>
+          </td>
+
+          {# Famille #}
+          <td class="px-6 py-4">
+            {% if personne.famille_id %}
+              <a
+                href="{% url 'dashbord:family-detail' personne.famille_id %}"
+                class="text-sm text-emerald-700 dark:text-emerald-400 font-medium hover:underline"
+              >
+                {{ personne.famille_nom }}
+              </a>
+            {% else %}
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                {{ personne.famille_nom|default:"-" }}
+              </span>
+            {% endif %}
+          </td>
+
+          {# Statut résidence #}
+          <td class="px-6 py-4">
+            {% if not personne.est_vivant %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-tighter">
+                <span class="w-1 h-1 rounded-full bg-slate-400 mr-1.5"></span>
+                Décédé(e)
+              </span>
+            {% elif personne.genre == 'diaspora' or personne.famille_nom == 'diaspora' %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter">
+                <span class="w-1 h-1 rounded-full bg-amber-600 mr-1.5"></span>
+                Diaspora
+              </span>
+            {% else %}
+              {% if personne.type_residence == 'diaspora' %}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-tighter">
+                  <span class="w-1 h-1 rounded-full bg-amber-600 mr-1.5"></span>
+                  Diaspora
+                </span>
+              {% elif personne.type_residence == 'ci' %}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 uppercase tracking-tighter">
+                  <span class="w-1 h-1 rounded-full bg-blue-600 mr-1.5"></span>
+                  Hors village
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-tighter">
+                  <span class="w-1 h-1 rounded-full bg-emerald-600 mr-1.5"></span>
+                  Actif
+                </span>
+              {% endif %}
+            {% endif %}
+          </td>
+
+          {# Actions #}
+          <td class="px-6 py-4 text-right">
+            <div class="flex justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+              <a
+                href="{% url 'dashbord:person-detail' personne.id %}"
+                class="p-2 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                title="Voir le détail"
+              >
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </a>
+
+              {% if request.user.est_agent_saisie %}
+              <a
+                href="{% url 'dashbord:person-update' personne.id %}"
+                class="p-2 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                title="Modifier"
+              >
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </a>
+              {% endif %}
+              {% if request.user.peut_supprimer_registre %}
+              <a
+                href="{% url 'dashbord:person-delete' personne.id %}"
+                class="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title="Supprimer"
+              >
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </a>
+              {% endif %}
+
+            </div>
+          </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="px-6 py-20 text-center">
+            <div class="flex flex-col items-center gap-4">
+              <span class="material-symbols-outlined text-6xl text-emerald-100">person_search</span>
+              <p class="font-bold text-emerald-950 dark:text-white">Aucune personne trouvée</p>
+              {% if q %}
+                <p class="text-slate-400 text-sm">
+                  Aucun résultat pour "<strong>{{ q }}</strong>"
+                </p>
+                <a href="?" class="text-emerald-600 text-sm font-bold hover:underline">
+                  Réinitialiser la recherche
+                </a>
+              {% else %}
+                <a
+                  href=""
+                  class="mt-2 px-6 py-2 bg-emerald-700 text-white text-sm font-bold rounded-lg hover:bg-emerald-800 transition-colors"
+                >
+                  Enregistrer la première personne
+                </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Pagination ── #}
+  <div class="px-6 py-4 bg-emerald-50/30 dark:bg-emerald-900/5 border-t border-emerald-100 dark:border-emerald-900/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+
+    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+      Affichage
+      <span class="text-emerald-950 dark:text-white">{{ par_page }}</span>
+      sur
+      <span class="text-emerald-950 dark:text-white">{{ total }}</span>
+      entrées
+    </p>
+
+    {% if nb_pages > 1 %}
+    <div class="flex items-center space-x-1">
+
+      {% if page > 1 %}
+      <a href="?page={{ page|add:"-1" }}&q={{ q }}&village={{ village_id }}&genre={{ genre }}"
+         class="h-8 w-8 flex items-center justify-center rounded border border-emerald-200 dark:border-emerald-800 text-emerald-400 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+        <span class="material-symbols-outlined text-sm">chevron_left</span>
+      </a>
+      {% else %}
+      <button disabled class="h-8 w-8 flex items-center justify-center rounded border border-emerald-100 text-emerald-200 cursor-not-allowed">
+        <span class="material-symbols-outlined text-sm">chevron_left</span>
+      </button>
+      {% endif %}
+
+      {% for i in nb_pages|get_range %}
+        {% if i == page %}
+          <button class="h-8 w-8 flex items-center justify-center rounded bg-emerald-700 text-white text-[10px] font-bold">
+            {{ i }}
+          </button>
+        {% elif i == 1 or i == nb_pages or i >= page|add:"-2" and i <= page|add:"2" %}
+          <a href="?page={{ i }}&q={{ q }}&village={{ village_id }}&genre={{ genre }}"
+             class="h-8 w-8 flex items-center justify-center rounded border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-white dark:hover:bg-slate-800 text-[10px] font-bold transition-colors">
+            {{ i }}
+          </a>
+        {% elif i == page|add:"-3" or i == page|add:"3" %}
+          <span class="text-emerald-300 text-xs px-1">...</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if page < nb_pages %}
+      <a href="?page={{ page|add:"1" }}&q={{ q }}&village={{ village_id }}&genre={{ genre }}"
+         class="h-8 w-8 flex items-center justify-center rounded border border-emerald-200 dark:border-emerald-800 text-emerald-400 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </a>
+      {% else %}
+      <button disabled class="h-8 w-8 flex items-center justify-center rounded border border-emerald-100 text-emerald-200 cursor-not-allowed">
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# FOOTER IDENTITAIRE                                           #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div class="pt-12 flex items-center justify-center space-x-4 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+  <div class="h-0.5 w-16 bg-[#009E60]"></div>
+  <div class="flex items-center space-x-2">
+    <span class="material-symbols-outlined text-emerald-900 text-sm">verified_user</span>
+    <p class="font-bold text-[10px] uppercase tracking-[0.2em] text-emerald-900">
+      Registre Souverain — Sous-préfecture d'Olodio
+    </p>
+  </div>
+  <div class="h-0.5 w-16 bg-[#FF8200]"></div>
+</div>
+
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# MODAL CONFIRMATION SUPPRESSION                              #}
+{# ═══════════════════════════════════════════════════════════ #}
+<div
+  id="modal-suppression"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+  style="background: rgba(0,0,0,0.45);"
+>
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-emerald-50">
+    <div class="flex items-start gap-4 mb-6">
+      <div class="size-12 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-red-500 text-2xl">warning</span>
+      </div>
+      <div>
+        <h3 class="font-black text-emerald-950 dark:text-white text-lg tracking-tight">
+          Confirmer la suppression
+        </h3>
+        <p class="text-slate-500 text-sm mt-1">
+          Vous allez supprimer
+          <strong id="modal-nom-personne" class="text-emerald-900 dark:text-white"></strong>.
+          <br>
+          <span class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
+            Action réversible (soft-delete)
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <form id="form-suppression" method="POST" action="">
+      {% csrf_token %}
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          onclick="fermerModal()"
+          class="px-5 py-2.5 rounded-lg border border-emerald-200 text-emerald-700 text-sm font-bold hover:bg-emerald-50 transition-all"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200"
+        >
+          Supprimer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+  // ── Modal suppression ────────────────────────────────────
+  function confirmerSuppression(personId, personNom) {
+    document.getElementById('modal-nom-personne').textContent = personNom;
+    document.getElementById('form-suppression').action =
+      `/dashboard/personnes/${personId}/supprimer/`;
+    document.getElementById('modal-suppression').classList.remove('hidden');
+  }
+
+  function fermerModal() {
+    document.getElementById('modal-suppression').classList.add('hidden');
+  }
+
+  document.getElementById('modal-suppression').addEventListener('click', function(e) {
+    if (e.target === this) fermerModal();
+  });
+
+  // ── Recherche auto-submit 400ms ──────────────────────────
+  let timer;
+  const searchInput = document.querySelector('input[name="q"]');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        document.getElementById('form-filtres').submit();
+      }, 400);
+    });
+  }
+
+  // ── Filtre famille dynamique selon village ───────────────
+  const villageSelect = document.querySelector('select[name="village"]');
+  const familleSelect = document.querySelector('select[name="famille"]');
+  if (villageSelect && familleSelect) {
+    villageSelect.addEventListener('change', function () {
+      const villageId = this.value;
+      fetch(`/dashboard/api/familles/?village_id=${villageId}`)
+        .then(r => r.json())
+        .then(data => {
+          familleSelect.innerHTML = '<option value="">Toutes les familles</option>';
+          data.forEach(f => {
+            familleSelect.innerHTML +=
+              `<option value="${f.id}">${f.nom_famille}</option>`;
+          });
+        });
+    });
+  }
+</script>
+{% endblock %}

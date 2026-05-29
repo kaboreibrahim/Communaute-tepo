@@ -1,0 +1,138 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Modifier — {{ media.titre }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <a href="{% url 'medias:dashboard' %}" class="hover:text-primary transition-colors">Médiathèque</a>
+  <span>/</span>
+  <a href="{% url 'medias:media-list' %}" class="hover:text-primary transition-colors">Bibliothèque</a>
+  <span>/</span>
+  <a href="{% url 'medias:media-detail' media.pk %}" class="hover:text-primary transition-colors truncate max-w-[120px]">{{ media.titre }}</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">Modifier</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between">
+  <div>
+    <h1 class="text-xl font-black text-slate-800 dark:text-slate-100">Modifier le média</h1>
+    <p class="text-sm text-slate-500 mt-0.5">{{ media.titre }}</p>
+  </div>
+  <a href="{% url 'medias:media-detail' media.pk %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+    <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+    Retour
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  {# ── Aperçu actuel ── #}
+  <div class="lg:col-span-1">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden sticky top-6">
+      <div class="bg-slate-900 flex items-center justify-center min-h-[200px]">
+        {% if media.est_image and media.fichier %}
+          <img src="{{ media.fichier.url }}" alt="{{ media.titre }}"
+               class="max-h-64 w-full object-contain">
+        {% elif media.est_video and media.fichier %}
+          <video class="w-full max-h-48" controls preload="metadata">
+            <source src="{{ media.fichier.url }}">
+          </video>
+        {% else %}
+          <div class="flex flex-col items-center text-slate-500 py-12">
+            <span class="material-symbols-outlined" style="font-size:48px">{% if media.est_video %}play_circle{% else %}image{% endif %}</span>
+          </div>
+        {% endif %}
+      </div>
+      <div class="p-4">
+        <div class="flex flex-wrap gap-2 text-xs text-slate-400">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:12px">straighten</span>
+            {{ media.format_fichier }}
+          </span>
+          <span>·</span>
+          <span>{{ media.taille_affichage }}</span>
+          {% if media.dimensions_affichage %}
+          <span>·</span>
+          <span>{{ media.dimensions_affichage }}</span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Ajouté le {{ media.date_creation|date:"d/m/Y" }}</p>
+      </div>
+    </div>
+  </div>
+
+  {# ── Formulaire ── #}
+  <div class="lg:col-span-2">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5">
+
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary" style="font-size:20px">edit</span>
+          Informations
+        </h2>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            Titre <span class="text-red-400">*</span>
+          </label>
+          {{ form.titre }}
+          {% if form.titre.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ form.titre.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Catégorie</label>
+          {{ form.categorie }}
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Description</label>
+          {{ form.description }}
+        </div>
+
+        {% if media.est_video %}
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Durée (secondes)</label>
+          {{ form.duree }}
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            Miniature (remplacer)
+          </label>
+          {% if media.miniature %}
+          <div class="flex items-center gap-3 mb-2">
+            <img src="{{ media.miniature.url }}" alt="Miniature actuelle"
+                 class="w-16 h-16 rounded-lg object-cover border border-slate-200">
+            <p class="text-xs text-slate-400">Miniature actuelle</p>
+          </div>
+          {% endif %}
+          {{ form.miniature }}
+        </div>
+        {% endif %}
+
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <a href="{% url 'medias:media-detail' media.pk %}"
+           class="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-600 text-sm font-medium text-center hover:bg-slate-50 transition-colors">
+          Annuler
+        </a>
+        <button type="submit"
+                class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors shadow-md">
+          Enregistrer les modifications
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

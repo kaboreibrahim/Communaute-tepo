@@ -1,0 +1,915 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ titre }} — Olodio{% endblock %}
+{% block topbar_title %}Personnes{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-emerald-400">
+  <a href={% url 'dashbord:admin_dashboard' %} class="hover:text-emerald-700 transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:person-list' %}" class="hover:text-emerald-700 transition-colors">Personnes</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-emerald-950 dark:text-white font-medium">{{ titre }}</span>
+</nav>
+{% endblock %}
+
+
+{% block content %}
+<div class="max-w-5xl mx-auto relative z-10">
+
+  {# ── Header ── #}
+  <div class="mb-10">
+    <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-[0.2em] mb-2">
+      <span class="material-symbols-outlined text-sm">app_registration</span>
+      Registre Officiel — Sous-préfecture d'Olodio
+    </div>
+    <h1 class="text-4xl font-black text-emerald-950 dark:text-white tracking-tight">
+      {{ titre }}
+    </h1>
+    <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl">
+      Enregistrement officiel d'un citoyen dans le registre d'Olodio.
+      Remplissez tous les champs avec précision.
+    </p>
+  </div>
+
+  {# ── Messages ── #}
+  {% if messages %}
+  <div class="mb-6 space-y-2">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+      {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+      {% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+      <span class="material-symbols-outlined text-lg">
+        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}warning{% endif %}
+      </span>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+
+  {# ════════════════════════════════════════════════════════ #}
+  {# FORMULAIRE PRINCIPAL                                      #}
+  {# ════════════════════════════════════════════════════════ #}
+  <form
+    method="POST"
+    enctype="multipart/form-data"
+    action=""
+    id="form-personne"
+    class="space-y-8"
+    novalidate
+  >
+    {% csrf_token %}
+
+    {# ════════════════════════════════════════════════════ #}
+    {# SECTION I — État civil & Identité                    #}
+    {# ════════════════════════════════════════════════════ #}
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-8 border border-slate-100 dark:border-slate-800">
+
+      <div class="flex items-center gap-4 mb-8 border-b border-slate-50 dark:border-slate-800 pb-4">
+        <div class="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-3xl">person</span>
+        </div>
+        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          I. État Civil &amp; Identité
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+        {# Photo Upload #}
+        <div class="md:col-span-3">
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+            Photographie officielle
+          </label>
+          <div
+            id="photo-zone"
+            onclick="document.getElementById('id_photo').click()"
+            class="aspect-[3/4] rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 gap-2 hover:border-emerald-400 hover:bg-emerald-50/30 transition-all cursor-pointer group overflow-hidden relative"
+          >
+            {# Aperçu photo existante (mode édition) #}
+            {% if personne.photo %}
+            <img
+              id="photo-preview"
+              src="{{ personne.photo }}"
+              alt="Photo actuelle"
+              class="absolute inset-0 w-full h-full object-cover"
+            >
+            {% else %}
+            <img
+              id="photo-preview"
+              src=""
+              alt=""
+              class="absolute inset-0 w-full h-full object-cover hidden"
+            >
+            {% endif %}
+
+            <div id="photo-placeholder" class="flex flex-col items-center gap-2 {% if personne.photo %}hidden{% endif %}">
+              <span class="material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">add_a_photo</span>
+              <span class="text-[10px] font-bold">TÉLÉVERSER</span>
+            </div>
+          </div>
+          <input
+            type="file"
+            name="photo"
+            id="id_photo"
+            accept="image/*"
+            class="hidden"
+            onchange="previewPhoto(this)"
+          >
+          <p class="mt-2 text-[10px] text-slate-400 text-center uppercase tracking-tight">
+            JPG, PNG — Max 5 Mo
+          </p>
+        </div>
+
+        {# Champs identité #}
+        <div class="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+          {# Nom #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Nom <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="nom"
+              value="{{ form_data.nom|default:personne.nom }}"
+              placeholder="Entrez le nom"
+              required
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+
+          {# Prénom #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Prénom <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="prenom"
+              value="{{ form_data.prenom|default:personne.prenom }}"
+              placeholder="Entrez le prénom"
+              required
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+
+          {# Surnom #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Surnom
+            </label>
+            <input
+              type="text"
+              name="surnom"
+              value="{{ form_data.surnom|default:personne.surnom }}"
+              placeholder="Alias éventuel"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+
+          {# Genre #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Genre <span class="text-red-400">*</span>
+            </label>
+            <div class="flex gap-6 h-12 items-center px-2">
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="genre"
+                  value="M"
+                  {% if form_data.genre == 'M' or personne.genre == 'M' %}checked{% endif %}
+                  class="w-4 h-4 text-emerald-600 focus:ring-emerald-200 border-slate-300"
+                  onchange="updateGenreUI()"
+                >
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-emerald-700 transition-colors">
+                  Masculin
+                </span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="genre"
+                  value="F"
+                  {% if form_data.genre == 'F' or personne.genre == 'F' %}checked{% endif %}
+                  class="w-4 h-4 text-pink-500 focus:ring-pink-200 border-slate-300"
+                  onchange="updateGenreUI()"
+                >
+                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-pink-600 transition-colors">
+                  Féminin
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {# Date de naissance #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Date de naissance
+            </label>
+            <input
+              type="date"
+              name="date_naissance"
+              value="{{ form_data.date_naissance|default:personne.date_naissance }}"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white"
+            >
+          </div>
+
+          {# Lieu de naissance #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Lieu de naissance
+            </label>
+            <input
+              type="text"
+              name="lieu_naissance"
+              value="{{ form_data.lieu_naissance|default:personne.lieu_naissance }}"
+              placeholder="Ville ou village"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+
+          {# Nationalité #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Nationalité
+            </label>
+            <select
+              name="nationalite"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white"
+            >
+              <option value="Ivoirienne" {% if personne.nationalite == 'Ivoirienne' or not personne.nationalite %}selected{% endif %}>Ivoirienne</option>
+              <option value="Française"  {% if personne.nationalite == 'Française' %}selected{% endif %}>Française</option>
+              <option value="Autre"      {% if personne.nationalite == 'Autre' %}selected{% endif %}>Autre</option>
+            </select>
+          </div>
+
+          {# Numéro CNI #}
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Numéro CNI
+            </label>
+            <input
+              type="text"
+              name="numero_cni"
+              value="{{ form_data.numero_cni|default:personne.numero_cni }}"
+              placeholder="CI-XXXXXXXXXX"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300 font-mono"
+            >
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+              Profession
+            </label>
+            <input
+              type="text"
+              name="profession"
+              value="{{ form_data.profession|default:personne.profession }}"
+              placeholder="Ex. Enseignant, commercant, infirmiere"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+
+        </div>
+      </div>
+
+      {# ── Situation matrimoniale + Statut vital ── #}
+      <div class="mt-8 pt-8 border-t border-slate-50 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Situation matrimoniale
+          </label>
+          <select
+            name="situation_matrimoniale"
+            class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white"
+          >
+            <option value="celibataire" {% if personne.situation_matrimoniale == 'celibataire' or not personne %}selected{% endif %}>Célibataire</option>
+            <option value="marie"       {% if personne.situation_matrimoniale == 'marie' %}selected{% endif %}>Marié(e)</option>
+            <option value="divorce"     {% if personne.situation_matrimoniale == 'divorce' %}selected{% endif %}>Divorcé(e)</option>
+            <option value="veuf"        {% if personne.situation_matrimoniale == 'veuf' %}selected{% endif %}>Veuf / Veuve</option>
+          </select>
+        </div>
+
+        {# Toggle est_vivant #}
+        <div class="flex flex-col justify-center gap-2">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Statut vital
+          </label>
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Est vivant(e)</span>
+            <button
+              type="button"
+              id="toggle-vivant"
+              onclick="toggleVivant()"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-200
+                {% if personne.est_vivant != False %}bg-emerald-600{% else %}bg-slate-300{% endif %}"
+            >
+              <span
+                id="toggle-thumb"
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out
+                  {% if personne.est_vivant != False %}translate-x-5{% else %}translate-x-0{% endif %}"
+              ></span>
+            </button>
+            <input
+              type="hidden"
+              name="est_vivant"
+              id="input-vivant"
+              value="{% if personne.est_vivant != False %}on{% endif %}"
+            >
+          </div>
+        </div>
+
+        {# Date de décès (désactivé si vivant) #}
+        <div class="space-y-1" id="section-deces" {% if personne.est_vivant != False %}style="opacity:0.4;"{% endif %}>
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Date de décès
+          </label>
+          <input
+            type="date"
+            name="date_deces"
+            id="input-date-deces"
+            value="{{ form_data.date_deces|default:personne.date_deces }}"
+            {% if personne.est_vivant != False %}disabled{% endif %}
+            class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none font-medium text-emerald-950 dark:text-white"
+          >
+        </div>
+
+      </div>
+    </div>
+
+
+    {# ════════════════════════════════════════════════════ #}
+    {# SECTION II — Contact & Résidence                     #}
+    {# ════════════════════════════════════════════════════ #}
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+      <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-8 border border-slate-100 dark:border-slate-800">
+
+        <div class="flex items-center gap-4 mb-8 border-b border-slate-50 dark:border-slate-800 pb-4">
+          <div class="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-3xl">home_pin</span>
+          </div>
+          <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            II. Contact &amp; Résidence
+          </h3>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Téléphone</label>
+            <input type="tel" name="telephone"
+              value="{{ form_data.telephone|default:personne.telephone }}"
+              placeholder="+225 07 00 00 00 00"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Email</label>
+            <input type="email" name="email"
+              value="{{ form_data.email|default:personne.email }}"
+              placeholder="nom@exemple.com"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Type de résidence</label>
+            <select name="type_residence"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white">
+              <option value="village"  {% if personne.type_residence == 'village' or not personne %}selected{% endif %}>Village</option>
+              <option value="ci"       {% if personne.type_residence == 'ci' %}selected{% endif %}>Côte d'Ivoire (hors village)</option>
+              <option value="diaspora" {% if personne.type_residence == 'diaspora' %}selected{% endif %}>Diaspora (hors CI)</option>
+              <option value="inconnu"  {% if personne.type_residence == 'inconnu' %}selected{% endif %}>Inconnu</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Lieu de résidence actuel</label>
+            <input type="text" name="lieu_residence"
+              value="{{ form_data.lieu_residence|default:personne.lieu_residence }}"
+              placeholder="Quartier, Ville, Pays"
+              class="w-full h-12 px-4 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all font-medium text-emerald-950 dark:text-white placeholder-slate-300">
+          </div>
+
+        </div>
+      </div>
+
+      {# Card décorative géolocalisation #}
+      <div class="lg:col-span-2 bg-emerald-900 rounded-xl shadow-2xl overflow-hidden relative group">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-800 to-emerald-950 opacity-90"></div>
+        <div class="relative p-8 h-full flex flex-col">
+          <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white mb-4">
+            <span class="material-symbols-outlined">map</span>
+          </div>
+          <h4 class="text-white text-xl font-black mb-2 tracking-tight">Géolocalisation</h4>
+          <p class="text-emerald-100/70 text-sm leading-relaxed mb-6">
+            La précision du lieu de résidence permet de rattacher
+            le citoyen à sa circonscription administrative et familiale.
+          </p>
+          <div class="mt-auto">
+            <div class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+                Village sélectionné
+              </span>
+              <p class="text-white text-sm font-medium mt-1" id="geo-village-label">
+                En attente de saisie...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    {# ════════════════════════════════════════════════════ #}
+    {# SECTION III — Lignage & Généalogie                   #}
+    {# ════════════════════════════════════════════════════ #}
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-8 border border-slate-100 dark:border-slate-800">
+
+      <div class="flex items-center gap-4 mb-8 border-b border-slate-50 dark:border-slate-800 pb-4">
+        <div class="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-3xl">account_tree</span>
+        </div>
+        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          III. Lignage &amp; Généalogie
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {# ── Famille d'appartenance ── #}
+        <div class="space-y-1 p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Famille d'appartenance <span class="text-red-400">*</span>
+          </label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">
+              search
+            </span>
+            <input
+              type="search"
+              id="search-famille"
+              placeholder="Rechercher une famille ou un village..."
+              class="w-full h-12 pl-11 pr-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <select
+            name="famille_id"
+            id="select-famille"
+            size="6"
+            required
+            onchange="updateGeoLabel(this)"
+            data-empty-label="Aucune famille trouvée."
+            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white"
+          >
+            <option value="">Sélectionnez une famille...</option>
+            {% for f in familles %}
+            <option
+              value="{{ f.id }}"
+              data-village="{{ f.village.nom }}"
+              data-search="famille {{ f.nom_famille }} {{ f.village.nom }}"
+              {% if form_data.famille_id == f.id|stringformat:"s" or personne.famille_id == f.id|stringformat:"s" %}selected{% endif %}
+            >
+              Famille {{ f.nom_famille }} — {{ f.village.nom }}
+            </option>
+            {% endfor %}
+          </select>
+          <label class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-slate-700 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-slate-200">
+            <input
+              type="checkbox"
+              name="est_chef_famille"
+              value="on"
+              {% if form_data.est_chef_famille == 'on' or personne.est_chef_famille %}checked{% endif %}
+              class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-200"
+            >
+            <span>
+              <span class="block font-semibold text-slate-900 dark:text-white">Definir cette personne comme chef de famille</span>
+              <span class="mt-1 block text-[11px] leading-5 text-slate-500 dark:text-slate-400">Une seule personne peut etre chef de famille dans une meme famille.</span>
+            </span>
+          </label>
+          <p class="text-[10px] text-slate-400 mt-1">
+            Recherchez puis choisissez la famille à rattacher au registre.
+          </p>
+        </div>
+
+        {# ── Conjoint(e) ── #}
+        <div class="space-y-3 p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Conjoint(e)
+          </label>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">
+              Saisie libre hors registre
+            </label>
+            <input
+              type="text"
+              name="conjoint_nom_libre"
+              id="input-conjoint-nom-libre"
+              value="{{ form_data.conjoint_nom_libre|default:personne.conjoint_nom_libre }}"
+              placeholder="Nom du conjoint ou de la conjointe non enregistree"
+              class="w-full h-12 px-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 text-center">
+            ou choisir dans le registre
+          </p>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">
+              search
+            </span>
+            <input
+              type="search"
+              id="search-conjoint"
+              placeholder="Rechercher un conjoint..."
+              class="w-full h-12 pl-11 pr-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <select
+            name="conjoint_id"
+            id="select-conjoint"
+            size="6"
+            data-empty-label="Aucune personne trouvée."
+            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white"
+          >
+            <option value="">Sélectionnez une personne...</option>
+            {% for p in personnes %}
+            <option
+              value="{{ p.id }}"
+              data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}"
+              {% if form_data.conjoint_id == p.id|stringformat:"s" or personne.conjoint_id == p.id|stringformat:"s" %}selected{% endif %}
+            >
+              {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="text-[10px] text-slate-400">
+            Choisissez une personne enregistrée ou saisissez un nom libre si le conjoint est hors d'Olodio.
+          </p>
+        </div>
+
+        {# ── Père ── #}
+        <div class="space-y-3 p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Père
+            <span class="ml-1 text-emerald-600 font-normal normal-case tracking-normal text-[9px]">
+              (Masculin uniquement)
+            </span>
+          </label>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">
+              Saisie libre hors registre
+            </label>
+            <input
+              type="text"
+              name="pere_nom_libre"
+              id="input-pere-nom-libre"
+              value="{{ form_data.pere_nom_libre|default:personne.pere_nom_libre }}"
+              placeholder="Nom du père s'il n'est pas enregistré"
+              class="w-full h-12 px-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 text-center">
+            ou choisir dans le registre
+          </p>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">
+              search
+            </span>
+            <input
+              type="search"
+              id="search-pere"
+              placeholder="Rechercher l'ascendant paternel..."
+              class="w-full h-12 pl-11 pr-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <select
+            name="pere_id"
+            id="select-pere"
+            size="6"
+            data-empty-label="Aucun père trouvé."
+            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white"
+          >
+            <option value="">Sélectionnez une personne...</option>
+            {% for p in peres_disponibles %}
+            <option
+              value="{{ p.id }}"
+              data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}"
+              {% if form_data.pere_id == p.id|stringformat:"s" or personne.pere_id == p.id|stringformat:"s" %}selected{% endif %}
+            >
+              {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="text-[10px] text-slate-400">
+            Utilisez la saisie libre si le père n'appartient pas au registre familial d'Olodio.
+          </p>
+        </div>
+
+        {# ── Mère ── #}
+        <div class="space-y-3 p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+          <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">
+            Mère
+            <span class="ml-1 text-pink-500 font-normal normal-case tracking-normal text-[9px]">
+              (Féminin uniquement)
+            </span>
+          </label>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">
+              Saisie libre hors registre
+            </label>
+            <input
+              type="text"
+              name="mere_nom_libre"
+              id="input-mere-nom-libre"
+              value="{{ form_data.mere_nom_libre|default:personne.mere_nom_libre }}"
+              placeholder="Nom de la mère si elle n'est pas enregistrée"
+              class="w-full h-12 px-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 text-center">
+            ou choisir dans le registre
+          </p>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">
+              search
+            </span>
+            <input
+              type="search"
+              id="search-mere"
+              placeholder="Rechercher l'ascendante maternelle..."
+              class="w-full h-12 pl-11 pr-4 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+            >
+          </div>
+          <select
+            name="mere_id"
+            id="select-mere"
+            size="6"
+            data-empty-label="Aucune mère trouvée."
+            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white"
+          >
+            <option value="">Sélectionnez une personne...</option>
+            {% for p in meres_disponibles %}
+            <option
+              value="{{ p.id }}"
+              data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}"
+              {% if form_data.mere_id == p.id|stringformat:"s" or personne.mere_id == p.id|stringformat:"s" %}selected{% endif %}
+            >
+              {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="text-[10px] text-slate-400">
+            Utilisez la saisie libre si la mère n'appartient pas au registre familial d'Olodio.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+
+    {# ════════════════════════════════════════════════════ #}
+    {# SECTION IV — Notes                                   #}
+    {# ════════════════════════════════════════════════════ #}
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-8 border border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-4 mb-6 border-b border-slate-50 dark:border-slate-800 pb-4">
+        <div class="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-3xl">notes</span>
+        </div>
+        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          IV. Observations &amp; Notes
+        </h3>
+      </div>
+      <textarea
+        name="notes"
+        rows="3"
+        placeholder="Informations complémentaires, observations particulières..."
+        class="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm text-emerald-950 dark:text-white placeholder-slate-300 resize-none"
+      >{{ form_data.notes|default:personne.notes }}</textarea>
+    </div>
+
+
+    {# ════════════════════════════════════════════════════ #}
+    {# BOUTONS DE SOUMISSION                                 #}
+    {# ════════════════════════════════════════════════════ #}
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-700">
+
+      <a
+        href="{% url 'dashbord:person-list' %}"
+        class="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-red-500 flex items-center gap-2 transition-colors"
+      >
+        <span class="material-symbols-outlined text-sm">delete_forever</span>
+        Annuler l'enregistrement
+      </a>
+
+      <div class="flex gap-4 w-full sm:w-auto">
+        <button
+          type="button"
+          onclick="window.history.back()"
+          class="flex-1 sm:px-10 h-14 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+        >
+          Retour
+        </button>
+
+        <button
+          type="submit"
+          class="flex-[2] sm:px-12 h-14 rounded-xl bg-emerald-700 text-white font-bold uppercase text-xs tracking-widest shadow-lg shadow-emerald-900/20 hover:bg-emerald-800 hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
+        >
+          {% if action == 'create' %}
+            Valider l'inscription
+          {% else %}
+            Enregistrer les modifications
+          {% endif %}
+          <span class="material-symbols-outlined">how_to_reg</span>
+        </button>
+      </div>
+
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+// ── Aperçu photo ─────────────────────────────────────────────
+function previewPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview    = document.getElementById('photo-preview');
+    const placeholder = document.getElementById('photo-placeholder');
+    preview.src      = e.target.result;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function updateGenreUI() {
+  // Point d'extension pour une logique future liée au genre.
+}
+
+// ── Toggle vivant / décédé ────────────────────────────────────
+function syncDeathFieldState() {
+  const btn = document.getElementById('toggle-vivant');
+  const thumb = document.getElementById('toggle-thumb');
+  const input = document.getElementById('input-vivant');
+  const section = document.getElementById('section-deces');
+  const deathInput = document.getElementById('input-date-deces');
+  const isAlive = input.value === 'on';
+
+  if (!btn || !thumb || !section || !deathInput) return;
+
+  btn.classList.toggle('bg-emerald-600', isAlive);
+  btn.classList.toggle('bg-slate-300', !isAlive);
+  thumb.classList.toggle('translate-x-5', isAlive);
+  thumb.classList.toggle('translate-x-0', !isAlive);
+  section.style.opacity = isAlive ? '0.4' : '1';
+  deathInput.disabled = isAlive;
+}
+
+function toggleVivant() {
+  const input = document.getElementById('input-vivant');
+  if (!input) return;
+  input.value = input.value === 'on' ? '' : 'on';
+  syncDeathFieldState();
+}
+
+// ── Mettre à jour le label géolocalisation ───────────────────
+function updateGeoLabel(select) {
+  const opt = select.options[select.selectedIndex];
+  const label = document.getElementById('geo-village-label');
+  if (opt && opt.dataset.village) {
+    label.textContent = opt.dataset.village;
+  } else {
+    label.textContent = 'En attente de saisie...';
+  }
+}
+
+// ── Recherche locale dans les listes déroulantes ─────────────
+function initSearchableSelect(searchId, selectId) {
+  const searchInput = document.getElementById(searchId);
+  const select = document.getElementById(selectId);
+  if (!searchInput || !select) return;
+
+  const originalOptions = Array.from(select.options).map(option => ({
+    value: option.value,
+    label: option.text,
+    searchText: `${option.dataset.search || ''} ${option.text}`.toLowerCase(),
+    selected: option.selected,
+    disabled: option.disabled,
+    village: option.dataset.village || '',
+  }));
+
+  function renderOptions(query = '') {
+    const normalizedQuery = query.trim().toLowerCase();
+    const currentValue = select.value;
+    const placeholder = originalOptions.find(option => option.value === '');
+
+    const matchingOptions = originalOptions.filter(option => {
+      if (option.value === '') return false;
+      if (currentValue && option.value === currentValue) return true;
+      return !normalizedQuery || option.searchText.includes(normalizedQuery);
+    });
+
+    select.innerHTML = '';
+
+    if (placeholder) {
+      const placeholderOption = new Option(placeholder.label, placeholder.value);
+      placeholderOption.disabled = placeholder.disabled;
+      placeholderOption.dataset.village = placeholder.village;
+      select.add(placeholderOption);
+    }
+
+    if (!matchingOptions.length) {
+      const emptyOption = new Option(
+        select.dataset.emptyLabel || 'Aucun résultat trouvé.',
+        ''
+      );
+      emptyOption.disabled = true;
+      select.add(emptyOption);
+    } else {
+      matchingOptions.forEach(option => {
+        const nextOption = new Option(option.label, option.value);
+        nextOption.selected = option.value === currentValue;
+        if (option.village) nextOption.dataset.village = option.village;
+        select.add(nextOption);
+      });
+    }
+
+    if (currentValue && Array.from(select.options).some(option => option.value === currentValue)) {
+      select.value = currentValue;
+    } else if (placeholder) {
+      select.value = '';
+    }
+
+    if (selectId === 'select-famille') {
+      updateGeoLabel(select);
+    }
+  }
+
+  searchInput.addEventListener('input', () => {
+    renderOptions(searchInput.value);
+  });
+
+  searchInput.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      select.focus();
+    }
+  });
+
+  select.addEventListener('change', () => {
+    if (selectId === 'select-famille') {
+      updateGeoLabel(select);
+    }
+  });
+
+  renderOptions(searchInput.value);
+}
+
+function initRelationshipFallback(textInputId, selectId) {
+  const textInput = document.getElementById(textInputId);
+  const select = document.getElementById(selectId);
+  if (!textInput || !select) return;
+
+  function syncFromText() {
+    if (textInput.value.trim()) {
+      select.value = '';
+    }
+  }
+
+  textInput.addEventListener('input', syncFromText);
+
+  select.addEventListener('change', () => {
+    if (select.value) {
+      textInput.value = '';
+    }
+  });
+
+  syncFromText();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  syncDeathFieldState();
+  updateGeoLabel(document.getElementById('select-famille'));
+
+  initSearchableSelect('search-famille', 'select-famille');
+  initSearchableSelect('search-conjoint', 'select-conjoint');
+  initSearchableSelect('search-pere', 'select-pere');
+  initSearchableSelect('search-mere', 'select-mere');
+  initRelationshipFallback('input-conjoint-nom-libre', 'select-conjoint');
+  initRelationshipFallback('input-pere-nom-libre', 'select-pere');
+  initRelationshipFallback('input-mere-nom-libre', 'select-mere');
+});
+</script>
+{% endblock %}

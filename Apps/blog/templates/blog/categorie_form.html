@@ -1,0 +1,55 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{% if object %}Modifier{% else %}Créer{% endif %} une catégorie — Blog{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-dashboard' %}" class="hover:text-primary">Blog</a>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-categorie-list' %}" class="hover:text-primary">Catégories</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">{% if object %}Modifier{% else %}Créer{% endif %}</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">
+  {% if object %}Modifier la catégorie « {{ object.nom }} »{% else %}Nouvelle catégorie{% endif %}
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        {% for field in form %}
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-6 flex gap-3">
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
+          <span class="material-symbols-outlined text-base">save</span>
+          Enregistrer
+        </button>
+        <a href="{% url 'dashbord:blog-categorie-list' %}"
+           class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:border-slate-300 transition-colors">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

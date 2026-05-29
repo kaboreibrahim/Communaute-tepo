@@ -1,0 +1,321 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Gestion des utilisateurs - Olodio{% endblock %}
+{% block topbar_title %}Utilisateurs{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-slate-700 dark:text-slate-200 font-medium">Utilisateurs</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="flex flex-col gap-1">
+      <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Gestion des utilisateurs</h2>
+      <p class="text-base text-slate-500 dark:text-slate-400">Supervisez les acces de la plateforme, les roles, la verification et l'activite des comptes relies a Olodio.</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a href="{% url 'dashbord:user-create' %}" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition hover:scale-[1.02]">
+        <span class="material-symbols-outlined text-base">person_add</span>
+        Nouveau compte
+      </a>
+      {% if request.user.is_staff or request.user.is_superuser %}
+      <a href="{% url 'admin:accounts_utilisateur_changelist' %}" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-primary/15 px-5 text-sm font-bold text-primary transition hover:bg-primary/5">
+        <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+        Admin Django
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/10 flex flex-col gap-1 shadow-sm">
+      <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total users</span>
+      <div class="flex items-end gap-2">
+        <span class="text-2xl font-black text-slate-900 dark:text-white leading-none">{{ stats.total_users }}</span>
+        <span class="text-xs text-primary font-bold mb-1">registre</span>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/10 flex flex-col gap-1 shadow-sm">
+      <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Active now</span>
+      <div class="flex items-end gap-2">
+        <span class="text-2xl font-black text-slate-900 dark:text-white leading-none">{{ stats.online_now }}</span>
+        <span class="text-xs text-slate-400 mb-1">en ligne</span>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/10 flex flex-col gap-1 shadow-sm">
+      <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Pending approvals</span>
+      <div class="flex items-end gap-2">
+        <span class="text-2xl font-black text-slate-900 dark:text-white leading-none">{{ stats.pending_approvals }}</span>
+        <span class="text-xs text-amber-500 font-bold mb-1">verification</span>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary/10 flex flex-col gap-1 shadow-sm">
+      <span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Recent logins</span>
+      <div class="flex items-end gap-2">
+        <span class="text-2xl font-black text-slate-900 dark:text-white leading-none">{{ stats.recent_logins }}</span>
+        <span class="text-xs text-primary font-bold mb-1">7 jours</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-primary/10 shadow-sm overflow-hidden flex flex-col">
+    <div class="flex overflow-x-auto border-b border-primary/10 px-4">
+      {% for tab in role_tabs %}
+      <a
+        href="?q={{ q|urlencode }}&role={{ tab.value|urlencode }}&status={{ status|urlencode }}&village={{ village_id|urlencode }}&par_page={{ par_page }}"
+        class="px-5 py-4 text-sm whitespace-nowrap {% if tab.active %}font-bold text-primary border-b-2 border-primary{% else %}font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors{% endif %}"
+      >
+        {{ tab.label }}
+        <span class="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{{ tab.count }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <form method="GET" id="user-filter-form" class="p-4 grid grid-cols-1 gap-3 border-b border-primary/10 bg-slate-50/50 dark:bg-slate-800/20 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,0.7fr))]">
+      <input type="hidden" name="role" value="{{ role }}">
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">search</span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Nom, username, email, telephone, village..." class="h-11 w-full rounded-lg border border-primary/10 bg-white px-10 text-sm font-medium text-slate-700 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 dark:bg-slate-900 dark:text-slate-100">
+      </div>
+      <select name="status" onchange="this.form.submit()" class="h-11 rounded-lg border border-primary/10 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-primary dark:bg-slate-900 dark:text-slate-100">
+        <option value="">Tous statuts</option>
+        <option value="online" {% if status == 'online' %}selected{% endif %}>En ligne</option>
+        <option value="verified" {% if status == 'verified' %}selected{% endif %}>Verifies</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>En attente</option>
+        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactifs</option>
+        <option value="2fa" {% if status == '2fa' %}selected{% endif %}>2FA active</option>
+      </select>
+      <select name="village" onchange="this.form.submit()" class="h-11 rounded-lg border border-primary/10 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-primary dark:bg-slate-900 dark:text-slate-100">
+        <option value="">Tous villages</option>
+        {% for village in villages %}
+        <option value="{{ village.id }}" {% if village_id == village.id|stringformat:'s' %}selected{% endif %}>{{ village.nom }}</option>
+        {% endfor %}
+      </select>
+      <div class="flex gap-2">
+        <select name="par_page" onchange="this.form.submit()" class="h-11 flex-1 rounded-lg border border-primary/10 bg-white px-3 text-sm font-bold text-slate-700 outline-none transition focus:border-primary dark:bg-slate-900 dark:text-slate-100">
+          <option value="10" {% if par_page == 10 %}selected{% endif %}>10 / page</option>
+          <option value="25" {% if par_page == 25 %}selected{% endif %}>25 / page</option>
+          <option value="50" {% if par_page == 50 %}selected{% endif %}>50 / page</option>
+        </select>
+        <a href="{% url 'dashbord:user-list' %}" class="inline-flex h-11 items-center justify-center rounded-lg border border-primary/15 px-4 text-xs font-bold uppercase tracking-wide text-slate-500 transition hover:border-primary hover:text-primary">Reset</a>
+      </div>
+    </form>
+
+    <div class="p-4 flex flex-col gap-3 border-b border-primary/10 bg-slate-50/50 dark:bg-slate-800/20 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm dark:bg-slate-800">
+          <span class="material-symbols-outlined text-[16px] text-primary">shield_person</span>
+          {{ stats.verified_users }} verifies
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow-sm dark:bg-slate-800">
+          <span class="material-symbols-outlined text-[16px] text-primary">key</span>
+          {{ stats.secured_users }} securises
+        </span>
+      </div>
+      <span class="text-xs text-slate-400 font-medium italic">Affichage {{ display_start }}-{{ display_end }} sur {{ total }} utilisateurs</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50 dark:bg-slate-800/30">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Utilisateur</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Role</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Village</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Derniere connexion</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Verification</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10">Statut</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-primary/10 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-primary/5">
+          {% for row in user_rows %}
+          <tr class="hover:bg-primary/5 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="size-9 rounded-full {{ row.avatar_classes }} flex items-center justify-center font-bold text-xs">{{ row.initials }}</div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-slate-900 dark:text-white">{{ row.display_name }}</span>
+                  <span class="text-xs text-slate-500">{{ row.secondary_line }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex flex-col gap-2">
+                <span class="inline-flex w-fit px-2 py-1 rounded-full {{ row.role_classes }} text-[11px] font-bold uppercase tracking-wide">{{ row.role_label }}</span>
+                <span class="text-[11px] text-slate-400">{{ row.two_factor_label }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-slate-500">{{ row.village_name }}</td>
+            <td class="px-6 py-4">
+              {% if row.last_login %}
+              <div class="flex flex-col">
+                <span class="text-sm text-slate-700 dark:text-slate-200">{{ row.last_login|date:"d/m/Y H:i" }}</span>
+                <span class="text-xs text-slate-400">cree le {{ row.created_at|date:"d/m/Y" }}</span>
+              </div>
+              {% else %}
+              <div class="flex flex-col">
+                <span class="text-sm text-slate-400 italic">Jamais connecte</span>
+                <span class="text-xs text-slate-400">cree le {{ row.created_at|date:"d/m/Y" }}</span>
+              </div>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex px-2 py-1 rounded-full {{ row.verification.classes }} text-[11px] font-bold uppercase tracking-wide">{{ row.verification.label }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-1.5 {{ row.status.text_classes }}">
+                <span class="size-1.5 rounded-full {{ row.status.dot_classes }}"></span>
+                <span class="text-xs font-bold">{{ row.status.label }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {% if row.email %}
+                <a href="mailto:{{ row.email }}" class="p-1.5 hover:bg-white dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Contacter par email">
+                  <span class="material-symbols-outlined text-[20px]">mail</span>
+                </a>
+                {% endif %}
+                {% if row.telephone %}
+                <a href="tel:{{ row.telephone }}" class="p-1.5 hover:bg-white dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Appeler">
+                  <span class="material-symbols-outlined text-[20px]">call</span>
+                </a>
+                {% endif %}
+                {% if request.user.is_staff or request.user.is_superuser %}
+                <a href="{% url 'admin:accounts_utilisateur_change' row.id %}" class="p-1.5 hover:bg-white dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Modifier dans l'admin">
+                  <span class="material-symbols-outlined text-[20px]">edit</span>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-6 py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-5xl text-slate-200">group_off</span>
+                <p class="text-slate-400 font-medium">Aucun utilisateur trouve</p>
+                {% if q or role or status or village_id %}
+                <a href="{% url 'dashbord:user-list' %}" class="text-primary text-sm hover:underline">Reinitialiser les filtres</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-6 py-4 border-t border-slate-100 dark:border-primary/10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-slate-500 font-medium">
+        {% if total %}Affichage <span class="font-bold text-slate-900 dark:text-white">{{ display_start }}-{{ display_end }}</span> sur <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> resultats{% else %}Aucun resultat{% endif %}
+      </p>
+      {% if nb_pages > 1 %}
+      <div class="flex items-center gap-1">
+        {% if page > 1 %}
+        <a href="?page={{ page|add:'-1' }}&q={{ q|urlencode }}&role={{ role|urlencode }}&status={{ status|urlencode }}&village={{ village_id|urlencode }}&par_page={{ par_page }}" class="p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:text-primary hover:border-primary transition-colors">
+          <span class="material-symbols-outlined text-lg">chevron_left</span>
+        </a>
+        {% endif %}
+        {% for i in page_range %}
+        {% if i == page %}
+        <span class="size-10 flex items-center justify-center bg-primary text-white rounded-lg font-bold text-sm">{{ i }}</span>
+        {% else %}
+        <a href="?page={{ i }}&q={{ q|urlencode }}&role={{ role|urlencode }}&status={{ status|urlencode }}&village={{ village_id|urlencode }}&par_page={{ par_page }}" class="size-10 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg font-bold text-sm transition-colors">{{ i }}</a>
+        {% endif %}
+        {% endfor %}
+        {% if page < nb_pages %}
+        <a href="?page={{ page|add:'1' }}&q={{ q|urlencode }}&role={{ role|urlencode }}&status={{ status|urlencode }}&village={{ village_id|urlencode }}&par_page={{ par_page }}" class="p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:text-primary hover:border-primary transition-colors">
+          <span class="material-symbols-outlined text-lg">chevron_right</span>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Repartition des roles</h3>
+        <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Live</span>
+      </div>
+      <div class="space-y-4">
+        {% for item in role_summary %}
+        <div class="space-y-2">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex px-2 py-1 rounded-full {{ item.classes }} text-[11px] font-bold uppercase tracking-wide">{{ item.label }}</span>
+            </div>
+            <span class="text-xs font-black text-slate-400">{{ item.count }} compte{{ item.count|pluralize }}</span>
+          </div>
+          <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div class="h-full bg-primary rounded-full" style="width: {{ item.percent }}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary/10 shadow-sm">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Quick user insights</h3>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4">
+          <div class="size-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined">verified_user</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-slate-900 dark:text-white">{{ stats.verified_users }} comptes verifies</p>
+            <p class="text-xs text-slate-500">Utilisateurs deja controles ou approuves.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4">
+          <div class="size-11 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+            <span class="material-symbols-outlined">hourglass_top</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-slate-900 dark:text-white">{{ stats.pending_approvals }} comptes en attente</p>
+            <p class="text-xs text-slate-500">Verification ou activation encore attendue.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4">
+          <div class="size-11 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+            <span class="material-symbols-outlined">shield_lock</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-slate-900 dark:text-white">{{ stats.secured_users }} comptes avec 2FA</p>
+            <p class="text-xs text-slate-500">Email ou Google Authenticator active.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4">
+          <div class="size-11 rounded-xl bg-sky-100 flex items-center justify-center text-sky-600">
+            <span class="material-symbols-outlined">location_city</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-slate-900 dark:text-white">{{ stats.users_with_village }} comptes rattaches</p>
+            <p class="text-xs text-slate-500">Associes a un village dans le systeme.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let userSearchTimer;
+  const userSearchInput = document.querySelector('#user-filter-form input[name="q"]');
+  if (userSearchInput) {
+    userSearchInput.addEventListener('input', function () {
+      clearTimeout(userSearchTimer);
+      userSearchTimer = setTimeout(() => this.form.submit(), 350);
+    });
+  }
+</script>
+{% endblock %}

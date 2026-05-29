@@ -1,0 +1,81 @@
+{# components/_autocomplete_field.html #}
+{# ============================================================ #}
+{# Champ d'autocomplétion réutilisable                          #}
+{# Paramètres :                                                  #}
+{#   field_id    — identifiant unique (pere, mere, conjoint)     #}
+{#   field_name  — nom du champ POST (pere_id, mere_id...)       #}
+{#   placeholder — texte placeholder                             #}
+{#   genre       — filtre M, F ou vide                           #}
+{#   label_value — nom affiché si valeur existante (édition)     #}
+{#   value       — UUID existant (édition)                       #}
+{# ============================================================ #}
+
+{# Champ caché — valeur réelle envoyée au serveur #}
+<input
+  type="hidden"
+  name="{{ field_name }}"
+  id="input-hidden-{{ field_id }}"
+  value="{{ value }}"
+>
+
+{# Badge — personne déjà sélectionnée #}
+<div
+  id="badge-{{ field_id }}"
+  class="{% if not value %}hidden{% endif %} flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 border border-emerald-100 dark:border-emerald-900/30 rounded-lg shadow-sm"
+>
+  <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+    {% if genre == 'M' %}bg-emerald-100 text-emerald-700{% elif genre == 'F' %}bg-pink-100 text-pink-600{% else %}bg-slate-100 text-slate-600{% endif %}">
+    {% if genre == 'M' %}
+      <span class="material-symbols-outlined text-sm">male</span>
+    {% elif genre == 'F' %}
+      <span class="material-symbols-outlined text-sm">female</span>
+    {% else %}
+      <span class="material-symbols-outlined text-sm">person</span>
+    {% endif %}
+  </div>
+  <span
+    id="badge-name-{{ field_id }}"
+    class="flex-1 text-sm font-medium text-emerald-950 dark:text-white truncate"
+  >{{ label_value }}</span>
+  <button
+    type="button"
+    id="clear-{{ field_id }}"
+    class="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+    title="Effacer"
+  >
+    <span class="material-symbols-outlined text-lg">close</span>
+  </button>
+</div>
+
+{# Zone de recherche — visible si aucune valeur sélectionnée #}
+<div id="search-wrap-{{ field_id }}" class="relative {% if value %}hidden{% endif %}">
+  <input
+    type="text"
+    id="input-search-{{ field_id }}"
+    placeholder="{{ placeholder }}"
+    autocomplete="off"
+    class="w-full h-12 pl-4 pr-10 rounded-lg bg-white dark:bg-slate-800 border-none shadow-sm focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm font-medium text-emerald-950 dark:text-white placeholder-slate-300"
+  >
+  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">
+    search
+  </span>
+
+  {# Dropdown des résultats #}
+  <div
+    id="dropdown-{{ field_id }}"
+    class="hidden absolute top-full left-0 right-0 z-30 mt-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden max-h-56 overflow-y-auto"
+  >
+    {# Résultats injectés par JS #}
+  </div>
+</div>
+
+{# Hint genre #}
+{% if genre == 'M' %}
+  <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider mt-1 ml-1">
+    Recherche filtrée — hommes uniquement
+  </p>
+{% elif genre == 'F' %}
+  <p class="text-[9px] text-pink-500 font-bold uppercase tracking-wider mt-1 ml-1">
+    Recherche filtrée — femmes uniquement
+  </p>
+{% endif %}

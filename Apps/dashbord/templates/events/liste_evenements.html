@@ -1,0 +1,292 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Actualites & evenements - Olodio{% endblock %}
+{% block topbar_title %}Publications{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-slate-700 dark:text-slate-200 font-medium">Actualites & annonces</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Total</p>
+      <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ stats.total }}</p>
+      <p class="mt-1 text-sm text-slate-500">Publications enregistrees</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Publies</p>
+      <p class="mt-2 text-3xl font-black text-emerald-600">{{ stats.published }}</p>
+      <p class="mt-1 text-sm text-slate-500">Valides par l'administration</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">En attente</p>
+      <p class="mt-2 text-3xl font-black text-amber-600">{{ stats.pending }}</p>
+      <p class="mt-1 text-sm text-slate-500">A moderer ou finaliser</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Visibles</p>
+      <p class="mt-2 text-3xl font-black text-primary">{{ stats.public }}</p>
+      <p class="mt-1 text-sm text-slate-500">Actuellement publiques</p>
+    </div>
+    <div class="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Demandes web</p>
+      <p class="mt-2 text-3xl font-black text-sky-600">{{ stats.pending_public_submissions }}</p>
+      <p class="mt-1 text-sm text-slate-500">Soumises depuis l'accueil et a verifier</p>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 mb-2">
+      <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">Actualites & annonces de la communaute</h1>
+      <p class="max-w-2xl text-lg text-slate-600 dark:text-slate-400">Restez informe des derniers evenements, celebrations et communications officielles de la sous-prefecture d'Olodio.</p>
+    </div>
+
+    {% if stats.pending_public_submissions %}
+    <section class="rounded-3xl border border-sky-200 bg-sky-50/80 p-5 shadow-sm dark:border-sky-900/40 dark:bg-sky-950/10">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.24em] text-sky-700">Moderation interne</p>
+          <h2 class="mt-2 text-xl font-black text-slate-900 dark:text-white">Des demandes venues de l'accueil attendent une validation</h2>
+          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            Les agents de saisie peuvent maintenant ouvrir chaque fiche, completer les informations puis publier ou refuser la demande sans passer par l'interface Django admin.
+          </p>
+        </div>
+        <div class="inline-flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-sky-700 shadow-sm dark:bg-slate-900">
+          <span class="material-symbols-outlined text-base">fact_check</span>
+          {{ stats.pending_public_submissions }} demande{{ stats.pending_public_submissions|pluralize }} en attente
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if featured_event %}
+    <section class="group relative overflow-hidden rounded-3xl">
+      <div class="relative h-[360px] w-full bg-slate-200 dark:bg-slate-800">
+        {% if featured_event.image_url %}
+        <img src="{{ featured_event.image_url }}" alt="{{ featured_event.title }}" class="h-full w-full object-cover brightness-75">
+        {% else %}
+        <div class="h-full w-full {{ featured_event.surface_classes }} flex items-center justify-center">
+          <span class="material-symbols-outlined {{ featured_event.icon_classes }} text-8xl">{{ featured_event.icon }}</span>
+        </div>
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent flex flex-col justify-end p-8 md:p-12">
+          <div class="mb-4 flex flex-wrap items-center gap-3">
+            <span class="inline-block w-fit rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider {{ featured_event.badge_classes }}">A la une</span>
+            <span class="rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur">{{ featured_event.type_label }}</span>
+            {% if featured_event.is_public_submission %}
+            <span class="rounded-full bg-sky-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-100 backdrop-blur">Demande depuis l'accueil</span>
+            {% endif %}
+          </div>
+          <h2 class="mb-4 max-w-3xl text-3xl font-bold leading-tight text-white md:text-5xl">{{ featured_event.title }}</h2>
+          <p class="mb-5 max-w-2xl text-sm text-white/80 md:text-base">{{ featured_event.summary|truncatechars:220 }}</p>
+          <div class="flex flex-wrap items-center gap-6 text-sm font-medium text-white/90">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">calendar_today</span> {{ featured_event.time_label }}</span>
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">location_on</span> {{ featured_event.location }}</span>
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">verified</span> {{ featured_event.status.label }}</span>
+            {% if featured_event.contact_name %}
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">support_agent</span> {{ featured_event.contact_name }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="absolute bottom-8 right-8 flex gap-2">
+          <a href="{% url 'dashbord:event-create' %}" class="inline-flex size-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/35" title="Ajouter">
+            <span class="material-symbols-outlined">add</span>
+          </a>
+          <a href="{{ featured_event.detail_url }}" class="inline-flex size-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors hover:bg-white/35" title="Ouvrir la fiche">
+            <span class="material-symbols-outlined">edit</span>
+          </a>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="flex flex-col gap-8 lg:flex-row">
+    <aside class="lg:w-80 flex-shrink-0 space-y-8">
+      <a href="{% url 'dashbord:event-create' %}" class="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-4 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90">
+        <span class="material-symbols-outlined">add_circle</span>
+        Publier une annonce
+      </a>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-bold">
+          <span class="material-symbols-outlined text-primary">category</span>
+          Categories
+        </h3>
+        <nav class="space-y-2">
+          {% for category in categories %}
+          <a
+            href="?q={{ q|urlencode }}&type={{ category.value|urlencode }}&village={{ village_id|urlencode }}&archive={{ archive|urlencode }}&par_page={{ par_page }}"
+            class="flex items-center justify-between rounded-xl p-2 transition-colors {% if category.active %}bg-primary/10 text-primary font-semibold{% else %}hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}"
+          >
+            <span>{{ category.label }}</span>
+            <span class="text-xs {% if category.active %}bg-primary/20 px-2 py-0.5 rounded-lg{% else %}text-slate-400{% endif %}">{{ category.count }}</span>
+          </a>
+          {% endfor %}
+        </nav>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-bold">
+          <span class="material-symbols-outlined text-primary">map</span>
+          Filtrer par village
+        </h3>
+        <form method="get" class="space-y-3">
+          <input type="hidden" name="q" value="{{ q }}">
+          <input type="hidden" name="type" value="{{ event_type }}">
+          <input type="hidden" name="archive" value="{{ archive }}">
+          <input type="hidden" name="par_page" value="{{ par_page }}">
+          <select name="village" onchange="this.form.submit()" class="w-full rounded-xl border-slate-200 bg-slate-50 py-3 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
+            <option value="">Tous les villages</option>
+            {% for village in villages %}
+            <option value="{{ village.id }}" {% if village_id == village.id|stringformat:'s' %}selected{% endif %}>{{ village.nom }}</option>
+            {% endfor %}
+          </select>
+          <p class="text-xs italic text-slate-500">Selectionnez un village ou laissez vide pour une annonce communautaire.</p>
+        </form>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-bold">
+          <span class="material-symbols-outlined text-primary">calendar_month</span>
+          Archives
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {% for row in archive_rows %}
+          <a
+            href="?q={{ q|urlencode }}&type={{ event_type|urlencode }}&village={{ village_id|urlencode }}&archive={{ row.value|urlencode }}&par_page={{ par_page }}"
+            class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors {% if row.active %}bg-primary/10 text-primary{% else %}bg-slate-100 hover:bg-primary/20 hover:text-primary dark:bg-slate-800{% endif %}"
+          >
+            {{ row.label }}
+          </a>
+          {% empty %}
+          <p class="text-sm text-slate-500">Aucune archive disponible.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex-1">
+      <form method="get" class="mb-8">
+        <input type="hidden" name="type" value="{{ event_type }}">
+        <input type="hidden" name="village" value="{{ village_id }}">
+        <input type="hidden" name="archive" value="{{ archive }}">
+        <input type="hidden" name="par_page" value="{{ par_page }}">
+        <div class="relative mb-2 flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 dark:border-slate-800 dark:bg-slate-900">
+          <span class="material-symbols-outlined absolute left-4 text-slate-400">search</span>
+          <input type="text" name="q" value="{{ q }}" placeholder="Rechercher un article, un evenement ou une annonce..." class="w-full border-none bg-transparent py-4 pl-12 pr-4 text-sm text-slate-700 focus:ring-0 dark:text-slate-200">
+          <button class="mr-2 hidden rounded-xl bg-primary px-6 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 sm:block" type="submit">
+            Rechercher
+          </button>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="material-symbols-outlined text-xs">info</span>
+          <span>La recherche s'applique a la categorie, a l'archive et au village selectionnes.</span>
+        </div>
+      </form>
+
+      {% if event_cards %}
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {% for event in event_cards %}
+        <article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white transition-shadow hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <div class="relative h-48 overflow-hidden">
+            {% if event.image_url %}
+            <img src="{{ event.image_url }}" alt="{{ event.title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+            {% else %}
+            <div class="flex h-full w-full items-center justify-center {{ event.surface_classes }}">
+              <span class="material-symbols-outlined text-6xl {{ event.icon_classes }}">{{ event.icon }}</span>
+            </div>
+            {% endif %}
+            <span class="absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter {{ event.badge_classes }}">{{ event.type_label }}</span>
+          </div>
+          <div class="p-6">
+            <div class="mb-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> {{ event.time_label }}</span>
+              <span class="flex items-center gap-1 font-semibold text-primary"><span class="material-symbols-outlined text-sm">location_on</span> {{ event.village_name }}</span>
+            </div>
+            <h3 class="mb-3 text-xl font-bold leading-tight transition-colors group-hover:text-primary">{{ event.title }}</h3>
+            <p class="mb-4 text-sm text-slate-600 dark:text-slate-400">{{ event.summary|truncatechars:150 }}</p>
+            <div class="mb-5 flex flex-wrap items-center gap-2">
+              <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase {{ event.status.classes }}">{{ event.status.label }}</span>
+              {% if event.is_public %}
+              <span class="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase text-primary">Public</span>
+              {% else %}
+              <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">Interne</span>
+              {% endif %}
+              {% if event.is_public_submission %}
+              <span class="rounded-full bg-sky-100 px-2.5 py-1 text-[10px] font-bold uppercase text-sky-700">Soumis depuis l'accueil</span>
+              {% endif %}
+            </div>
+            {% if event.contact_name %}
+            <p class="mb-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span class="material-symbols-outlined text-sm">support_agent</span>
+              Soumis par {{ event.contact_name }}
+            </p>
+            {% endif %}
+            <a href="{{ event.detail_url }}" class="flex items-center gap-2 text-sm font-bold text-primary">
+              {% if event.is_public_submission and event.status_value == 'pending' %}
+              Verifier la demande
+              {% else %}
+              Ouvrir la fiche
+              {% endif %}
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% elif featured_event %}
+      <div class="rounded-3xl border border-dashed border-primary/20 bg-white p-8 text-center dark:bg-slate-900">
+        <span class="material-symbols-outlined text-5xl text-primary/40">filter_alt_off</span>
+        <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-200">Aucun autre resultat pour ces filtres.</p>
+        <p class="mt-1 text-sm text-slate-500">L'evenement mis en avant ci-dessus correspond a votre recherche.</p>
+      </div>
+      {% else %}
+      <div class="rounded-3xl border border-dashed border-primary/20 bg-white p-8 text-center dark:bg-slate-900">
+        <span class="material-symbols-outlined text-5xl text-primary/40">news_off</span>
+        <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-200">Aucune annonce trouvee.</p>
+        <p class="mt-1 text-sm text-slate-500">Ajustez les filtres ou creez un nouveau contenu.</p>
+      </div>
+      {% endif %}
+
+      <div class="mt-12 flex flex-col items-center justify-between gap-4 md:flex-row">
+        <p class="text-sm text-slate-500">
+          {% if filtered_total %}
+          Affichage {{ display_start }}-{{ display_end }} sur {{ total }} carte{{ total|pluralize }} annexe{{ total|pluralize }}
+          {% else %}
+          Aucun resultat annexe
+          {% endif %}
+        </p>
+
+        {% if nb_pages > 1 %}
+        <nav aria-label="Pagination" class="inline-flex rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          {% if page > 1 %}
+          <a class="relative inline-flex items-center rounded-xl px-3 py-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800" href="?page={{ page|add:'-1' }}&q={{ q|urlencode }}&type={{ event_type|urlencode }}&village={{ village_id|urlencode }}&archive={{ archive|urlencode }}&par_page={{ par_page }}">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          {% endif %}
+          {% for i in page_range %}
+            {% if i == page %}
+            <span class="relative inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{{ i }}</span>
+            {% else %}
+            <a class="relative inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800" href="?page={{ i }}&q={{ q|urlencode }}&type={{ event_type|urlencode }}&village={{ village_id|urlencode }}&archive={{ archive|urlencode }}&par_page={{ par_page }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if page < nb_pages %}
+          <a class="relative inline-flex items-center rounded-xl px-3 py-2 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800" href="?page={{ page|add:'1' }}&q={{ q|urlencode }}&type={{ event_type|urlencode }}&village={{ village_id|urlencode }}&archive={{ archive|urlencode }}&par_page={{ par_page }}">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+          {% endif %}
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

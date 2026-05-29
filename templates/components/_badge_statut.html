@@ -1,0 +1,14 @@
+{# components/_badge_statut.html #}
+{#
+  Variable : statut → "verifie" | "en_attente" | "rejete" | str
+#}
+
+{% if statut == "verifie" %}
+  <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Vérifié</span>
+{% elif statut == "en_attente" %}
+  <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider">En attente</span>
+{% elif statut == "rejete" %}
+  <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider">Rejeté</span>
+{% else %}
+  <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">{{ statut }}</span>
+{% endif %}

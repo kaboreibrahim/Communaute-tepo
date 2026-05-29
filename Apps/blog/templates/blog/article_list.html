@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+{% load blog_tags %}
+
+{% block page_title %}Blog — Actualités de la Communauté TEPO{% endblock %}
+{% block meta_description %}Retrouvez toutes les actualités, annonces et articles de la communauté TEPO : vie locale, culture, événements et informations pratiques.{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'blog:article-list' %}{% endblock %}
+{% block og_title_fallback %}Blog — Actualités de la Communauté TEPO{% endblock %}
+{% block og_description %}Retrouvez toutes les actualités, annonces et articles de la communauté TEPO.{% endblock %}
+
+{% block content %}
+
+{# ── Hero Banner ── #}
+<section class="relative bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden">
+  <div class="absolute inset-0 opacity-10"
+       style="background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.4) 1px,transparent 0);background-size:28px 28px;"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 py-14 sm:py-20">
+    <div class="max-w-2xl">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold text-white/90 uppercase tracking-wider mb-4">
+        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">article</span>
+        Blog & Actualités
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight mb-4">
+        {% if titre_filtre %}{{ titre_filtre }}{% else %}Toute l'actualité<br>de la communauté{% endif %}
+      </h1>
+      <p class="text-white/75 text-base sm:text-lg leading-relaxed mb-6">
+        Informations, annonces, portraits et récits qui font vivre la communauté TEPO.
+      </p>
+      <form method="get" action="{% url 'blog:recherche' %}" class="flex gap-2 max-w-lg">
+        <div class="flex-1 relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-white/50 text-lg">search</span>
+          <input type="text" name="q" value="{{ q }}"
+                 placeholder="Rechercher un article..."
+                 class="w-full rounded-xl bg-white/20 border border-white/20 pl-10 pr-4 py-3 text-sm text-white placeholder-white/50 outline-none focus:bg-white/30 focus:border-white/40 transition">
+        </div>
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl bg-accent text-white text-sm font-bold shadow-lg shadow-accent/30 hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
+          Rechercher
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{# ── Stats bar ── #}
+<div class="bg-white border-b border-slate-100 shadow-sm">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-6 text-sm text-slate-500 overflow-x-auto">
+    <span class="flex items-center gap-1.5 shrink-0">
+      <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">library_books</span>
+      <strong class="text-slate-700">{{ total_articles }}</strong> articles
+    </span>
+    <span class="text-slate-200">|</span>
+    {% for cat in categories %}
+    <a href="{% url 'blog:categorie' cat.slug %}"
+       class="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors
+              {% if categorie_active == cat.slug %}bg-primary text-white{% else %}bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary{% endif %}">
+      {{ cat.nom }}
+      {% if cat.nombre_articles %}<span class="opacity-60">({{ cat.nombre_articles }})</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+{# ── Main layout ── #}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
+  <div class="flex flex-col lg:flex-row gap-10">
+
+    {# ── Articles grid ── #}
+    <main class="flex-1 min-w-0">
+
+      {% if articles %}
+
+        {# Featured article — first one if on first page #}
+        {% if not request.GET.page and not q and not categorie_active and not tag_actif %}
+          {% with articles.0 as featured %}
+          {% if featured.featured or forloop.parentloop.counter0 == 0 %}
+          <article class="group relative rounded-3xl overflow-hidden shadow-xl mb-10 reveal">
+            {% if featured.image_couverture %}
+            <div class="aspect-[2.2/1] overflow-hidden">
+              <img src="{{ featured.image_couverture.url }}" alt="{{ featured.titre }}"
+                   class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+            </div>
+            {% else %}
+            <div class="aspect-[2.2/1] bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <span class="material-symbols-outlined text-white/30" style="font-size:80px">article</span>
+            </div>
+            {% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+              <div class="flex items-center gap-3 mb-3">
+                {% if featured.categorie %}
+                <span class="rounded-full px-3 py-1 text-xs font-bold text-white" style="background-color:{{ featured.categorie.couleur }}">
+                  {{ featured.categorie.nom }}
+                </span>
+                {% endif %}
+                <span class="text-white/60 text-xs">{{ featured.date_publication|date:"d M Y" }}</span>
+                <span class="flex items-center gap-1 text-white/60 text-xs">
+                  <span class="material-symbols-outlined text-sm">schedule</span>
+                  {{ featured.temps_lecture }} min de lecture
+                </span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight mb-2 line-clamp-2">
+                {{ featured.titre }}
+              </h2>
+              <p class="text-white/75 text-sm line-clamp-2 mb-4 max-w-2xl">{{ featured.extrait }}</p>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">
+                    {% if featured.auteur %}{{ featured.auteur.first_name|first|upper }}{{ featured.auteur.last_name|first|upper }}{% else %}?{% endif %}
+                  </div>
+                  <span class="text-white/80 text-sm font-medium">
+                    {% if featured.auteur %}{{ featured.auteur.get_full_name|default:featured.auteur.username }}{% else %}Rédaction{% endif %}
+                  </span>
+                </div>
+                <a href="{% url 'blog:article-detail' featured.slug %}"
+                   class="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/30 hover:scale-105 active:scale-95 transition-transform">
+                  Lire l'article
+                  <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </a>
+              </div>
+            </div>
+          </article>
+          {% endif %}
+          {% endwith %}
+        {% endif %}
+
+        {# Grid of articles #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {% for article in articles %}
+          <article class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col reveal" style="transition-delay:{{ forloop.counter0|add:1 }}00ms">
+            <a href="{% url 'blog:article-detail' article.slug %}" class="block overflow-hidden aspect-[16/9]">
+              {% if article.image_couverture %}
+              <img src="{{ article.image_couverture.url }}" alt="{{ article.titre }}"
+                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              {% else %}
+              <div class="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary/30" style="font-size:40px">article</span>
+              </div>
+              {% endif %}
+            </a>
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center gap-2 mb-3">
+                {% if article.categorie %}
+                <a href="{% url 'blog:categorie' article.categorie.slug %}"
+                   class="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
+                   style="background-color:{{ article.categorie.couleur }}">
+                  {{ article.categorie.nom }}
+                </a>
+                {% endif %}
+                <span class="text-slate-400 text-xs">{{ article.date_publication|date:"d M Y" }}</span>
+              </div>
+              <a href="{% url 'blog:article-detail' article.slug %}" class="block flex-1">
+                <h3 class="font-bold text-slate-800 leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors text-base">
+                  {{ article.titre }}
+                </h3>
+                <p class="text-slate-500 text-sm leading-relaxed line-clamp-3">{{ article.extrait }}</p>
+              </a>
+              <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black">
+                    {% if article.auteur %}{{ article.auteur.first_name|first|upper }}{{ article.auteur.last_name|first|upper }}{% else %}R{% endif %}
+                  </div>
+                  <span class="text-xs text-slate-500 font-medium">
+                    {% if article.auteur %}{{ article.auteur.get_full_name|default:"Rédaction" }}{% else %}Rédaction{% endif %}
+                  </span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-400">
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">schedule</span>{{ article.temps_lecture }} min
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">visibility</span>{{ article.vues }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">favorite</span>{{ article.nombre_likes }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        {# ── Pagination ── #}
+        {% if is_paginated %}
+        <div class="mt-10 flex justify-center">
+          <nav class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_active %}categorie={{ categorie_active }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-lg">chevron_left</span>
+            </a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-sm">{{ num }}</span>
+              {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+              <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_active %}categorie={{ categorie_active }}&{% endif %}page={{ num }}"
+                 class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors text-sm">
+                {{ num }}
+              </a>
+              {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_active %}categorie={{ categorie_active }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-lg">chevron_right</span>
+            </a>
+            {% endif %}
+          </nav>
+        </div>
+        {% endif %}
+
+      {% else %}
+      <div class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-slate-300" style="font-size:36px">article</span>
+        </div>
+        <h3 class="text-xl font-bold text-slate-700 mb-2">Aucun article trouvé</h3>
+        <p class="text-slate-400 text-sm max-w-sm">
+          {% if q %}Aucun résultat pour « {{ q }} ». Essayez d'autres termes.
+          {% else %}Aucun article publié pour le moment. Revenez bientôt !{% endif %}
+        </p>
+        {% if q or categorie_active or tag_actif %}
+        <a href="{% url 'blog:article-list' %}"
+           class="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:scale-105 transition-transform">
+          <span class="material-symbols-outlined text-base">refresh</span>
+          Voir tous les articles
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </main>
+
+    {# ── Sidebar ── #}
+    <aside class="w-full lg:w-80 shrink-0 space-y-6">
+
+      {# Newsletter #}
+      <div class="rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white reveal">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-white/80" style="font-variation-settings:'FILL' 1">mail</span>
+          <h3 class="font-bold text-base">Newsletter</h3>
+        </div>
+        <p class="text-white/75 text-sm mb-4 leading-relaxed">
+          Recevez les dernières actualités directement dans votre boîte mail.
+        </p>
+        <form method="post" action="{% url 'blog:newsletter-subscribe' %}">
+          {% csrf_token %}
+          <input type="text" name="nom" placeholder="Votre prénom"
+                 class="w-full rounded-xl bg-white/15 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-white/50 outline-none focus:bg-white/25 transition mb-2">
+          <input type="email" name="email" placeholder="Votre email *" required
+                 class="w-full rounded-xl bg-white/15 border border-white/20 px-4 py-2.5 text-sm text-white placeholder-white/50 outline-none focus:bg-white/25 transition mb-3">
+          <button type="submit"
+                  class="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-accent/30">
+            S'abonner gratuitement
+          </button>
+        </form>
+      </div>
+
+      {# Articles récents #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">schedule</span>
+          Articles récents
+        </h3>
+        <ul class="space-y-3">
+          {% for art in articles_recents %}
+          <li class="flex gap-3 group">
+            {% if art.image_couverture %}
+            <a href="{% url 'blog:article-detail' art.slug %}" class="shrink-0 w-14 h-14 rounded-xl overflow-hidden">
+              <img src="{{ art.image_couverture.url }}" alt="{{ art.titre }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            </a>
+            {% else %}
+            <a href="{% url 'blog:article-detail' art.slug %}"
+               class="shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary/40 text-xl">article</span>
+            </a>
+            {% endif %}
+            <div class="flex-1 min-w-0">
+              <a href="{% url 'blog:article-detail' art.slug %}"
+                 class="block text-xs font-semibold text-slate-700 hover:text-primary transition-colors line-clamp-2 leading-snug">
+                {{ art.titre }}
+              </a>
+              <p class="text-[10px] text-slate-400 mt-1">{{ art.date_publication|date:"d M Y" }}</p>
+            </div>
+          </li>
+          {% empty %}
+          <li class="text-xs text-slate-400">Aucun article récent.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# Catégories #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">category</span>
+          Catégories
+        </h3>
+        <ul class="space-y-1.5">
+          {% for cat in categories %}
+          <li>
+            <a href="{% url 'blog:categorie' cat.slug %}"
+               class="flex items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors
+                      {% if categorie_active == cat.slug %}bg-primary text-white font-semibold{% else %}text-slate-600 hover:bg-primary/5 hover:text-primary{% endif %}">
+              <span class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:{{ cat.couleur }}"></span>
+                {{ cat.nom }}
+              </span>
+              <span class="text-[11px] {% if categorie_active == cat.slug %}text-white/70{% else %}text-slate-400{% endif %}">
+                {{ cat.nombre_articles }}
+              </span>
+            </a>
+          </li>
+          {% empty %}
+          <li class="text-xs text-slate-400">Aucune catégorie.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {# Tags cloud #}
+      {% if tags_populaires %}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">label</span>
+          Tags
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in tags_populaires %}
+          <a href="{% url 'blog:tag' tag.slug %}"
+             class="rounded-full px-3 py-1 text-xs font-medium border border-slate-200 text-slate-600 hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors
+                    {% if tag_actif == tag.slug %}bg-primary text-white border-primary{% endif %}">
+            #{{ tag.nom }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# Articles populaires #}
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 reveal">
+        <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">trending_up</span>
+          Les plus lus
+        </h3>
+        <ol class="space-y-3">
+          {% for art in articles_populaires %}
+          <li class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-lg bg-primary/10 text-primary text-[11px] font-black flex items-center justify-center">{{ forloop.counter }}</span>
+            <a href="{% url 'blog:article-detail' art.slug %}"
+               class="text-xs font-semibold text-slate-700 hover:text-primary transition-colors line-clamp-2 leading-snug flex-1">
+              {{ art.titre }}
+              <span class="block text-[10px] text-slate-400 font-normal mt-0.5">{{ art.vues }} vues</span>
+            </a>
+          </li>
+          {% empty %}
+          <li class="text-xs text-slate-400">Aucun article populaire.</li>
+          {% endfor %}
+        </ol>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+{% endblock %}

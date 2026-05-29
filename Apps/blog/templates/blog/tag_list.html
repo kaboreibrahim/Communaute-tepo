@@ -1,0 +1,50 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Tags — Blog{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-dashboard' %}" class="hover:text-primary">Blog</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">Tags</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between gap-4">
+  <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">Tags du blog</h1>
+  <a href="{% url 'dashbord:blog-tag-create' %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+    <span class="material-symbols-outlined" style="font-size:18px">add</span>
+    Nouveau tag
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+  <div class="flex flex-wrap gap-3">
+    {% for tag in tags %}
+    <div class="group flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 hover:border-primary transition-colors">
+      <a href="{% url 'blog:tag' tag.slug %}" target="_blank"
+         class="text-sm font-semibold text-slate-700 hover:text-primary transition-colors">
+        #{{ tag.nom }}
+        <span class="text-xs text-slate-400 font-normal ml-1">({{ tag.nb }})</span>
+      </a>
+      <form method="post" action="{% url 'dashbord:blog-tag-delete' tag.pk %}"
+            onsubmit="return confirm('Supprimer le tag #{{ tag.nom|escapejs }} ?')">
+        {% csrf_token %}
+        <button type="submit"
+                class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </form>
+    </div>
+    {% empty %}
+    <p class="text-sm text-slate-400">Aucun tag. <a href="{% url 'dashbord:blog-tag-create' %}" class="text-primary font-semibold">Créer le premier</a></p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

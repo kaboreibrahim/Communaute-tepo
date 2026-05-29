@@ -1,0 +1,308 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Liste des familles - Olodio{% endblock %}
+{% block topbar_title %}Familles{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center justify-between gap-2 text-sm text-slate-400">
+  <div class="flex items-center gap-2">
+    <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Tableau de bord</a>
+    <span class="material-symbols-outlined text-base">chevron_right</span>
+    <span class="font-medium text-slate-700 dark:text-slate-200">Familles</span>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="rounded-3xl border border-primary/10 bg-white/80 px-6 py-6 shadow-sm backdrop-blur-md dark:bg-slate-900/80 md:px-8">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Gestion des familles</h2>
+        <p class="mt-1 text-slate-500 dark:text-slate-400">
+          Base de donnees des foyers recenses dans l'ensemble des secteurs.
+        </p>
+      </div>
+      {% if request.user.est_agent_saisie %}
+      <a
+        href="{% url 'dashbord:family-create' %}"
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-white shadow-lg shadow-primary/30 transition-transform hover:bg-primary/90 active:scale-95"
+      >
+        <span class="material-symbols-outlined">person_add</span>
+        Enregistrer une famille
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div class="group relative overflow-hidden rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-primary/5 transition-transform duration-700 group-hover:scale-150"></div>
+      <p class="mb-1 text-sm font-bold uppercase tracking-widest text-primary">Total des membres</p>
+      <div class="flex items-end gap-2">
+        <h4 class="text-4xl font-black text-slate-900 dark:text-white">{{ stats.total_personnes }}</h4>
+        <span class="pb-1 text-sm font-bold text-green-600">Donnees en direct</span>
+      </div>
+    </div>
+
+    <div class="group relative overflow-hidden rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-primary/5 transition-transform duration-700 group-hover:scale-150"></div>
+      <p class="mb-1 text-sm font-bold uppercase tracking-widest text-primary">Taux de verification</p>
+      <div class="flex items-end gap-2">
+        <h4 class="text-4xl font-black text-slate-900 dark:text-white">{{ stats.taux_verifie }}%</h4>
+        <span class="pb-1 text-sm font-bold text-green-600">{{ stats.familles_verifiees }} familles verifiees</span>
+      </div>
+    </div>
+
+    <div class="group relative overflow-hidden rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-primary/5 transition-transform duration-700 group-hover:scale-150"></div>
+      <p class="mb-1 text-sm font-bold uppercase tracking-widest text-primary">Taille moyenne des familles</p>
+      <div class="flex items-end gap-2">
+        <h4 class="text-4xl font-black text-slate-900 dark:text-white">{{ stats.taille_moyenne }}</h4>
+        <span class="pb-1 text-sm font-bold uppercase text-slate-500">Membres</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-primary/10 bg-white p-4 dark:bg-slate-900">
+    <form method="get" class="space-y-4">
+      <input type="hidden" name="par_page" value="{{ par_page }}">
+      <input type="hidden" name="village" value="{{ village_id }}">
+      <input type="hidden" name="residence" value="{{ residence }}">
+
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="min-w-[300px] flex-1">
+          <div class="group relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-primary">search</span>
+            <input
+              type="text"
+              name="q"
+              value="{{ q }}"
+              placeholder="Rechercher par nom de famille, chef de famille ou village..."
+              class="w-full rounded-xl border-none bg-primary/5 py-3 pl-12 pr-4 text-slate-900 transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-white"
+            >
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+          <button
+            type="submit"
+            class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-primary/10 px-4 py-2.5 font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            <span class="material-symbols-outlined text-xl">filter_list</span>
+            Filtrer
+          </button>
+          {% if q or village_id or residence %}
+          <a
+            href="{% url 'dashbord:family-list' %}?par_page={{ par_page }}"
+            class="whitespace-nowrap rounded-lg bg-slate-100 px-4 py-2.5 font-medium text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            Reinitialiser
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <a
+          href="?q={{ q|urlencode }}&residence={{ residence|urlencode }}&par_page={{ par_page }}"
+          class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 font-semibold transition-colors {% if not village_id %}bg-primary/10 text-primary{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}"
+        >
+          <span class="material-symbols-outlined text-xl">location_city</span>
+          Tous les villages
+        </a>
+        {% for village in villages %}
+        <a
+          href="?q={{ q|urlencode }}&village={{ village.id }}&residence={{ residence|urlencode }}&par_page={{ par_page }}"
+          class="whitespace-nowrap rounded-lg px-4 py-2.5 font-medium transition-colors {% if village_id == village.id|stringformat:'s' %}bg-primary text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}"
+        >
+          {{ village.nom }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <a
+          href="?q={{ q|urlencode }}&village={{ village_id|urlencode }}&par_page={{ par_page }}"
+          class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 font-semibold transition-colors {% if not residence %}bg-primary/10 text-primary{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}"
+        >
+          <span class="material-symbols-outlined text-xl">home_work</span>
+          Toutes les residences
+        </a>
+        {% for value, label in residence_choices %}
+        <a
+          href="?q={{ q|urlencode }}&village={{ village_id|urlencode }}&residence={{ value|urlencode }}&par_page={{ par_page }}"
+          class="whitespace-nowrap rounded-lg px-4 py-2.5 font-medium transition-colors {% if residence == value %}bg-primary text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700{% endif %}"
+        >
+          {{ label }}
+        </a>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+
+  <div class="overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-left">
+        <thead>
+          <tr class="border-b border-primary/10 bg-primary/5">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-primary">Chef de famille</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-primary">Village</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-primary">Membres</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-primary">Date d'enregistrement</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-primary">Statut</th>
+            <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-widest text-primary">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-primary/5">
+          {% for famille in familles %}
+          <tr class="transition-colors hover:bg-primary/5">
+            <td class="px-6 py-5">
+              <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-bold uppercase text-primary">
+                  {{ famille.chef_nom|default:famille.nom_famille|slice:":2" }}
+                </div>
+                <div>
+                  <a href="{% url 'dashbord:family-detail' famille.id %}" class="font-semibold text-slate-900 hover:text-primary dark:text-white">
+                    {{ famille.chef_nom|default:"Chef non renseigne" }}
+                  </a>
+                  <p class="text-xs text-slate-400">Famille : {{ famille.nom_famille }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-5 font-medium text-slate-600 dark:text-slate-400">{{ famille.village_nom }}</td>
+            <td class="px-6 py-5">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold dark:bg-slate-800">
+                {{ famille.nombre_membres|stringformat:"02d" }}
+              </span>
+            </td>
+            <td class="px-6 py-5 font-medium text-slate-600 dark:text-slate-400">{{ famille.date_creation|date:"d M Y" }}</td>
+            <td class="px-6 py-5">
+              {% if famille.chef_nom and famille.nombre_membres > 0 %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                Verifiee
+              </span>
+              {% elif famille.nombre_membres > 0 %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                En attente
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                Signalee
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-5 text-right">
+              <div class="inline-flex items-center gap-1">
+                <a
+                  href="{% url 'dashbord:family-detail' famille.id %}"
+                  class="rounded-lg p-2 text-primary transition-colors hover:bg-primary/10"
+                  title="Voir"
+                >
+                  <span class="material-symbols-outlined">visibility</span>
+                </a>
+                {% if request.user.est_agent_saisie %}
+                <a
+                  href="{% url 'dashbord:family-update' famille.id %}"
+                  class="rounded-lg p-2 text-primary transition-colors hover:bg-primary/10"
+                  title="Modifier"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-5xl text-slate-200">family_restroom</span>
+                <p class="font-medium text-slate-400">Aucune famille trouvee.</p>
+                {% if q or village_id or residence %}
+                <a href="{% url 'dashbord:family-list' %}?par_page={{ par_page }}" class="text-sm text-primary hover:underline">
+                  Reinitialiser les filtres
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-col items-center justify-between gap-3 border-t border-primary/10 bg-primary/5 px-6 py-4 sm:flex-row">
+      <p class="text-xs font-medium text-slate-500">
+        {% if total %}
+        Affichage de {{ display_start }} a {{ display_end }} sur {{ total }} familles
+        {% else %}
+        Aucune famille disponible
+        {% endif %}
+      </p>
+
+      {% if nb_pages > 1 %}
+      <div class="flex items-center gap-2">
+        {% if page > 1 %}
+        <a
+          href="?page={{ page|add:'-1' }}&q={{ q|urlencode }}&village={{ village_id|urlencode }}&residence={{ residence|urlencode }}&par_page={{ par_page }}"
+          class="flex h-8 w-8 items-center justify-center rounded border border-primary/10 text-primary transition-colors hover:bg-primary/10"
+        >
+          <span class="material-symbols-outlined text-sm">chevron_left</span>
+        </a>
+        {% else %}
+        <button disabled class="flex h-8 w-8 items-center justify-center rounded border border-primary/10 text-primary opacity-50">
+          <span class="material-symbols-outlined text-sm">chevron_left</span>
+        </button>
+        {% endif %}
+
+        {% for i in pagination_range %}
+        {% if i == page %}
+        <span class="flex h-8 w-8 items-center justify-center rounded bg-primary text-xs font-bold text-white">{{ i }}</span>
+        {% else %}
+        <a
+          href="?page={{ i }}&q={{ q|urlencode }}&village={{ village_id|urlencode }}&residence={{ residence|urlencode }}&par_page={{ par_page }}"
+          class="flex h-8 w-8 items-center justify-center rounded border border-primary/10 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+        >
+          {{ i }}
+        </a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < nb_pages %}
+        <a
+          href="?page={{ page|add:'1' }}&q={{ q|urlencode }}&village={{ village_id|urlencode }}&residence={{ residence|urlencode }}&par_page={{ par_page }}"
+          class="flex h-8 w-8 items-center justify-center rounded border border-primary/10 text-primary transition-colors hover:bg-primary/10"
+        >
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </a>
+        {% else %}
+        <button disabled class="flex h-8 w-8 items-center justify-center rounded border border-primary/10 text-primary opacity-50">
+          <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let familySearchTimer;
+  const familySearchInput = document.querySelector('input[name="q"]');
+
+  if (familySearchInput) {
+    familySearchInput.addEventListener('input', function () {
+      clearTimeout(familySearchTimer);
+      familySearchTimer = setTimeout(() => {
+        this.form.submit();
+      }, 350);
+    });
+  }
+</script>
+{% endblock %}

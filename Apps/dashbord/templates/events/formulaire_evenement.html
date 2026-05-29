@@ -1,0 +1,285 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{{ browser_title|default:"Publier un evenement - Olodio" }}{% endblock %}
+{% block topbar_title %}{{ topbar_page_title|default:"Nouvel evenement" }}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:event-list' %}" class="hover:text-primary transition-colors">Actualites & annonces</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-slate-700 dark:text-slate-200 font-medium">{{ breadcrumb_current|default:"Creation" }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl">
+  <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+    <div class="max-w-3xl">
+      {% if review_mode %}
+      <span class="inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-1 text-xs font-bold uppercase tracking-[0.22em] text-sky-700">
+        <span class="material-symbols-outlined text-sm">fact_check</span>
+        Workflow agent de saisie
+      </span>
+      {% endif %}
+      <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ heading }}</h1>
+      <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">{{ intro }}</p>
+    </div>
+    <a href="{{ cancel_url }}" class="inline-flex items-center gap-2 self-start rounded-2xl border border-primary/15 bg-white px-5 py-3 text-sm font-bold text-primary shadow-sm transition hover:bg-primary/5 dark:bg-slate-900">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Retour a la liste
+    </a>
+  </div>
+
+  {% if show_submission_panel %}
+  <section class="mb-8 overflow-hidden rounded-[2rem] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-white shadow-sm dark:border-sky-900/30 dark:from-sky-950/10 dark:via-slate-900 dark:to-slate-900">
+    <div class="grid gap-6 p-6 lg:grid-cols-[1.25fr_0.95fr] lg:p-8">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Demande recue depuis l'accueil</p>
+        <h2 class="mt-3 text-2xl font-black text-slate-900 dark:text-white">{{ event_obj.titre }}</h2>
+        <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+          Cette annonce a ete envoyee par un visiteur du site public. L'agent peut maintenant verifier le fond, completer les champs utiles puis publier ou refuser la demande.
+        </p>
+
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-sky-100 bg-white/80 p-4 dark:border-sky-900/30 dark:bg-slate-900/80">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Demandeur</p>
+            <p class="mt-2 text-base font-bold text-slate-900 dark:text-white">{{ event_obj.nom_contact|default:"Non renseigne" }}</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ event_obj.telephone_contact|default:"Telephone non renseigne" }}</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ event_obj.email_contact|default:"Email non renseigne" }}</p>
+          </div>
+          <div class="rounded-2xl border border-sky-100 bg-white/80 p-4 dark:border-sky-900/30 dark:bg-slate-900/80">
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Reception</p>
+            <p class="mt-2 text-base font-bold text-slate-900 dark:text-white">{{ event_obj.date_creation|date:"d/m/Y" }}</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ event_obj.date_creation|date:"H:i" }}</p>
+            <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+              Village propose : {{ event_obj.village.nom|default:"Non rattache" }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Statut actuel</p>
+          <div class="mt-3 flex flex-wrap items-center gap-3">
+            <span class="inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] {{ status_meta.classes }}">{{ status_meta.label }}</span>
+            {% if event_obj.est_public %}
+            <span class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">Publication publique</span>
+            {% else %}
+            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-600 dark:bg-slate-800 dark:text-slate-300">Hors accueil</span>
+            {% endif %}
+          </div>
+          {% if event_obj.valide_par %}
+          <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+            Derniere validation par {{ event_obj.valide_par.get_full_name|default:event_obj.valide_par.username }}
+            {% if event_obj.date_validation %}le {{ event_obj.date_validation|date:"d/m/Y H:i" }}{% endif %}.
+          </p>
+          {% endif %}
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-slate-900 p-5 text-white shadow-lg dark:border-slate-800">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Memo moderation</p>
+          <div class="mt-4 space-y-3 text-sm text-white/80">
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-amber-300">task_alt</span> Verifier les informations essentielles et la date de l'evenement.</p>
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-amber-300">edit_square</span> Completer les champs internes si besoin avant validation.</p>
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-amber-300">public</span> Une fois publiee, l'annonce devient visible sur la page d'accueil.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if form.non_field_errors or form.errors %}
+  <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+    <p class="font-bold uppercase tracking-wide text-red-600">Le formulaire contient des erreurs.</p>
+    <ul class="mt-2 space-y-1">
+      {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+      {% for field in form %}
+        {% for error in field.errors %}
+        <li>{{ field.label }} : {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div class="space-y-6 lg:col-span-2">
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.titre.label }}</label>
+          {{ form.titre }}
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+            <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.type.label }}</label>
+            {{ form.type }}
+          </div>
+          <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+            <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.date_evenement.label }}</label>
+            {{ form.date_evenement }}
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
+          <div class="flex items-center gap-4 border-b border-primary/5 bg-slate-50 p-6 dark:bg-slate-800/50">
+            <span class="material-symbols-outlined text-slate-400">article</span>
+            <div>
+              <p class="text-sm font-bold text-slate-800 dark:text-white">Description detaillee</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Le contenu principal apparaitra dans la fiche publique apres validation.</p>
+            </div>
+          </div>
+          <div class="p-6">
+            <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.description.label }}</label>
+            {{ form.description }}
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.resume.label }}</label>
+          {{ form.resume }}
+          <div class="mt-2 flex justify-end">
+            <span id="resume-counter" class="text-xs font-medium text-slate-400">0 / 250 caracteres</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        {% if event_obj %}
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Suivi</p>
+          <div class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">schedule</span> Cree le {{ event_obj.date_creation|date:"d/m/Y H:i" }}</p>
+            <p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">calendar_today</span> Evenement prevu {{ event_obj.date_evenement|date:"d/m/Y" }}</p>
+            {% if event_obj.valide_par %}
+            <p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">verified</span> Traite par {{ event_obj.valide_par.get_full_name|default:event_obj.valide_par.username }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.village.label }}</label>
+          {{ form.village }}
+          <p class="mt-2 text-xs italic text-slate-500">Selectionnez un village ou laissez vide pour une annonce communautaire.</p>
+        </div>
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.personne.label }}</label>
+          {{ form.personne }}
+          <p class="mt-2 text-xs italic text-slate-500">Optionnel pour une naissance, un mariage, un deces ou un hommage.</p>
+        </div>
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.lieu.label }}</label>
+          {{ form.lieu }}
+        </div>
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-4 block text-sm font-bold text-slate-700 dark:text-slate-300">Visibilite</label>
+          <div class="space-y-4">
+            <label class="group flex cursor-pointer items-center gap-3">
+              <input type="radio" name="visibility_scope" value="public" class="h-5 w-5 border-slate-300 text-primary focus:ring-primary"
+                {% if form.is_bound %}
+                  {% if request.POST.visibility_scope != 'private' %}checked{% endif %}
+                {% elif form.est_public.value %}
+                  checked
+                {% endif %}>
+              <div>
+                <p class="text-sm font-bold text-slate-800 transition-colors group-hover:text-primary dark:text-white">Public</p>
+                <p class="text-xs text-slate-500">Visible sur le portail une fois publie.</p>
+              </div>
+            </label>
+            <label class="group flex cursor-pointer items-center gap-3">
+              <input type="radio" name="visibility_scope" value="private" class="h-5 w-5 border-slate-300 text-primary focus:ring-primary"
+                {% if form.is_bound %}
+                  {% if request.POST.visibility_scope == 'private' %}checked{% endif %}
+                {% elif not form.est_public.value %}
+                  checked
+                {% endif %}>
+              <div>
+                <p class="text-sm font-bold text-slate-800 transition-colors group-hover:text-primary dark:text-white">Interne / brouillon</p>
+                <p class="text-xs text-slate-500">Conserve l'annonce hors accueil public.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <label class="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">{{ form.photo.label }}</label>
+          {% if event_obj and event_obj.photo %}
+          <div class="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+            <img src="{{ event_obj.photo.url }}" alt="{{ event_obj.titre }}" class="h-44 w-full object-cover">
+          </div>
+          {% endif %}
+          <label class="group mt-2 block cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center transition-colors hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-800/50">
+            <span class="material-symbols-outlined text-4xl text-slate-400 transition-colors group-hover:text-primary">cloud_upload</span>
+            <p class="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">Cliquez pour televerser ou glissez un fichier</p>
+            <p id="photo-upload-name" class="mt-1 text-xs text-slate-400">SVG, PNG, JPG (max. 5MB)</p>
+            {{ form.photo }}
+          </label>
+        </div>
+
+        <div class="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+          <button type="submit" name="submit_action" value="publish" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-black text-white shadow-xl shadow-primary/20 transition-all hover:bg-primary/90">
+            <span class="material-symbols-outlined">send</span>
+            {{ primary_action_label|upper }}
+          </button>
+          <button type="submit" name="submit_action" value="draft" class="w-full rounded-xl border border-slate-200 bg-white py-4 font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+            {{ secondary_action_label }}
+          </button>
+          {% if show_reject_button %}
+          <button
+            type="submit"
+            name="submit_action"
+            value="reject"
+            onclick="return confirm('Confirmer le refus de cette demande ?');"
+            class="w-full rounded-xl border border-rose-200 bg-rose-50 py-4 font-bold text-rose-700 transition-all hover:bg-rose-100"
+          >
+            Refuser la demande
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const eventPhotoInput = document.getElementById('id_photo');
+  const eventPhotoLabel = document.getElementById('photo-upload-name');
+  const resumeInput = document.getElementById('id_resume');
+  const resumeCounter = document.getElementById('resume-counter');
+
+  if (eventPhotoInput && eventPhotoLabel) {
+    eventPhotoInput.addEventListener('change', () => {
+      const fileName = eventPhotoInput.files && eventPhotoInput.files[0]
+        ? eventPhotoInput.files[0].name
+        : 'SVG, PNG, JPG (max. 5MB)';
+      eventPhotoLabel.textContent = fileName;
+    });
+  }
+
+  function syncResumeCounter() {
+    if (!resumeInput || !resumeCounter) {
+      return;
+    }
+    const currentLength = resumeInput.value.length;
+    resumeCounter.textContent = `${currentLength} / 250 caracteres`;
+  }
+
+  if (resumeInput) {
+    resumeInput.addEventListener('input', syncResumeCounter);
+    syncResumeCounter();
+  }
+</script>
+{% endblock %}

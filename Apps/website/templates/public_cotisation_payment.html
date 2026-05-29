@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="bg-background-light py-8 sm:py-12">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+    <div class="mb-8 flex flex-col gap-6 rounded-[2rem] bg-gradient-to-br from-primary to-primary/85 px-6 py-8 text-white shadow-2xl sm:px-10 sm:py-10">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="max-w-3xl">
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-white/90">
+            <span class="material-symbols-outlined text-sm">payments</span>
+            Cotisation publique
+          </span>
+          <h1 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Envoyer une demande de validation de paiement</h1>
+          <p class="mt-4 max-w-2xl text-sm leading-relaxed text-white/85 sm:text-base">
+            Faites votre depot via Wave, Orange Money, Moov, MTN, virement ou espece, puis soumettez ici la preuve. L'administration verifiera la demande avant de valider le paiement.
+          </p>
+        </div>
+        <a href="{% url 'website:accueil' %}" class="inline-flex items-center gap-2 self-start rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
+          <span class="material-symbols-outlined text-base">arrow_back</span>
+          Retour a l'accueil
+        </a>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 1</p>
+          <p class="mt-2 text-sm font-semibold">Vous choisissez la personne et la cotisation ouverte a regler.</p>
+        </div>
+        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 2</p>
+          <p class="mt-2 text-sm font-semibold">Vous ajoutez la reference ou un recu du depot effectue.</p>
+        </div>
+        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 3</p>
+          <p class="mt-2 text-sm font-semibold">L'administration verifie puis valide le paiement dans la plateforme.</p>
+        </div>
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+      {% csrf_token %}
+
+      <div class="space-y-6">
+        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+          <div class="mb-6 flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span class="material-symbols-outlined">smartphone</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-slate-900">Numero de transaction</h2>
+              <p class="text-sm text-slate-500">Le nom et l'email sont recuperes automatiquement depuis la personne selectionnee. Indiquez seulement le numero ayant servi pour le paiement.</p>
+            </div>
+          </div>
+
+          <div class="grid gap-5">
+            <div>
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.telephone_soumetteur.label }}</label>
+              {{ form.telephone_soumetteur }}
+              {% if form.telephone_soumetteur.errors %}<p class="mt-1 text-xs text-red-600">{{ form.telephone_soumetteur.errors|join:", " }}</p>{% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+          <div class="mb-6 flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+              <span class="material-symbols-outlined">badge</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-slate-900">Cotisation a payer</h2>
+              <p class="text-sm text-slate-500">Choisissez d'abord la personne concernee, puis la cotisation ouverte applicable.</p>
+            </div>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.personne.label }}</label>
+              {{ form.personne }}
+              {% if form.personne.errors %}<p class="mt-1 text-xs text-red-600">{{ form.personne.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.cotisation.label }}</label>
+              {{ form.cotisation }}
+              {% if form.cotisation.errors %}<p class="mt-1 text-xs text-red-600">{{ form.cotisation.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.montant.label }}</label>
+              {{ form.montant }}
+              {% if form.montant.errors %}<p class="mt-1 text-xs text-red-600">{{ form.montant.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.date_paiement.label }}</label>
+              {{ form.date_paiement }}
+              {% if form.date_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.date_paiement.errors|join:", " }}</p>{% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+          <div class="mb-6 flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-slate-900">Preuve du paiement</h2>
+              <p class="text-sm text-slate-500">Ajoutez le mode de paiement, le numero utilise et une preuve si possible.</p>
+            </div>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.mode_paiement.label }}</label>
+              {{ form.mode_paiement }}
+              {% if form.mode_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.mode_paiement.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.compte_paiement.label }}</label>
+              {{ form.compte_paiement }}
+              {% if form.compte_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.compte_paiement.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.reference_transaction.label }}</label>
+              {{ form.reference_transaction }}
+              {% if form.reference_transaction.errors %}<p class="mt-1 text-xs text-red-600">{{ form.reference_transaction.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.notes.label }}</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}<p class="mt-1 text-xs text-red-600">{{ form.notes.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div class="sm:col-span-2">
+              <label class="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.recu.label }}</label>
+              <label class="group block cursor-pointer rounded-[1.5rem] border-2 border-dashed border-primary/15 bg-background-light px-6 py-10 text-center transition hover:border-primary/35 hover:bg-primary/5">
+                <span class="material-symbols-outlined text-5xl text-primary/60">cloud_upload</span>
+                <p class="mt-3 text-sm font-bold text-slate-700">Cliquez pour joindre un recu</p>
+                <p id="payment-upload-name" class="mt-1 text-xs text-slate-400">PNG, JPG ou JPEG</p>
+                {{ form.recu }}
+              </label>
+              {% if form.recu.errors %}<p class="mt-1 text-xs text-red-600">{{ form.recu.errors|join:", " }}</p>{% endif %}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-6">
+        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+          <div class="mb-4 flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-slate-900">Numeros de depot</h2>
+              <p class="text-sm text-slate-500">Choisissez l'un de ces comptes actifs pour votre depot.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            {% for account in active_accounts %}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="text-sm font-black text-slate-900">{{ account.get_mode_display }}</p>
+                  <p class="mt-1 text-sm font-semibold text-slate-700">{{ account.numero }}</p>
+                  <p class="mt-1 text-xs uppercase tracking-widest text-slate-400">{{ account.nom_titulaire }}</p>
+                </div>
+                {% if account.qr_code %}
+                <img src="{{ account.qr_code.url }}" alt="{{ account.nom_titulaire }}" class="h-14 w-14 rounded-xl border border-slate-200 object-cover">
+                {% endif %}
+              </div>
+              {% if account.instructions %}
+              <p class="mt-3 text-sm leading-6 text-slate-500">{{ account.instructions }}</p>
+              {% endif %}
+            </div>
+            {% empty %}
+            <div class="rounded-xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-500">
+              Aucun compte de paiement public n'est encore configure.
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] bg-slate-900 p-6 text-white shadow-2xl sm:p-8">
+          <h2 class="text-lg font-black">Avant d'envoyer</h2>
+          <div class="mt-5 space-y-3 text-sm text-white/80">
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">verified_user</span> Votre paiement est d'abord enregistre en attente.</p>
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">visibility</span> Un administrateur verifie la reference et le recu avant validation.</p>
+            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">call</span> Le numero utilise pour la transaction aide l'administration a retrouver le depot plus vite.</p>
+          </div>
+
+          <button type="submit" class="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-accent/30 transition hover:-translate-y-0.5 hover:bg-accent/90">
+            Envoyer la demande
+            <span class="material-symbols-outlined">send</span>
+          </button>
+        </section>
+      </aside>
+    </form>
+  </div>
+</section>
+
+<script>
+  const paymentReceiptInput = document.getElementById("id_recu");
+  const paymentReceiptLabel = document.getElementById("payment-upload-name");
+
+  if (paymentReceiptInput && paymentReceiptLabel) {
+    paymentReceiptInput.addEventListener("change", () => {
+      const fileName = paymentReceiptInput.files && paymentReceiptInput.files[0]
+        ? paymentReceiptInput.files[0].name
+        : "PNG, JPG ou JPEG";
+      paymentReceiptLabel.textContent = fileName;
+    });
+  }
+</script>
+{% endblock %}

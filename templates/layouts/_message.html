@@ -1,0 +1,146 @@
+<style>
+    .notification-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        max-width: 350px;
+        width: 100%;
+    }
+    
+    .notification {
+        position: relative;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        color: white;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(120%);
+        animation: slideIn 0.3s forwards;
+        opacity: 0;
+    }
+    
+    .notification.success {
+        background-color: #10B981;
+    }
+    
+    .notification.error {
+        background-color: #EF4444;
+    }
+    
+    .notification.warning {
+        background-color: #F59E0B;
+    }
+    
+    .notification.info {
+        background-color: #3B82F6;
+    }
+    
+    .notification .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        opacity: 0.8;
+    }
+    
+    .notification .close-btn:hover {
+        opacity: 1;
+    }
+    
+    .notification .icon {
+        margin-right: 12px;
+        font-size: 20px;
+    }
+    
+    .notification .content {
+        flex: 1;
+    }
+    
+    @keyframes slideIn {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+</style>
+
+<div class="notification-container">
+    {% for message in messages %}
+        {% with message_type=message.tags|default:'info' %}
+        {% if 'error' in message.tags %}
+            <div class="notification error">
+        {% elif 'success' in message.tags %}
+            <div class="notification success">
+        {% elif 'warning' in message.tags %}
+            <div class="notification warning">
+        {% else %}
+            <div class="notification info">
+        {% endif %}
+            <span class="icon">
+                {% if 'success' in message.tags %}
+                    <i class="ri-checkbox-circle-fill"></i>
+                {% elif 'error' in message.tags %}
+                    <i class="ri-close-circle-fill"></i>
+                {% elif 'warning' in message.tags %}
+                    <i class="ri-alert-fill"></i>
+                {% else %}
+                    <i class="ri-information-fill"></i>
+                {% endif %}
+            </span>
+            <div class="content">
+                {{ message|safe }}
+            </div>
+            <button class="close-btn" onclick="this.parentElement.remove()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+        {% endwith %}
+    {% endfor %}
+</div>
+
+<script>
+    // Fonction pour fermer automatiquement les notifications après un délai
+    function setupNotifications() {
+        const notifications = document.querySelectorAll('.notification');
+        
+        notifications.forEach((notification, index) => {
+            // Délai avant de commencer à fermer (en ms)
+            const delay = 5000 + (index * 300);
+            
+            // Fermeture automatique après le délai
+            const timeoutId = setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s forwards';
+                setTimeout(() => notification.remove(), 500);
+            }, delay);
+            
+            // Annuler la fermeture automatique si la souris est sur la notification
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(timeoutId);
+            });
+            
+            // Redémarrer le timer quand la souris quitte la notification
+            notification.addEventListener('mouseleave', () => {
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.5s forwards';
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', setupNotifications);
+</script>

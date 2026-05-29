@@ -1,0 +1,39 @@
+# Environnement Python
+env/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Secrets — NE JAMAIS COMMITER
+.env
+*.env
+.env.*
+!.env.example
+
+# Django
+*.log
+db.sqlite3
+staticfiles/
+media/
+
+# IDE & éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# VS Code history (extension Local History)
+.history/
+
+# Migrations (optionnel — à décommenter si tu veux les ignorer)
+# */migrations/*.py
+# !*/migrations/__init__.py

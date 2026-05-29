@@ -1,0 +1,210 @@
+{% extends "base_admin.html" %}
+{% load blog_tags %}
+
+{% block title %}Articles — Blog{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-dashboard' %}" class="hover:text-primary transition-colors">Blog</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">Articles</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">Articles</h1>
+    <p class="text-sm text-slate-500 mt-0.5">{{ paginator.count }} article{{ paginator.count|pluralize }} au total</p>
+  </div>
+  <a href="{% url 'dashbord:blog-article-create' %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+    <span class="material-symbols-outlined" style="font-size:18px">add</span>
+    Nouvel article
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{# Filters #}
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 mb-6">
+  <form method="get" class="flex flex-wrap items-center gap-3">
+    <div class="flex-1 min-w-[200px] relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher..."
+             class="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2 text-sm outline-none focus:border-primary transition">
+    </div>
+    <select name="statut"
+            class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary transition">
+      <option value="">Tous les statuts</option>
+      {% for val, label in statuts %}
+      <option value="{{ val }}" {% if filtre_statut == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="categorie"
+            class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary transition">
+      <option value="">Toutes catégories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.slug }}" {% if filtre_categorie == cat.slug %}selected{% endif %}>{{ cat.nom }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit"
+            class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">
+      Filtrer
+    </button>
+    {% if q or filtre_statut or filtre_categorie %}
+    <a href="{% url 'dashbord:blog-article-list' %}"
+       class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm hover:border-red-200 hover:text-red-500 transition-colors">
+      Réinitialiser
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+{# Table #}
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+          <th class="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">Article</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wide hidden sm:table-cell">Catégorie</th>
+          <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wide hidden md:table-cell">Auteur</th>
+          <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wide">Statut</th>
+          <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wide hidden lg:table-cell">Vues</th>
+          <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wide hidden xl:table-cell">Date</th>
+          <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wide">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+        {% for article in articles %}
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+          <td class="px-5 py-3">
+            <div class="flex items-center gap-3">
+              {% if article.image_couverture %}
+              <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                <img src="{{ article.image_couverture.url }}" class="w-full h-full object-cover">
+              </div>
+              {% else %}
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary/40 text-base">article</span>
+              </div>
+              {% endif %}
+              <div class="min-w-0">
+                <p class="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[240px]">{{ article.titre }}</p>
+                {% if article.featured %}
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600">
+                  <span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1">star</span>
+                  À la une
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3 hidden sm:table-cell">
+            {% if article.categorie %}
+            <span class="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+                  style="background-color:{{ article.categorie.couleur }}">
+              {{ article.categorie.nom }}
+            </span>
+            {% else %}
+            <span class="text-slate-400 text-xs">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 hidden md:table-cell">
+            <span class="text-sm text-slate-600 dark:text-slate-300">
+              {% if article.auteur %}{{ article.auteur.get_full_name|default:article.auteur.username }}{% else %}—{% endif %}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% with article.statut|badge_statut as badge %}
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ badge.0 }}">{{ badge.1 }}</span>
+            {% endwith %}
+          </td>
+          <td class="px-4 py-3 text-center hidden lg:table-cell">
+            <span class="text-sm text-slate-500">{{ article.vues }}</span>
+          </td>
+          <td class="px-4 py-3 text-center hidden xl:table-cell">
+            <span class="text-xs text-slate-400">{{ article.date_creation|date:"d/m/Y" }}</span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center justify-end gap-1">
+              {% if article.est_publie %}
+              <a href="{% url 'blog:article-detail' article.slug %}" target="_blank"
+                 title="Voir" class="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-all">
+                <span class="material-symbols-outlined text-base">open_in_new</span>
+              </a>
+              {% endif %}
+              <form method="post" action="{% url 'dashbord:blog-article-publier' article.pk %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" title="{{ article.est_publie|yesno:'Dépublier,Publier' }}"
+                        class="p-1.5 rounded-lg transition-all
+                               {% if article.est_publie %}text-emerald-600 hover:bg-emerald-50{% else %}text-slate-400 hover:text-emerald-600 hover:bg-emerald-50{% endif %}">
+                  <span class="material-symbols-outlined text-base">{{ article.est_publie|yesno:'pause_circle,play_circle' }}</span>
+                </button>
+              </form>
+              <a href="{% url 'dashbord:blog-article-update' article.pk %}" title="Modifier"
+                 class="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-all">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </a>
+              <form method="post" action="{% url 'dashbord:blog-article-delete' article.pk %}"
+                    onsubmit="return confirm('Supprimer «{{ article.titre|escapejs }}» ? Cette action est irréversible.')">
+                {% csrf_token %}
+                <button type="submit" title="Supprimer"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                  <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-300 text-2xl">article</span>
+              </div>
+              <p class="text-sm text-slate-500 font-medium">Aucun article trouvé</p>
+              <a href="{% url 'dashbord:blog-article-create' %}"
+                 class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:scale-105 transition-transform">
+                <span class="material-symbols-outlined text-base">add</span>
+                Créer le premier article
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Pagination #}
+  {% if is_paginated %}
+  <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+    <p class="text-xs text-slate-400">
+      Affichage {{ page_obj.start_index }}–{{ page_obj.end_index }} sur {{ paginator.count }}
+    </p>
+    <nav class="flex items-center gap-1">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filtre_statut %}&statut={{ filtre_statut }}{% endif %}"
+         class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-base">chevron_left</span>
+      </a>
+      {% endif %}
+      <span class="text-xs font-semibold text-slate-600 px-2">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filtre_statut %}&statut={{ filtre_statut }}{% endif %}"
+         class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-base">chevron_right</span>
+      </a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

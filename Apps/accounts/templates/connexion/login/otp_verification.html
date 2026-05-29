@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Verification OTP | Olodio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { primary: "#00613a", "primary-dark": "#004d2e" },
+        fontFamily: { display: ["Sora", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  body { font-family: "Sora", sans-serif; background: #f0f6f3; min-height: 100dvh; }
+
+  .top-bar {
+    background: linear-gradient(90deg, #00613a, #008a52, #00613a);
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+
+  @keyframes shimmer { to { background-position: 200% 0%; } }
+
+  .map-dots {
+    background-image: radial-gradient(circle, rgba(0, 97, 58, 0.07) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .card-enter { animation: cardUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .logo-enter { animation: fadeScale 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+
+  @keyframes cardUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.88); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .otp-input {
+    width: 44px;
+    height: 56px;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafb;
+    font-family: "Sora", sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+    color: #0f172a;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.1s;
+    caret-color: transparent;
+    outline: none;
+  }
+
+  .otp-input:focus {
+    border-color: #00613a;
+    box-shadow: 0 0 0 3px rgba(0, 97, 58, 0.14);
+    background: #fff;
+    transform: scale(1.05);
+  }
+
+  .otp-input.filled {
+    border-color: #00613a;
+    background: #e6f4ee;
+    color: #00613a;
+  }
+
+  .btn-verify {
+    background: linear-gradient(135deg, #00613a 0%, #008a52 100%);
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+  }
+
+  .btn-verify:active { transform: scale(0.98); }
+  .btn-verify:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .security-badge {
+    background: linear-gradient(135deg, #e6f4ee 0%, #f4fbf7 100%);
+    border: 1px solid rgba(0, 97, 58, 0.12);
+  }
+
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+</style>
+</head>
+<body class="font-display">
+<div class="top-bar h-1 w-full fixed top-0 left-0 z-50"></div>
+<div class="map-dots fixed inset-0 pointer-events-none -z-10"></div>
+<div class="fixed top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10 translate-x-20 -translate-y-20 pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10 -translate-x-16 translate-y-16 pointer-events-none"></div>
+
+<div class="min-h-dvh flex flex-col">
+  <header class="flex items-center justify-between px-4 pt-6 pb-3 mt-1">
+    <a href="{{ change_method_url }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-primary transition-colors" aria-label="Changer de methode">
+      <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+    </a>
+    <div class="flex items-center gap-2">
+      <div class="text-primary w-6 h-6">
+        <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"/>
+        </svg>
+      </div>
+      <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cote d'Ivoire</span>
+    </div>
+    <a href="{{ login_url }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-primary transition-colors" aria-label="Retour a la connexion">
+      <span class="material-symbols-outlined" style="font-size:20px">logout</span>
+    </a>
+  </header>
+
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-4 safe-bottom">
+    <div class="w-full max-w-sm flex flex-col gap-6">
+      <div class="logo-enter flex flex-col items-center text-center gap-3">
+        <div class="relative">
+          <div class="w-20 h-20 rounded-2xl bg-white shadow-xl shadow-primary/10 flex items-center justify-center border border-primary/10">
+            <span class="material-symbols-outlined text-primary" style="font-size:36px;font-variation-settings:'FILL' 1">shield_lock</span>
+          </div>
+          <span class="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full border-2 border-white flex items-center justify-center">
+            <span class="material-symbols-outlined text-white" style="font-size:12px;font-variation-settings:'FILL' 1">key</span>
+          </span>
+        </div>
+
+        <div>
+          <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">{{ eyebrow }}</p>
+          <h1 class="text-slate-900 text-xl font-black tracking-tight leading-tight mt-1">{{ title }}</h1>
+          <p class="text-slate-400 text-xs mt-1.5 max-w-[260px] mx-auto leading-relaxed">{{ description }}</p>
+        </div>
+      </div>
+
+      <div class="card-enter bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6">
+        <div class="flex items-center gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 mb-5">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
+            <span class="material-symbols-outlined" style="font-size:20px">{{ channel_icon }}</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{{ channel_label }}</p>
+            <p class="mt-1 text-sm font-semibold text-slate-800 truncate">{{ channel_value }}</p>
+          </div>
+        </div>
+
+        {% if messages %}
+          <div class="mb-4 space-y-3">
+            {% for message in messages %}
+              <div class="rounded-xl border px-4 py-3 text-sm {% if 'success' in message.tags %}border-emerald-200 bg-emerald-50 text-emerald-700{% elif 'error' in message.tags %}border-red-200 bg-red-50 text-red-700{% elif 'warning' in message.tags %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-primary/15 bg-primary/5 text-primary{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate id="otp-form">
+          {% csrf_token %}
+          <input type="hidden" name="code" id="full-code" value="{{ code_value }}">
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+              Code de verification
+            </label>
+            <div class="flex justify-between gap-1.5" id="otp-container">
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="Chiffre 1"/>
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 2"/>
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 3"/>
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 4"/>
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 5"/>
+              <input class="otp-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 6"/>
+            </div>
+
+            <div class="h-1 bg-slate-100 rounded-full mt-3 overflow-hidden">
+              <div id="otp-progress" class="h-full bg-primary rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+
+            {% if form.code.errors %}
+              <p class="text-red-500 text-[11px] mt-2 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:13px">error</span>
+                {{ form.code.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+
+          <button id="btn-verify" class="btn-verify w-full h-14 text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-primary/20 mt-5" type="submit" disabled>
+            <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">shield_with_heart</span>
+            {{ submit_label }}
+          </button>
+        </form>
+
+        <div class="mt-5 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
+          <a href="{{ change_method_url }}" class="text-xs font-bold text-primary hover:underline flex items-center gap-1.5">
+            <span class="material-symbols-outlined" style="font-size:15px">swap_horiz</span>
+            Changer de methode
+          </a>
+          <span class="text-[11px] text-slate-400">Code a 6 chiffres</span>
+        </div>
+      </div>
+
+      <div class="security-badge rounded-2xl px-4 py-3 flex items-start gap-3">
+        <span class="material-symbols-outlined text-primary mt-0.5 shrink-0" style="font-size:18px;font-variation-settings:'FILL' 1">lock</span>
+        <p class="text-[11px] text-slate-600 leading-relaxed">
+          La verification OTP protege votre compte avant l'ouverture de session et bloque les acces non autorises.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const inputs = Array.from(document.querySelectorAll(".otp-input"));
+  const form = document.getElementById("otp-form");
+  const hiddenCode = document.getElementById("full-code");
+  const progress = document.getElementById("otp-progress");
+  const submitButton = document.getElementById("btn-verify");
+
+  function syncCodeFromInputs() {
+    hiddenCode.value = inputs.map((input) => input.value).join("");
+  }
+
+  function refreshOtpState() {
+    inputs.forEach((input) => input.classList.toggle("filled", !!input.value));
+    syncCodeFromInputs();
+
+    const filledCount = inputs.filter((input) => input.value).length;
+    progress.style.width = `${(filledCount / inputs.length) * 100}%`;
+    submitButton.disabled = filledCount < inputs.length;
+  }
+
+  function hydrateInputs() {
+    const initialCode = (hiddenCode.value || "").replace(/\D/g, "").slice(0, inputs.length);
+    initialCode.split("").forEach((character, index) => {
+      inputs[index].value = character;
+    });
+    refreshOtpState();
+  }
+
+  inputs.forEach((input, index) => {
+    input.addEventListener("input", (event) => {
+      const value = event.target.value.replace(/\D/g, "");
+      input.value = value ? value[0] : "";
+      refreshOtpState();
+
+      if (value && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Backspace" && !input.value && index > 0) {
+        inputs[index - 1].value = "";
+        inputs[index - 1].focus();
+        refreshOtpState();
+      }
+    });
+
+    input.addEventListener("paste", (event) => {
+      event.preventDefault();
+      const pasted = (event.clipboardData || window.clipboardData)
+        .getData("text")
+        .replace(/\D/g, "")
+        .slice(0, inputs.length);
+
+      inputs.forEach((otpInput) => { otpInput.value = ""; });
+      pasted.split("").forEach((character, pasteIndex) => {
+        inputs[pasteIndex].value = character;
+      });
+
+      refreshOtpState();
+      const nextIndex = Math.min(pasted.length, inputs.length - 1);
+      inputs[nextIndex].focus();
+    });
+  });
+
+  form.addEventListener("submit", syncCodeFromInputs);
+
+  hydrateInputs();
+  if (inputs[0]) {
+    inputs[Math.min(hiddenCode.value.length, inputs.length - 1)].focus();
+  }
+</script>
+</body>
+</html>

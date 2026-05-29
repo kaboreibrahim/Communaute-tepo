@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Methode OTP | Olodio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: "#00613a",
+          "primary-dark": "#004d2e",
+          accent: "#ff8200",
+        },
+        fontFamily: { display: ["Sora", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  body { font-family: "Sora", sans-serif; background: #f0f6f3; min-height: 100dvh; }
+
+  .top-bar {
+    background: linear-gradient(90deg, #00613a, #008a52, #00613a);
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+
+  @keyframes shimmer { to { background-position: 200% 0%; } }
+
+  .map-dots {
+    background-image: radial-gradient(circle, rgba(0, 97, 58, 0.07) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .card-enter { animation: cardUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .logo-enter { animation: fadeScale 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+
+  @keyframes cardUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeScale {
+    from { opacity: 0; transform: scale(0.88); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .choice-card {
+    position: relative;
+    display: block;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #fff;
+    padding: 18px;
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.18s;
+    cursor: pointer;
+  }
+
+  .choice-card:hover {
+    border-color: rgba(0, 97, 58, 0.3);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .choice-card.active {
+    border-color: #00613a;
+    background: linear-gradient(180deg, #ffffff 0%, #f5fbf8 100%);
+    box-shadow: 0 0 0 3px rgba(0, 97, 58, 0.08);
+  }
+
+  .choice-card.disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  .choice-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .choice-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    border: 2px solid #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.18s, background 0.18s;
+  }
+
+  .choice-card.active .choice-dot {
+    border-color: #00613a;
+    background: rgba(0, 97, 58, 0.1);
+  }
+
+  .choice-card.active .choice-dot::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background: #00613a;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #00613a 0%, #008a52 100%);
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.2s;
+  }
+
+  .btn-primary:active { transform: scale(0.98); }
+
+  .security-badge {
+    background: linear-gradient(135deg, #e6f4ee 0%, #f4fbf7 100%);
+    border: 1px solid rgba(0, 97, 58, 0.12);
+  }
+
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+</style>
+</head>
+<body class="font-display">
+<div class="top-bar h-1 w-full fixed top-0 left-0 z-50"></div>
+<div class="map-dots fixed inset-0 pointer-events-none -z-10"></div>
+<div class="fixed top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10 translate-x-20 -translate-y-20 pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl -z-10 -translate-x-16 translate-y-16 pointer-events-none"></div>
+
+<div class="min-h-dvh flex flex-col">
+  <header class="flex items-center justify-between px-4 pt-6 pb-3 mt-1">
+    <a href="{% url 'accounts:login' %}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-primary transition-colors" aria-label="Retour a la connexion">
+      <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+    </a>
+    <div class="flex items-center gap-2">
+      <div class="text-primary w-6 h-6">
+        <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"/>
+        </svg>
+      </div>
+      <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cote d'Ivoire</span>
+    </div>
+    <button class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm text-slate-400 hover:text-primary transition-colors" aria-label="Aide" type="button">
+      <span class="material-symbols-outlined" style="font-size:20px">help_outline</span>
+    </button>
+  </header>
+
+  <main class="flex-1 flex flex-col items-center justify-center px-4 py-4 safe-bottom">
+    <div class="w-full max-w-sm flex flex-col gap-6">
+      <div class="logo-enter flex flex-col items-center text-center gap-3">
+        <div class="relative">
+          <div class="w-20 h-20 rounded-2xl bg-white shadow-xl shadow-primary/10 flex items-center justify-center border border-primary/10">
+            <img alt="Armoiries de la Cote d'Ivoire" class="w-14 h-14 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCER0iVEGuckSls0A2Sv_Y3fQyEQk_jbmILMPCRyC5xWSuW70qcKdADEqSufr9Nx9PysicQ4Tud3EZ-tZxPSn4WO4RpnC91wRBcFMWUl3d2ZRJQPMCjAL2FJTp-bVQuVPAduQRCVluvn03CvTrtMtVWn-a0EWBrUuX4iAFNLFpTjuqoOWAcw2JPUUFIuCsU7eE9OsIR2Rw-EMcP-SFqZsxRN2JZDqBo7JoAQnwBOZkYrgN3Jx1--T8TrfekRDOijxhAuhB-POu56p4"/>
+          </div>
+          <span class="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full border-2 border-white flex items-center justify-center">
+            <span class="material-symbols-outlined text-white" style="font-size:12px;font-variation-settings:'FILL' 1">shield</span>
+          </span>
+        </div>
+
+        <div>
+          <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+            {% if is_first_connection %}Premiere connexion{% else %}Verification du compte{% endif %}
+          </p>
+          <h1 class="text-slate-900 text-xl font-black tracking-tight leading-tight mt-1">Choisissez votre methode OTP</h1>
+          <p class="text-slate-400 text-xs mt-1.5 max-w-[260px] mx-auto leading-relaxed">
+            Selectionnez la methode qui servira a confirmer votre identite avant l'acces au portail.
+          </p>
+        </div>
+      </div>
+
+      <div class="card-enter bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6">
+        <div class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 mb-5">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Compte</p>
+            <p class="mt-1 text-sm font-semibold text-slate-800">{{ user_email }}</p>
+          </div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined" style="font-size:20px">verified_user</span>
+          </div>
+        </div>
+
+        {% if messages %}
+          <div class="mb-4 space-y-3">
+            {% for message in messages %}
+              <div class="rounded-xl border px-4 py-3 text-sm {% if 'success' in message.tags %}border-emerald-200 bg-emerald-50 text-emerald-700{% elif 'error' in message.tags %}border-red-200 bg-red-50 text-red-700{% elif 'warning' in message.tags %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-primary/15 bg-primary/5 text-primary{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if form.two_factor_method.errors %}
+          <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ form.two_factor_method.errors.0 }}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate class="space-y-4">
+          {% csrf_token %}
+
+          <label class="choice-card {% if selected_method == 'email' %}active{% endif %}{% if not has_email %} disabled{% endif %}" data-choice-card>
+            <input
+              class="choice-input"
+              type="radio"
+              name="two_factor_method"
+              value="email"
+              {% if selected_method == 'email' %}checked{% endif %}
+              {% if not has_email %}disabled{% endif %}
+            >
+            <div class="flex items-start gap-4">
+              <span class="choice-dot mt-1 shrink-0"></span>
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">Code par email</p>
+                    <p class="text-xs text-slate-500 mt-1">Reception d'un code unique a 6 chiffres</p>
+                  </div>
+                  <div class="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined" style="font-size:20px">mail</span>
+                  </div>
+                </div>
+                <div class="mt-4 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Destination</p>
+                  {% if has_email %}
+                    <p class="mt-1 text-sm font-semibold text-slate-700">{{ masked_email }}</p>
+                  {% else %}
+                    <p class="mt-1 text-sm font-semibold text-red-600">Aucun email officiel configure sur ce compte.</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </label>
+
+          <label class="choice-card {% if selected_method == 'google_auth' %}active{% endif %}" data-choice-card>
+            <input
+              class="choice-input"
+              type="radio"
+              name="two_factor_method"
+              value="google_auth"
+              {% if selected_method == 'google_auth' %}checked{% endif %}
+            >
+            <div class="flex items-start gap-4">
+              <span class="choice-dot mt-1 shrink-0"></span>
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">Google Authenticator</p>
+                    <p class="text-xs text-slate-500 mt-1">Code temporaire genere dans votre application mobile</p>
+                  </div>
+                  <div class="h-11 w-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                    <span class="text-sm font-black tracking-wide">GA</span>
+                  </div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                  <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Niveau</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-700">Renforce</p>
+                  </div>
+                  <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Configuration</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-700">QR code</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </label>
+
+          <button class="btn-primary w-full h-14 text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-primary/20 mt-2" type="submit">
+            <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">arrow_forward</span>
+            Continuer
+          </button>
+        </form>
+      </div>
+
+      <div class="security-badge rounded-2xl px-4 py-3 flex items-start gap-3">
+        <span class="material-symbols-outlined text-primary mt-0.5 shrink-0" style="font-size:18px;font-variation-settings:'FILL' 1">lock</span>
+        <p class="text-[11px] text-slate-600 leading-relaxed">
+          Cette etape n'est demandee qu'au moment de la configuration de votre compte ou lors d'un changement de methode de verification.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const choiceCards = document.querySelectorAll("[data-choice-card]");
+
+  function refreshChoiceCards() {
+    choiceCards.forEach((card) => {
+      const input = card.querySelector("input[type='radio']");
+      const isChecked = input && input.checked;
+      card.classList.toggle("active", !!isChecked);
+    });
+  }
+
+  choiceCards.forEach((card) => {
+    const input = card.querySelector("input[type='radio']");
+    if (!input || input.disabled) {
+      return;
+    }
+
+    card.addEventListener("click", () => {
+      input.checked = true;
+      refreshChoiceCards();
+    });
+
+    input.addEventListener("change", refreshChoiceCards);
+  });
+
+  refreshChoiceCards();
+</script>
+</body>
+</html>

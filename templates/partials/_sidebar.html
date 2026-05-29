@@ -1,0 +1,198 @@
+{# partials/_sidebar.html #}
+{# Variables attendues : request.resolver_match.url_name (pour nav active) #}
+
+<aside id="sidebar" class="w-64 lg:w-72 bg-white dark:bg-slate-900 border-r border-primary/10 flex flex-col shrink-0 shadow-xl lg:shadow-none">
+
+  <div class="p-5 flex items-center gap-3 border-b border-primary/10">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
+      <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">analytics</span>
+    </div>
+    <div class="min-w-0">
+      <h1 class="text-primary font-black text-lg leading-tight">Tepo</h1>
+      <p class="text-[10px] text-primary/50 font-semibold uppercase tracking-wider truncate">Census Platform</p>
+    </div>
+    <button type="button" onclick="closeSidebar()" class="ml-auto text-slate-400 hover:text-primary p-1" title="Fermer le menu lateral" aria-label="Fermer le menu lateral">
+      <span class="material-symbols-outlined" style="font-size:20px">close</span>
+    </button>
+  </div>
+
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <p class="text-[9px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 px-3 mb-2">Principal</p>
+
+    <a href="{% url 'dashbord:admin_dashboard' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' and request.resolver_match.namespace == 'dashbord' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">dashboard</span>
+      Tableau de bord
+    </a>
+
+    <a href="{% url 'dashbord:village-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'village-list' or request.resolver_match.url_name == 'village-create' or request.resolver_match.url_name == 'village-detail' or request.resolver_match.url_name == 'village-update' or request.resolver_match.url_name == 'village-delete' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">location_city</span>
+      Villages
+      {% if villages_count %}
+        <span class="ml-auto text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{{ villages_count }}</span>
+      {% endif %}
+    </a>
+
+    <a href="{% url 'dashbord:family-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'family-list' or request.resolver_match.url_name == 'family-create' or request.resolver_match.url_name == 'family-detail' or request.resolver_match.url_name == 'family-update' or request.resolver_match.url_name == 'family-delete' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">family_restroom</span>
+      Familles
+    </a>
+
+    <a href="{% url 'dashbord:person-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'person-list' or request.resolver_match.url_name == 'person-create' or request.resolver_match.url_name == 'person-detail' or request.resolver_match.url_name == 'person-update' or request.resolver_match.url_name == 'person-delete' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">public</span>
+      Personnes
+    </a>
+
+    <a href="{% url 'dashbord:cotisation-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'cotisation-list' or request.resolver_match.url_name == 'cotisation-create' or request.resolver_match.url_name == 'cotisation-detail' or request.resolver_match.url_name == 'cotisation-update' or request.resolver_match.url_name == 'paiement-create' or request.resolver_match.url_name == 'paiement-update' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">payments</span>
+      Cotisations
+      {% if pending_payments_count %}
+        <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{{ pending_payments_count }}</span>
+      {% endif %}
+    </a>
+
+    <a href="{% url 'dashbord:compte-paiement-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'compte-paiement-list' or request.resolver_match.url_name == 'compte-paiement-create' or request.resolver_match.url_name == 'compte-paiement-update' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">account_balance_wallet</span>
+      Comptes de depot
+    </a>
+
+    {% if request.user.est_agent_saisie %}
+    <a href="{% url 'dashbord:public-person-submission-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'public-person-submission-list' or request.resolver_match.url_name == 'public-person-submission-review' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">fact_check</span>
+      Pre-inscriptions
+      {% if pending_public_submissions_count %}
+        <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{{ pending_public_submissions_count }}</span>
+      {% endif %}
+    </a>
+    {% endif %}
+
+    <a href="{% url 'medias:dashboard' %}"
+       class="nav-link {% if request.resolver_match.namespace == 'medias' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">perm_media</span>
+      Médiathèque
+    </a>
+
+    <a href="{% url 'website:evenement-list' %}" target="_blank"
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm hover:bg-primary/5">
+      <span class="material-symbols-outlined" style="font-size:20px">celebration</span>
+      Événements (site)
+    </a>
+
+    <a href="{% url 'dashbord:blog-dashboard' %}"
+       class="nav-link {% if 'blog-' in request.resolver_match.url_name|default:'' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">edit_note</span>
+      Blog & Articles
+      {% if commentaires_en_attente_blog %}
+        <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{{ commentaires_en_attente_blog }}</span>
+      {% endif %}
+    </a>
+
+    <div class="my-3 border-t border-primary/5"></div>
+
+    <p class="text-[9px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 px-3 mb-2">Donnees</p>
+
+    <a href="{% url 'dashbord:rapports' %}"
+       class="nav-link {% if 'rapports' in request.resolver_match.namespace %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">description</span>
+      Rapports
+    </a>
+
+    {% if request.user.est_agent_saisie %}
+    <p class="text-[9px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 px-3 mb-2">Publication</p>
+
+    <a href="{% url 'dashbord:event-list' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'event-list' or request.resolver_match.url_name == 'event-update' or request.resolver_match.url_name == 'event-create' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">newspaper</span>
+      Actualites & annonces
+      {% if pending_events_count %}
+        <span class="ml-auto text-[10px] font-bold bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">{{ pending_events_count }}</span>
+      {% endif %}
+    </a>
+
+    <a href="{% url 'dashbord:event-create' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'event-create' %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">add_circle</span>
+      Publier un evenement
+    </a>
+
+    <a href="{% url 'dashbord:type-evenement-list' %}"
+       class="nav-link {% if 'type-evenement' in request.resolver_match.url_name %}active{% endif %}
+              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+      <span class="material-symbols-outlined" style="font-size:20px">category</span>
+      Types d'evenement
+    </a>
+    {% endif %}
+
+    {% if request.user.est_admin %}
+    <div class="my-3 border-t border-primary/5"></div>
+    <p class="text-[9px] font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 px-3 mb-2">Administration</p>
+	    <a href="{% url 'dashbord:user-list' %}"
+	       class="nav-link {% if request.resolver_match.url_name == 'user-list' or request.resolver_match.url_name == 'user-create' %}active{% endif %}
+	              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+	      <span class="material-symbols-outlined" style="font-size:20px">manage_accounts</span>
+	      Gestion utilisateurs
+	    </a>
+	    <a href="{% url 'dashbord:action-history' %}"
+	       class="nav-link {% if request.resolver_match.url_name == 'action-history' %}active{% endif %}
+	              flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-600 dark:text-slate-400 font-medium text-sm">
+	      <span class="material-symbols-outlined" style="font-size:20px">history</span>
+	      Historique actions
+	    </a>
+	    {% endif %}
+
+  </nav>
+
+  <div class="p-4 border-t border-primary/10">
+    <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-primary/5 transition-colors">
+      {% if request.user.photo_profil %}
+      <img
+        src="{{ request.user.photo_profil.url }}"
+        alt="Photo de profil"
+        class="h-8 w-8 rounded-full object-cover shrink-0 border border-primary/20"
+      />
+      {% else %}
+      <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0">
+        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+      </div>
+      {% endif %}
+      <div class="min-w-0 flex-1">
+        <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </p>
+        <p class="text-[10px] text-primary font-semibold truncate">
+          {{ request.user.get_role_display|default:"Agent" }}
+        </p>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}" class="shrink-0">
+        {% csrf_token %}
+        <button
+          type="submit"
+          class="text-slate-300 hover:text-red-500 transition-colors p-1 shrink-0"
+          title="Se deconnecter"
+          aria-label="Se deconnecter"
+        >
+          <span class="material-symbols-outlined" style="font-size:18px">logout</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+</aside>

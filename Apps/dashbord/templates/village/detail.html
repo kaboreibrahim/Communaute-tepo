@@ -1,0 +1,533 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Village {{ village.nom }}{% endblock %}
+{% block topbar_title %}Detail village{% endblock %}
+
+{% block extra_head %}
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+<style>
+  .village-map-detail {
+    width: 100%;
+    height: 22rem;
+  }
+
+  .mapboxgl-popup-content {
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    font-family: 'Sora', sans-serif;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+  <div class="flex flex-wrap items-center gap-2 text-primary/70">
+    <a class="text-sm font-medium hover:text-primary transition-colors" href="{% url 'dashbord:village-list' %}">Villages</a>
+    <span class="material-symbols-outlined text-sm">chevron_right</span>
+    <span class="text-slate-900 dark:text-slate-100 text-sm font-bold">{{ village.nom }}</span>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <a
+      href="{% url 'dashbord:village-list' %}"
+      class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold border border-primary/10 hover:bg-primary/5 transition-colors"
+    >
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Retour liste
+    </a>
+
+    {% if request.user.est_agent_saisie %}
+    <a
+      href="{% url 'dashbord:village-update' village.id %}"
+      class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-bold hover:bg-primary/20 transition-colors"
+    >
+      <span class="material-symbols-outlined text-lg">edit</span>
+      Edit Village Info
+    </a>
+    {% endif %}
+    {% if request.user.peut_supprimer_registre %}
+    <form
+      method="post"
+      action="{% url 'dashbord:village-delete' village.id %}"
+      onsubmit="return confirm('Supprimer ce village ?');"
+    >
+      {% csrf_token %}
+      <button
+        type="submit"
+        class="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
+      >
+        <span class="material-symbols-outlined text-lg">delete</span>
+        Delete Village
+      </button>
+    </form>
+    {% endif %}
+
+    <button
+      type="button"
+      onclick="window.print()"
+      class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
+    >
+      <span class="material-symbols-outlined text-lg">download</span>
+      Export Report
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('village-map-detail');
+    if (!container) return;
+
+    const mapboxToken = '{{ mapbox_token|default:""|escapejs }}';
+    const latitude = Number.parseFloat(container.dataset.lat || '');
+    const longitude = Number.parseFloat(container.dataset.lng || '');
+
+    if (!mapboxToken || !Number.isFinite(latitude) || !Number.isFinite(longitude) || typeof mapboxgl === 'undefined') {
+      return;
+    }
+
+    mapboxgl.accessToken = mapboxToken;
+
+    const map = new mapboxgl.Map({
+      container: 'village-map-detail',
+      style: 'mapbox://styles/mapbox/outdoors-v12',
+      center: [longitude, latitude],
+      zoom: 12,
+      attributionControl: true,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    const popup = new mapboxgl.Popup({ offset: 18 }).setHTML(
+      `<p class="text-sm font-bold text-slate-900">${container.dataset.name}</p>
+       <p class="mt-1 text-xs text-slate-600">Lat ${latitude.toFixed(4)} · Lng ${longitude.toFixed(4)}</p>`
+    );
+
+    new mapboxgl.Marker({ color: '#00613a' })
+      .setLngLat([longitude, latitude])
+      .setPopup(popup)
+      .addTo(map);
+
+    popup.addTo(map);
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-primary/10 mb-6 overflow-hidden">
+  <div class="flex flex-col xl:flex-row gap-6 items-start xl:items-center">
+    <div class="w-full xl:w-64 h-44 rounded-2xl overflow-hidden relative bg-gradient-to-br from-primary via-primary-dark to-slate-900">
+      <div class="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_top_right,_white,_transparent_45%)]"></div>
+      <div class="absolute inset-0 opacity-20 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.25)_100%)]"></div>
+      <div class="relative h-full flex flex-col justify-between p-5 text-white">
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.35em] text-white/70">Village</p>
+          <div class="mt-4 size-16 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center text-2xl font-black">
+            {{ village.nom|slice:":2"|upper }}
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-white/80">
+          <span class="material-symbols-outlined text-base">location_city</span>
+          <span>ID {{ village.id|slice:":8"|upper }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div class="min-w-0">
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ village.nom }}</h1>
+          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400 max-w-3xl">
+            {% if village.description %}
+              {{ village.description }}
+            {% else %}
+              Aucun descriptif n'a encore ete renseigne pour ce village. Cette fiche rassemble les informations administratives et les infrastructures deja enregistrees.
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 text-primary text-sm font-bold">
+          <span class="material-symbols-outlined text-lg">verified</span>
+          Fiche detaillee
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/70 px-4 py-3">
+          <p class="text-[11px] uppercase tracking-wide text-slate-400">Coordonnees</p>
+          <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+            {% if village.latitude != None and village.longitude != None %}
+              {{ village.latitude|floatformat:4 }}&deg; , {{ village.longitude|floatformat:4 }}&deg;
+            {% else %}
+              Non renseignees
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/70 px-4 py-3">
+          <p class="text-[11px] uppercase tracking-wide text-slate-400">Chef du village</p>
+          <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+            {{ village.chef_village|default:"Non renseigne" }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/70 px-4 py-3">
+          <p class="text-[11px] uppercase tracking-wide text-slate-400">Cree le</p>
+          <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+            {{ village.date_creation|date:"d M Y" }}
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/70 px-4 py-3">
+          <p class="text-[11px] uppercase tracking-wide text-slate-400">Services essentiels</p>
+          <p class="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+            {{ available_core_services }}/{{ core_services|length }} disponibles
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        {% for service in core_services %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase {% if service.available %}bg-primary/10 text-primary{% else %}bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400{% endif %}">
+          <span class="material-symbols-outlined text-sm">{{ service.icon }}</span>
+          {{ service.label }}
+          {% if service.available %}
+          <span class="opacity-70">({{ service.count }})</span>
+          {% endif %}
+        </span>
+        {% endfor %}
+      </div>
+
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% for item in highlight_infrastructures %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase {{ item.badge_classes }}">
+          <span class="material-symbols-outlined text-sm">{{ item.icon }}</span>
+          {{ item.label }}
+          <span class="opacity-80">{{ item.count }}</span>
+        </span>
+        {% empty %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase dark:bg-slate-800 dark:text-slate-300">
+          <span class="material-symbols-outlined text-sm">info</span>
+          Aucune infrastructure renseignee
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-primary/10 shadow-sm">
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Population estimee</p>
+    <div class="flex items-end justify-between gap-3 mt-2">
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ village.population_estimee|floatformat:0 }}</p>
+      <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
+        <span class="material-symbols-outlined text-sm">groups</span>
+        Habitants
+      </span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-primary/10 shadow-sm">
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Familles enregistrees</p>
+    <div class="flex items-end justify-between gap-3 mt-2">
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ village.nombre_familles }}</p>
+      <span class="text-xs font-bold {% if has_family_relation %}text-primary{% else %}text-amber-600{% endif %}">
+        {% if has_family_relation %}liaison active{% else %}mode simplifie{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-primary/10 shadow-sm">
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total infrastructures</p>
+    <div class="flex items-end justify-between gap-3 mt-2">
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ infrastructure_count }}</p>
+      <span class="text-xs font-bold text-primary">{{ infrastructure_type_count }} type{{ infrastructure_type_count|pluralize }}</span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-primary/10 shadow-sm">
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Couverture services</p>
+    <div class="flex items-center gap-3 mt-2">
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ coverage_percent }}%</p>
+      <div class="flex-1 h-2 bg-primary/10 rounded-full overflow-hidden">
+        <div class="bg-primary h-full rounded-full" style="width: {{ coverage_percent }}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-primary/10 overflow-hidden mb-6">
+  <div class="p-6 border-b border-primary/10 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-bold flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">map</span>
+        Localisation du village
+      </h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        {% if village.latitude != None and village.longitude != None %}
+          Position enregistree a {{ village.latitude|floatformat:4 }}, {{ village.longitude|floatformat:4 }}
+        {% else %}
+          Aucune coordonnee n'a encore ete renseignee pour ce village.
+        {% endif %}
+      </p>
+    </div>
+
+    {% if village.latitude != None and village.longitude != None %}
+    <a
+      href="https://www.google.com/maps?q={{ village.latitude }},{{ village.longitude }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-colors"
+    >
+      <span class="material-symbols-outlined text-base">travel_explore</span>
+      Ouvrir dans Google Maps
+    </a>
+    {% endif %}
+  </div>
+
+  {% if village.latitude != None and village.longitude != None %}
+  <div
+    id="village-map-detail"
+    class="village-map-detail"
+    data-lat="{{ village.latitude }}"
+    data-lng="{{ village.longitude }}"
+    data-name="{{ village.nom }}"
+  ></div>
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-300">location_off</span>
+    <p class="mt-4 text-base font-bold text-slate-600 dark:text-slate-300">Carte indisponible pour le moment.</p>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Ajoutez la latitude et la longitude dans le formulaire du village pour afficher sa position ici.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-primary/10">
+    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">bar_chart</span>
+      Repartition des infrastructures
+    </h3>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div>
+        <p class="text-sm font-medium text-slate-500 mb-3">Par type</p>
+        <div class="space-y-3">
+          {% for stat in infrastructure_stats %}
+          <div class="flex items-center gap-3">
+            <div class="size-9 rounded-xl flex items-center justify-center {{ stat.badge_classes }}">
+              <span class="material-symbols-outlined text-base">{{ stat.icon }}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3 mb-1">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{{ stat.label }}</span>
+                <span class="text-xs font-bold text-slate-500">{{ stat.count }}</span>
+              </div>
+              <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full rounded-full {{ stat.bar_classes }}" style="width: {{ stat.percent }}%"></div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-primary/15 px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            Aucune infrastructure enregistree pour ce village.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <p class="text-sm font-medium text-slate-500 mb-3">Etat general</p>
+        <div class="space-y-4">
+          {% for stat in state_stats %}
+          <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/70 p-4">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ stat.badge_classes }}">
+                {{ stat.label }}
+              </span>
+              <span class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ stat.count }}</span>
+            </div>
+            <div class="h-2 bg-white dark:bg-slate-900 rounded-full overflow-hidden">
+              <div class="h-full rounded-full {{ stat.bar_classes }}" style="width: {{ stat.percent }}%"></div>
+            </div>
+            <p class="mt-2 text-xs text-slate-500">{{ stat.percent }}% du parc infrastructurel</p>
+          </div>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-primary/15 px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            Aucun etat d'infrastructure disponible.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-primary/10">
+    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">history</span>
+      Activite recente
+    </h3>
+
+    <div class="space-y-4">
+      {% for item in recent_infrastructures %}
+      <div class="flex gap-3">
+        <div class="size-10 rounded-full flex items-center justify-center {{ item.icon_classes }}">
+          <span class="material-symbols-outlined text-sm">{{ item.icon }}</span>
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ item.name }}</p>
+          <p class="text-xs text-slate-500">{{ item.type_label }} · {{ item.state_label }}</p>
+          <p class="text-[11px] text-slate-400">{{ item.created_at|date:"d M Y" }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="rounded-2xl border border-dashed border-primary/15 px-4 py-10 text-center">
+        <span class="material-symbols-outlined text-4xl text-slate-300">history_toggle_off</span>
+        <p class="mt-3 text-sm font-medium text-slate-500 dark:text-slate-400">Aucune activite recente a afficher.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <a
+      href="#inventory"
+      class="w-full mt-6 inline-flex items-center justify-center gap-2 py-2 text-sm font-bold text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
+    >
+      <span class="material-symbols-outlined text-base">inventory_2</span>
+      Voir l'inventaire
+    </a>
+  </div>
+</div>
+
+<div id="inventory" class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-primary/10 overflow-hidden mb-6">
+  <div class="p-6 border-b border-primary/10 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-bold">Inventaire des infrastructures</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">Vue detaillee des equipements recenses dans le village.</p>
+    </div>
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-xs font-bold uppercase">
+      <span class="material-symbols-outlined text-sm">inventory</span>
+      {{ infrastructure_count }} enregistree{{ infrastructure_count|pluralize }}
+    </span>
+  </div>
+
+  <div class="p-6">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      {% for infra in infrastructure_rows %}
+      <div class="rounded-2xl border border-primary/10 bg-slate-50/70 dark:bg-slate-800/70 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ infra.badge_classes }}">
+                <span class="material-symbols-outlined text-sm">{{ infra.icon }}</span>
+                {{ infra.type_label }}
+              </span>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ infra.state_classes }}">
+                {{ infra.state_label }}
+              </span>
+            </div>
+            <h4 class="mt-3 text-base font-bold text-slate-900 dark:text-slate-100">{{ infra.name }}</h4>
+            {% if infra.description %}
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ infra.description }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div class="rounded-xl bg-white dark:bg-slate-900 px-3 py-2">
+            <p class="text-[11px] uppercase tracking-wide text-slate-400">Capacite</p>
+            <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ infra.capacity|default:"N/A" }}</p>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 px-3 py-2">
+            <p class="text-[11px] uppercase tracking-wide text-slate-400">Responsable</p>
+            <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ infra.manager|default:"Non renseigne" }}</p>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 px-3 py-2">
+            <p class="text-[11px] uppercase tracking-wide text-slate-400">Contact</p>
+            <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ infra.contact|default:"Non renseigne" }}</p>
+          </div>
+          <div class="rounded-xl bg-white dark:bg-slate-900 px-3 py-2">
+            <p class="text-[11px] uppercase tracking-wide text-slate-400">Construction</p>
+            <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">
+              {% if infra.built_at %}{{ infra.built_at|date:"d M Y" }}{% else %}Non renseignee{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="xl:col-span-2 rounded-2xl border border-dashed border-primary/15 px-6 py-14 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-300">domain_disabled</span>
+        <p class="mt-4 text-base font-bold text-slate-600 dark:text-slate-300">Aucune infrastructure n'a encore ete ajoutee.</p>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">La fiche detail du village est deja prete et affichera automatiquement les equipements des qu'ils seront enregistres.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-primary/10 overflow-hidden">
+  <div class="p-6 border-b border-primary/10 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-bold">Familles enregistrées</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">Ménages associés au village dans le module famille.</p>
+    </div>
+
+    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full {% if has_family_relation %}bg-primary/5 text-primary{% else %}bg-amber-50 text-amber-700{% endif %} text-xs font-bold uppercase">
+      <span class="material-symbols-outlined text-sm">{% if has_family_relation %}groups{% else %}info{% endif %}</span>
+      {% if has_family_relation %}
+        {{ family_rows|length }} famille{{ family_rows|length|pluralize }}
+      {% else %}
+        liaison familles indisponible
+      {% endif %}
+    </span>
+  </div>
+
+  {% if family_rows %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-primary/5 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+        <tr>
+          <th class="px-6 py-4">Chef de famille</th>
+          <th class="px-6 py-4">ID ménage</th>
+          <th class="px-6 py-4">Membres</th>
+          <th class="px-6 py-4">Date d'enregistrement</th>
+          <th class="px-6 py-4">Statut</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-primary/10 text-sm">
+        {% for family in family_rows %}
+        <tr class="hover:bg-primary/5 transition-colors">
+          <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-100">{{ family.head_name }}</td>
+          <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ family.household_id }}</td>
+          <td class="px-6 py-4">{{ family.members_count }}</td>
+          <td class="px-6 py-4 text-slate-500">
+            {% if family.registration_date %}{{ family.registration_date|date:"d M Y" }}{% else %}N/A{% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase {{ family.status_classes }}">
+              {{ family.status_label }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="px-6 py-14 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-300">family_restroom</span>
+    {% if has_family_relation %}
+    <p class="mt-4 text-base font-bold text-slate-600 dark:text-slate-300">Aucune famille n'est encore enregistrée pour ce village.</p>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Le tableau se remplira automatiquement dès que des ménages seront rattachés à cette localité.</p>
+    {% else %}
+    <p class="mt-4 text-base font-bold text-slate-600 dark:text-slate-300">Le module famille n'est pas encore relié à cette page.</p>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">La fiche reste fonctionnelle et affiche déjà les informations du village ainsi que son inventaire d'infrastructures.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

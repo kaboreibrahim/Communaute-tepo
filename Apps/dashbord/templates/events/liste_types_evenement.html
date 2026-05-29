@@ -1,0 +1,188 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Types d'evenement - Olodio{% endblock %}
+{% block topbar_title %}Types d'evenement{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:event-list' %}" class="hover:text-primary transition-colors">Evenements</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-slate-700 dark:text-slate-200 font-medium">Types d'evenement</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+
+  {% include "layouts/_message.html" %}
+
+  <!-- En-tete -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Types d'evenement</h1>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Gerez les categories d'evenements disponibles sur la plateforme.</p>
+    </div>
+    <a href="{% url 'dashbord:type-evenement-create' %}"
+       class="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary/90">
+      <span class="material-symbols-outlined text-base">add</span>
+      Nouveau type
+    </a>
+  </div>
+
+  <!-- Stat rapide -->
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Total types</p>
+      <p class="mt-2 text-3xl font-black text-slate-900 dark:text-white">{{ types|length }}</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Communautaires</p>
+      <p class="mt-2 text-3xl font-black text-primary">
+        {% with count=0 %}
+          {{ types|length }}
+        {% endwith %}
+        <span class="text-base font-normal text-slate-400" id="nb-communautaire"></span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-100 bg-slate-50/50 dark:border-slate-800 dark:bg-primary/5">
+            <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Ordre</th>
+            <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Badge</th>
+            <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Slug</th>
+            <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Icone</th>
+            <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Communautaire</th>
+            <th class="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">Evenements</th>
+            <th class="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for t in types %}
+          <tr class="group hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors" data-communautaire="{{ t.est_communautaire|yesno:'1,0' }}">
+            <td class="px-6 py-4">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 dark:bg-slate-800">
+                {{ t.ordre }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <a href="{% url 'dashbord:type-evenement-detail' t.pk %}"
+                 class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition hover:opacity-80"
+                 style="background:{{ t.couleur_fond }};color:{{ t.couleur_texte }};">
+                <span class="material-symbols-outlined" style="font-size:14px;">{{ t.icone }}</span>
+                {{ t.nom }}
+              </a>
+            </td>
+            <td class="px-6 py-4">
+              <code class="rounded-lg bg-slate-100 px-2 py-1 text-xs font-mono text-slate-600 dark:bg-slate-800 dark:text-slate-300">{{ t.slug }}</code>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                <span class="material-symbols-outlined text-xl">{{ t.icone }}</span>
+                <span class="text-xs text-slate-400">{{ t.icone }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              {% if t.est_communautaire %}
+              <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs font-bold text-primary">
+                <span class="material-symbols-outlined text-sm">check</span> Oui
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-400 dark:bg-slate-800">
+                Non
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-right">
+              <span class="text-base font-bold text-slate-700 dark:text-slate-200">{{ t.nb_evenements }}</span>
+              <span class="text-xs text-slate-400 ml-1">evenement{{ t.nb_evenements|pluralize }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a href="{% url 'dashbord:type-evenement-update' t.pk %}"
+                   class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-primary hover:text-primary dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                  Modifier
+                </a>
+                {% if t.nb_evenements == 0 %}
+                <button type="button"
+                        onclick="openDeleteModal('{{ t.pk }}', '{{ t.nom }}')"
+                        class="inline-flex items-center gap-1 rounded-xl border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 shadow-sm transition hover:bg-red-100 dark:border-red-900/30 dark:bg-red-950/20">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                  Supprimer
+                </button>
+                {% else %}
+                <span class="inline-flex items-center rounded-xl px-3 py-1.5 text-xs text-slate-300 dark:text-slate-600" title="Des evenements utilisent ce type">
+                  <span class="material-symbols-outlined text-sm">lock</span>
+                </span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-6 py-16 text-center">
+              <span class="material-symbols-outlined text-5xl text-slate-200">category</span>
+              <p class="mt-3 text-sm text-slate-400">Aucun type d'evenement. Commencez par en creer un.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal suppression -->
+<div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.45);">
+  <div class="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl dark:bg-slate-900">
+    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
+      <span class="material-symbols-outlined text-2xl text-red-500">delete_forever</span>
+    </div>
+    <h3 class="mt-4 text-lg font-black text-slate-900 dark:text-white">Supprimer ce type ?</h3>
+    <p class="mt-2 text-sm text-slate-500">Le type <strong id="delete-nom" class="text-slate-700 dark:text-slate-200"></strong> sera definitivement supprime.</p>
+    <div class="mt-6 flex gap-3">
+      <button onclick="closeDeleteModal()" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300">
+        Annuler
+      </button>
+      <form id="delete-form" method="post" class="flex-1">
+        {% csrf_token %}
+        <button type="submit" class="w-full rounded-2xl bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-600">
+          Supprimer
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const deleteBaseUrl = "{% url 'dashbord:type-evenement-delete' 0 %}".replace('/0/', '/');
+
+  function openDeleteModal(id, nom) {
+    document.getElementById('delete-nom').textContent = nom;
+    document.getElementById('delete-form').action = deleteBaseUrl + id + '/supprimer/';
+    const modal = document.getElementById('delete-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  document.getElementById('delete-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+{% endblock %}

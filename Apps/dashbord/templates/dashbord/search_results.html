@@ -1,0 +1,161 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Recherche{% endblock %}
+{% block topbar_title %}Recherche{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="transition-colors hover:text-primary">Tableau de bord</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="font-medium text-slate-700 dark:text-slate-200">Recherche</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-white to-primary/5 px-6 py-6 shadow-sm dark:from-slate-900 dark:via-slate-900 dark:to-primary/10 md:px-8">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-3xl">
+        <p class="text-[12px] font-bold uppercase tracking-[0.2em] text-primary">Recherche globale</p>
+        <h2 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          {% if search_query %}
+          Resultats pour "{{ search_query }}"
+          {% else %}
+          Lance une recherche
+          {% endif %}
+        </h2>
+        <p class="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400 md:text-base">
+          {% if search_query %}
+          La recherche parcourt les villages, les familles et les personnes rattachees a l'administration.
+          {% else %}
+          Utilise la barre de recherche du header pour retrouver rapidement un village, une famille ou une personne.
+          {% endif %}
+        </p>
+      </div>
+
+      {% if search_query %}
+      <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-2xl bg-white/80 px-4 py-3 text-center shadow-sm dark:bg-slate-900/80">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Villages</p>
+          <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white">{{ search_totals.villages }}</p>
+        </div>
+        <div class="rounded-2xl bg-white/80 px-4 py-3 text-center shadow-sm dark:bg-slate-900/80">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Familles</p>
+          <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white">{{ search_totals.families }}</p>
+        </div>
+        <div class="rounded-2xl bg-white/80 px-4 py-3 text-center shadow-sm dark:bg-slate-900/80">
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Personnes</p>
+          <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white">{{ search_totals.persons }}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if search_query %}
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <article class="rounded-3xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">Villages</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ search_totals.villages }} resultat{{ search_totals.villages|pluralize }}</p>
+        </div>
+        <span class="material-symbols-outlined text-primary">location_city</span>
+      </div>
+
+      <div class="space-y-3">
+        {% for village in village_results %}
+        <a href="{% url 'dashbord:village-detail' village.id %}" class="block rounded-2xl border border-primary/10 bg-primary/5 p-4 transition-colors hover:border-primary/30 hover:bg-primary/10 dark:bg-slate-800/70">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-bold text-slate-900 dark:text-white">{{ village.nom }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Chef : {{ village.chef_village }}</p>
+            </div>
+            <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-primary dark:bg-slate-900">
+              {{ village.total_personnes_display }} pers.
+            </span>
+          </div>
+          <p class="mt-3 text-xs text-slate-400">{{ village.total_families_display }} famille{{ village.total_families|pluralize }}</p>
+        </a>
+        {% empty %}
+        <div class="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-8 text-center text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+          Aucun village ne correspond a cette recherche.
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">Familles</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ search_totals.families }} resultat{{ search_totals.families|pluralize }}</p>
+        </div>
+        <span class="material-symbols-outlined text-primary">family_restroom</span>
+      </div>
+
+      <div class="space-y-3">
+        {% for family in family_results %}
+        <a href="{% url 'dashbord:family-detail' family.id %}" class="block rounded-2xl border border-primary/10 bg-primary/5 p-4 transition-colors hover:border-primary/30 hover:bg-primary/10 dark:bg-slate-800/70">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-bold text-slate-900 dark:text-white">Famille {{ family.nom_famille }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ family.village_nom }}</p>
+            </div>
+            <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-primary dark:bg-slate-900">
+              {{ family.members_count_display }} memb.
+            </span>
+          </div>
+          <p class="mt-3 text-xs text-slate-400">Chef : {{ family.chef_nom }}</p>
+        </a>
+        {% empty %}
+        <div class="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-8 text-center text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+          Aucune famille ne correspond a cette recherche.
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">Personnes</h3>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ search_totals.persons }} resultat{{ search_totals.persons|pluralize }}</p>
+        </div>
+        <span class="material-symbols-outlined text-primary">groups</span>
+      </div>
+
+      <div class="space-y-3">
+        {% for person in person_results %}
+        <a href="{% url 'dashbord:person-detail' person.id %}" class="block rounded-2xl border border-primary/10 bg-primary/5 p-4 transition-colors hover:border-primary/30 hover:bg-primary/10 dark:bg-slate-800/70">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-bold text-slate-900 dark:text-white">{{ person.nom_complet }}</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ person.famille_nom }} | {{ person.village_nom }}</p>
+            </div>
+            <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-primary dark:bg-slate-900">
+              {{ person.genre_label }}
+            </span>
+          </div>
+          <p class="mt-3 text-xs text-slate-400">{{ person.code }}</p>
+        </a>
+        {% empty %}
+        <div class="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-8 text-center text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+          Aucune personne ne correspond a cette recherche.
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+  {% else %}
+  <div class="rounded-3xl border border-dashed border-primary/20 bg-white/80 px-6 py-14 text-center shadow-sm dark:bg-slate-900/80">
+    <span class="material-symbols-outlined text-5xl text-primary/40">manage_search</span>
+    <h3 class="mt-4 text-2xl font-black text-slate-900 dark:text-white">Aucune recherche lancee</h3>
+    <p class="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+      Saisis un mot-cle dans la barre de recherche du header. Tu peux chercher par nom de village,
+      nom de famille, nom de personne, code dossier ou village rattache.
+    </p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

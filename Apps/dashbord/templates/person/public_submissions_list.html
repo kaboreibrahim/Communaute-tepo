@@ -1,0 +1,290 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Pre-inscriptions publiques - Olodio{% endblock %}
+{% block topbar_title %}Pre-inscriptions{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-emerald-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-emerald-700 transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:person-list' %}" class="hover:text-emerald-700 transition-colors">Personnes</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-emerald-950 dark:text-white font-medium">Pre-inscriptions publiques</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <section class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">Workflow de verification</p>
+      <h1 class="mt-2 text-4xl font-black tracking-tight text-emerald-950 dark:text-white">
+        Pre-inscriptions publiques
+      </h1>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-500 dark:text-slate-400">
+        Les dossiers saisis depuis le site public arrivent ici. Un administrateur ou un agent de saisie
+        peut verifier, corriger si besoin, puis enregistrer definitivement la personne dans le registre.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a
+        href="{% url 'dashbord:person-list' %}"
+        class="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+      >
+        <span class="material-symbols-outlined text-lg">group</span>
+        Registre des personnes
+      </a>
+      <a
+        href="{% url 'dashbord:person-create' %}"
+        class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800"
+      >
+        <span class="material-symbols-outlined text-lg">person_add</span>
+        Ajouter manuellement
+      </a>
+    </div>
+  </section>
+
+  {% if messages %}
+  <div class="space-y-2">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium
+      {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700
+      {% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-700
+      {% else %}border-amber-200 bg-amber-50 text-amber-700{% endif %}">
+      <span class="material-symbols-outlined text-lg">
+        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}warning{% endif %}
+      </span>
+      <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-900/40 dark:bg-slate-900">
+      <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-600">Total</p>
+      <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ stats.total }}</p>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Dossiers publics recenses</p>
+    </article>
+
+    <article class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-900/40 dark:bg-slate-900">
+      <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-600">En attente</p>
+      <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ stats.pending }}</p>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Demandes a verifier</p>
+    </article>
+
+    <article class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-900/40 dark:bg-slate-900">
+      <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-600">Validees</p>
+      <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ stats.approved }}</p>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Transformees en fiches officielles</p>
+    </article>
+
+    <article class="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm dark:border-rose-900/40 dark:bg-slate-900">
+      <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Refusees</p>
+      <p class="mt-3 text-3xl font-black text-slate-900 dark:text-white">{{ stats.rejected }}</p>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Dossiers non retenus</p>
+    </article>
+  </section>
+
+  <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <form method="get" class="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_220px_220px_auto] lg:items-end">
+      <div>
+        <label class="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          Recherche
+        </label>
+        <input
+          type="text"
+          name="q"
+          value="{{ q }}"
+          placeholder="Nom, prenom, telephone, famille..."
+          class="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+        >
+      </div>
+
+      <div>
+        <label class="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          Statut
+        </label>
+        <select
+          name="statut"
+          class="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Tous</option>
+          <option value="pending" {% if statut == 'pending' %}selected{% endif %}>En attente</option>
+          <option value="approved" {% if statut == 'approved' %}selected{% endif %}>Validee</option>
+          <option value="rejected" {% if statut == 'rejected' %}selected{% endif %}>Refusee</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          Village
+        </label>
+        <select
+          name="village"
+          class="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-900 outline-none transition focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Tous les villages</option>
+          {% for village in villages %}
+          <option value="{{ village.id }}" {% if village_id == village.id|stringformat:"s" %}selected{% endif %}>
+            {{ village.nom }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="submit"
+          class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800"
+        >
+          <span class="material-symbols-outlined text-lg">search</span>
+          Filtrer
+        </button>
+        <a
+          href="{% url 'dashbord:public-person-submission-list' %}"
+          class="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-bold text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          Reset
+        </a>
+      </div>
+    </form>
+  </section>
+
+  <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+        <thead class="bg-slate-50 dark:bg-slate-950/40">
+          <tr>
+            <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Personne</th>
+            <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Famille</th>
+            <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Contact</th>
+            <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Date</th>
+            <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Statut</th>
+            <th class="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for submission in submissions %}
+          <tr class="align-top transition hover:bg-emerald-50/40 dark:hover:bg-emerald-950/10">
+            <td class="px-6 py-4">
+              <div class="flex items-start gap-3">
+                <div class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-emerald-100 bg-emerald-50 text-sm font-black text-emerald-700">
+                  {% if submission.photo %}
+                    <img src="{{ submission.photo.url }}" alt="{{ submission.nom_complet }}" class="h-full w-full object-cover">
+                  {% else %}
+                    {{ submission.prenom|first|upper }}{{ submission.nom|first|upper }}
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ submission.nom_complet }}</p>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {% if submission.genre == 'M' %}Masculin{% else %}Feminin{% endif %}
+                    {% if submission.date_naissance %} • {{ submission.date_naissance|date:"d/m/Y" }}{% endif %}
+                  </p>
+                  {% if submission.numero_cni %}
+                  <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">CNI: {{ submission.numero_cni }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+              {% if submission.famille %}
+              <p class="font-semibold text-slate-900 dark:text-white">{{ submission.famille.nom_famille }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ submission.famille.village.nom }}</p>
+              {% else %}
+              <span class="text-xs italic text-slate-400">Non rattachee</span>
+              {% endif %}
+            </td>
+
+            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+              <p>{{ submission.telephone|default:"Telephone non renseigne" }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ submission.email|default:"Email non renseigne" }}</p>
+            </td>
+
+            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+              <p class="font-semibold text-slate-900 dark:text-white">{{ submission.date_creation|date:"d/m/Y" }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ submission.date_creation|date:"H:i" }}</p>
+            </td>
+
+            <td class="px-6 py-4">
+              {% if submission.statut_validation == 'pending' %}
+              <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
+                En attente
+              </span>
+              {% elif submission.statut_validation == 'approved' %}
+              <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                Validee
+              </span>
+              {% else %}
+              <span class="inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-rose-700">
+                Refusee
+              </span>
+              {% endif %}
+
+              {% if submission.valide_par %}
+              <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Par {{ submission.valide_par.get_full_name|default:submission.valide_par.username }}
+              </p>
+              {% endif %}
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="flex justify-end gap-2">
+                {% if submission.personne_creee_id %}
+                <a
+                  href="{% url 'dashbord:person-detail' submission.personne_creee_id %}"
+                  class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-200 px-4 text-xs font-bold uppercase tracking-[0.16em] text-emerald-700 transition hover:bg-emerald-50"
+                >
+                  <span class="material-symbols-outlined text-base">visibility</span>
+                  Voir la fiche
+                </a>
+                {% endif %}
+
+                {% if submission.statut_validation != 'approved' %}
+                <form
+                  method="post"
+                  action="{% url 'dashbord:public-person-submission-reject' submission.id %}"
+                  onsubmit="return confirm('Confirmer le refus de cette pre-inscription ?');"
+                >
+                  {% csrf_token %}
+                  <button
+                    type="submit"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 px-4 text-xs font-bold uppercase tracking-[0.16em] text-rose-700 transition hover:bg-rose-50"
+                  >
+                    <span class="material-symbols-outlined text-base">close</span>
+                    Refuser
+                  </button>
+                </form>
+                <a
+                  href="{% url 'dashbord:public-person-submission-review' submission.id %}"
+                  class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 text-xs font-bold uppercase tracking-[0.16em] text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800"
+                >
+                  <span class="material-symbols-outlined text-base">fact_check</span>
+                  Verifier
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-20 text-center">
+              <div class="mx-auto flex max-w-md flex-col items-center gap-4">
+                <span class="material-symbols-outlined text-6xl text-emerald-100">hourglass_empty</span>
+                <h2 class="text-xl font-black text-slate-900 dark:text-white">Aucune pre-inscription trouvee</h2>
+                <p class="text-sm leading-7 text-slate-500 dark:text-slate-400">
+                  Les nouvelles demandes venant du site public apparaitront ici pour verification.
+                </p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,871 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Famille {{ famille.nom_famille }}{% endblock %}
+{% block topbar_title %}Detail famille{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ─── Shell ──────────────────────────────────────────────── */
+  .family-detail-shell {
+    background:
+      radial-gradient(circle at top left, rgba(0,97,58,0.08), transparent 32%),
+      radial-gradient(circle at bottom right, rgba(245,120,38,0.09), transparent 26%),
+      linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.94));
+  }
+
+  /* ─── Tree surface ───────────────────────────────────────── */
+  .tree-surface {
+    background:
+      linear-gradient(90deg, rgba(148,163,184,0.07) 1px, transparent 1px),
+      linear-gradient(rgba(148,163,184,0.07) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255,255,255,0.7), rgba(241,245,249,0.82));
+    background-size: 32px 32px, 32px 32px, cover;
+  }
+
+  /* ─── Tree stage ─────────────────────────────────────────── */
+  .tree-stage {
+    transform-origin: top center;
+    transition: transform 0.2s ease;
+  }
+
+  /* ─── Tree node ──────────────────────────────────────────── */
+  .tree-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ─── Tree card ──────────────────────────────────────────── */
+  .tree-card {
+    width: 15rem;
+    border: 1px solid rgba(148,163,184,0.18);
+    border-left-width: 3px;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.94);
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 0.75rem 0.9rem;
+    text-align: left;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    cursor: pointer;
+  }
+
+  .dark .tree-card {
+    background: rgba(15,23,42,0.95);
+    border-color: rgba(71,85,105,0.32);
+    box-shadow: 0 4px 16px rgba(2,6,23,0.32);
+  }
+
+  .tree-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(15,23,42,0.10);
+  }
+
+  .tree-card.is-selected {
+    box-shadow: 0 0 0 2.5px #00613a, 0 0 0 5px rgba(0,97,58,0.15);
+  }
+
+  .tree-card--male   { border-left-color: #00613a; }
+  .tree-card--female { border-left-color: #f97316; }
+
+  /* ─── Tree avatar ────────────────────────────────────────── */
+  .tree-avatar {
+    display: flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, rgba(0,97,58,0.18), rgba(0,97,58,0.06));
+    color: #00613a;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .tree-avatar img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* ─── Tree meta row ──────────────────────────────────────── */
+  .tree-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding-top: 0.7rem;
+    margin-top: 0.7rem;
+    border-top: 1px solid rgba(148,163,184,0.14);
+  }
+
+  .tree-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.05);
+    padding: 0.28rem 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+  }
+
+  .dark .tree-pill {
+    background: rgba(148,163,184,0.14);
+    color: #cbd5e1;
+  }
+
+  /* ─── Tree spouse ────────────────────────────────────────── */
+  .tree-spouse {
+    margin-top: 0.7rem;
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px dashed rgba(249,115,22,0.4);
+    background: rgba(249,115,22,0.08);
+    padding: 0.35rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #c2410c;
+  }
+
+  /* ─── Tree children connector ────────────────────────────── */
+  .tree-children {
+    position: relative;
+    padding-top: 2.25rem;
+  }
+
+  .tree-children::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 1.25rem;
+    width: 1.5px;
+    transform: translateX(-50%);
+    background: #b8cfe0;
+  }
+
+  .tree-children-list {
+    position: relative;
+    display: inline-flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .tree-children-list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 11%;
+    right: 11%;
+    height: 1.5px;
+    background: #b8cfe0;
+  }
+
+  .tree-children--single .tree-children-list::before {
+    display: none;
+  }
+
+  .tree-children-list > .tree-node::before {
+    content: "";
+    position: absolute;
+    top: -1.25rem;
+    left: 50%;
+    height: 1.25rem;
+    width: 1.5px;
+    transform: translateX(-50%);
+    background: #b8cfe0;
+  }
+
+  .tree-children--single .tree-children-list > .tree-node::before {
+    top: -1.25rem;
+  }
+
+  /* ─── Toggle visibility ──────────────────────────────────── */
+  .tree-hide-spouses .tree-spouse  { display: none; }
+  .tree-hide-meta    .tree-meta-row { display: none; }
+
+  /* ─── Member photo (liste) ───────────────────────────────── */
+  .member-photo {
+    display: flex;
+    height: 3.25rem;
+    width: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(0,97,58,0.14), rgba(15,23,42,0.06));
+    color: #00613a;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .member-photo img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* ─── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 1279px) {
+    .tree-card               { width: 13.5rem; }
+    .tree-children-list      { gap: 1.1rem; }
+  }
+
+  @media (max-width: 1023px) {
+    .tree-card               { width: 12.5rem; }
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Tableau de bord</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:family-list' %}" class="hover:text-primary transition-colors">Familles</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="font-medium text-slate-700 dark:text-slate-200">{{ famille.nom_famille }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+
+  <!-- ── En-tête famille ───────────────────────────────────────── -->
+  <div class="family-detail-shell overflow-hidden rounded-[2rem] border border-primary/10 p-6 shadow-sm md:p-8">
+    <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined text-3xl">family_history</span>
+          </span>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.35em] text-primary/70">Fiche famille</p>
+            <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ famille.nom_famille }}</h1>
+          </div>
+        </div>
+        <p class="max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+          {% if famille.description %}
+            {{ famille.description }}
+          {% else %}
+            Vue detaillee de la famille {{ famille.nom_famille }} avec arbre genealogique, membres rattaches et indicateurs de composition.
+          {% endif %}
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:bg-slate-900/80 dark:text-slate-200">
+            <span class="material-symbols-outlined text-base text-primary">location_on</span>
+            {{ famille.village_nom }}
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:bg-slate-900/80 dark:text-slate-200">
+            <span class="material-symbols-outlined text-base text-primary">groups</span>
+            {{ detail_stats.total_membres }} membre{{ detail_stats.total_membres|pluralize }}
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:bg-slate-900/80 dark:text-slate-200">
+            <span class="material-symbols-outlined text-base text-primary">account_tree</span>
+            {{ detail_stats.profondeur }} generation{{ detail_stats.profondeur|pluralize }}
+          </span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="{% url 'dashbord:family-list' %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/15 bg-white px-5 py-3 font-semibold text-slate-700 transition-colors hover:border-primary/30 hover:text-primary dark:bg-slate-900 dark:text-slate-200"
+        >
+          <span class="material-symbols-outlined text-base">arrow_back</span>
+          Retour a la liste
+        </a>
+        {% if request.user.est_agent_saisie %}
+        <a
+          href="{% url 'dashbord:person-create' %}?famille={{ famille.id }}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-white shadow-lg shadow-primary/25 transition-transform hover:bg-primary/90 active:scale-95"
+        >
+          <span class="material-symbols-outlined text-base">person_add</span>
+          Ajouter une personne
+        </a>
+        <a
+          href="{% url 'dashbord:family-update' famille.id %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600"
+        >
+          <span class="material-symbols-outlined text-base">edit</span>
+          Modifier
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Statistiques ───────────────────────────────────────────── -->
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary/70">Chef de famille</p>
+      <p class="mt-3 text-xl font-black text-slate-900 dark:text-white">{{ famille.chef_nom|default:"Non renseigne" }}</p>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Reference genealogique principale</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary/70">Membres vivants</p>
+      <p class="mt-3 text-xl font-black text-slate-900 dark:text-white">{{ detail_stats.total_vivants }}</p>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Sur {{ detail_stats.total_membres }} personnes rattachees</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary/70">Residence</p>
+      <p class="mt-3 text-xl font-black text-slate-900 dark:text-white">{{ detail_stats.total_village }} au village</p>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ detail_stats.total_diaspora }} en diaspora, {{ detail_stats.total_ci }} hors village en CI</p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary/70">Creation</p>
+      <p class="mt-3 text-xl font-black text-slate-900 dark:text-white">{{ famille.date_creation|date:"d M Y" }}</p>
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Derniere mise a jour le {{ famille.date_maj|date:"d M Y" }}</p>
+    </div>
+  </div>
+
+  <!-- ── Arbre + sidebar ────────────────────────────────────────── -->
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-[19rem_minmax(0,1fr)]">
+
+    <!-- Sidebar navigation -->
+    <aside class="space-y-6 rounded-[2rem] border border-primary/10 bg-white p-5 shadow-sm dark:bg-slate-900">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="rounded-2xl bg-primary/10 p-3 text-primary">
+            <span class="material-symbols-outlined text-2xl">account_tree</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-black text-slate-900 dark:text-white">Navigation familiale</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">{{ detail_stats.noeuds_arbre }} noeuds genealogiques disponibles</p>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <a href="{% url 'dashbord:admin_dashboard' %}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined text-xl">dashboard</span>
+            Tableau de bord
+          </a>
+          <a href="{% url 'dashbord:family-detail' famille.id %}" class="flex items-center gap-3 rounded-xl bg-primary/10 px-3 py-2.5 text-sm font-bold text-primary">
+            <span class="material-symbols-outlined text-xl">family_history</span>
+            Visualisation de l'arbre
+          </a>
+          <a href="#membres-famille" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined text-xl">groups</span>
+            Membres recenses
+          </a>
+        </div>
+      </div>
+
+      <!-- Controles arbre -->
+      <div class="border-t border-slate-100 pt-5 dark:border-slate-800">
+        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Controles de l'arbre</p>
+        <div class="space-y-4">
+          <div>
+            <div class="mb-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Zoom</span>
+              <span id="tree-zoom-value" class="font-bold text-primary">100%</span>
+            </div>
+            <input id="tree-zoom-range" type="range" min="60" max="160" step="10" value="100" class="w-full accent-primary">
+          </div>
+          <label class="flex cursor-pointer items-center gap-3">
+            <input id="toggle-spouses" type="checkbox" checked class="size-4 rounded text-primary focus:ring-primary">
+            <span class="text-sm text-slate-600 dark:text-slate-300">Afficher les conjoint(e)s</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-3">
+            <input id="toggle-meta" type="checkbox" checked class="size-4 rounded text-primary focus:ring-primary">
+            <span class="text-sm text-slate-600 dark:text-slate-300">Afficher les details</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Resume stats -->
+      <div class="border-t border-slate-100 pt-5 dark:border-slate-800">
+        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Resume</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/70">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Village</p>
+            <p class="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">{{ famille.village_nom }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/70">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Arbre</p>
+            <p class="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">{{ detail_stats.profondeur }} niveaux</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/70">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Diaspora</p>
+            <p class="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">{{ detail_stats.total_diaspora }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/70">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">CI hors village</p>
+            <p class="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">{{ detail_stats.total_ci }}</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Arbre généalogique viewer -->
+    <section id="tree-viewer" class="relative min-h-[52rem] overflow-hidden rounded-[2rem] border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
+
+      <!-- Toolbar -->
+      <div class="pointer-events-none absolute inset-x-4 top-4 z-20 flex flex-col gap-3 lg:left-6 lg:right-6 lg:flex-row lg:items-start lg:justify-between">
+        <div class="pointer-events-auto rounded-2xl bg-white/90 px-5 py-4 shadow-lg shadow-slate-900/5 backdrop-blur-md dark:bg-slate-900/90">
+          <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-primary/70">Arbre genealogique</p>
+          <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">{{ famille.nom_famille }}</h2>
+          <div class="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <span>Genealogie</span>
+            <span class="material-symbols-outlined text-xs">chevron_right</span>
+            <span>{{ famille.village_nom }}</span>
+          </div>
+        </div>
+
+        <div class="pointer-events-auto flex items-center gap-1 rounded-2xl border border-slate-200 bg-white/90 p-1.5 shadow-lg shadow-slate-900/5 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90">
+          <button type="button" data-tree-action="zoom-in" class="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined">zoom_in</span>
+          </button>
+          <button type="button" data-tree-action="zoom-out" class="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined">zoom_out</span>
+          </button>
+          <div class="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+          <button type="button" data-tree-action="recenter" class="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined">center_focus_strong</span>
+          </button>
+          <button type="button" data-tree-action="fullscreen" class="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+            <span class="material-symbols-outlined">fullscreen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Surface scrollable -->
+      <div class="tree-surface h-full overflow-auto p-6 pt-28 lg:p-10 lg:pt-32">
+        <div id="tree-stage" class="tree-stage flex min-w-max justify-center pb-72 lg:pb-56">
+          <div id="family-tree-root"></div>
+        </div>
+        <div id="family-tree-empty" class="mx-auto hidden max-w-xl rounded-[2rem] border border-dashed border-primary/25 bg-white/90 px-8 py-12 text-center shadow-sm dark:bg-slate-900/90">
+          <span class="material-symbols-outlined text-5xl text-primary/70">account_tree</span>
+          <h3 class="mt-4 text-2xl font-black text-slate-900 dark:text-white">Arbre genealogique indisponible</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">
+            Aucun chef de famille n'est encore defini pour cette famille. Selectionnez une personne comme chef de famille pour afficher la genealogie ici.
+          </p>
+        </div>
+      </div>
+
+      <!-- Légende -->
+      <div class="relative border-t border-primary/10 bg-white/80 px-6 py-4 dark:bg-slate-900/80">
+        <div class="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary">
+            <span class="h-2 w-2 rounded-full bg-primary"></span>
+            Ligne masculine
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+            <span class="h-2 w-2 rounded-full bg-orange-500"></span>
+            Ligne feminine
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+            <span class="material-symbols-outlined text-sm">touch_app</span>
+            Clique sur une carte pour afficher la fiche rapide
+          </span>
+        </div>
+      </div>
+
+      <!-- Panneau fiche rapide -->
+      <aside class="z-30 lg:absolute lg:bottom-16 lg:right-5 lg:w-[20rem]">
+        <div class="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-xl shadow-slate-900/8 dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex items-center justify-between border-b border-primary/10 bg-primary/10 px-5 py-4">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-primary/70">Fiche rapide</p>
+              <h3 id="family-node-panel-title" class="mt-1 text-xl font-black text-slate-900 dark:text-white">Selectionne un membre</h3>
+            </div>
+            <button id="family-node-panel-close" type="button" class="rounded-full p-2 text-slate-400 transition-colors hover:bg-white/60 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div id="family-node-panel-body" class="space-y-5 p-5">
+            <p class="text-sm leading-7 text-slate-500 dark:text-slate-400">
+              Clique sur une personne dans l'arbre pour afficher ses informations ici.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+    </section>
+  </div>
+
+  <!-- ── Liste des membres ───────────────────────────────────────── -->
+  <section id="membres-famille" class="space-y-5 rounded-[2rem] border border-primary/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+    <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-primary/70">Repertoire</p>
+        <h2 class="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Membres de la famille</h2>
+      </div>
+      <p class="text-sm text-slate-500 dark:text-slate-400">{{ famille.membres|length }} fiche{{ famille.membres|length|pluralize }} disponible{{ famille.membres|length|pluralize }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
+      {% for membre in famille.membres %}
+      <a
+        href="{% url 'dashbord:person-detail' membre.id %}"
+        class="group flex items-center gap-4 rounded-2xl border border-primary/10 bg-slate-50 px-4 py-4 transition-all hover:-translate-y-1 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/10 dark:bg-slate-800/60"
+      >
+        <div class="member-photo">
+          {% if membre.photo %}
+          <img src="{{ membre.photo }}" alt="{{ membre.nom_complet }}">
+          {% else %}
+          <span>{{ membre.prenom|slice:":1" }}{{ membre.nom|slice:":1" }}</span>
+          {% endif %}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-black text-slate-900 transition-colors group-hover:text-primary dark:text-white">{{ membre.nom_complet }}</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ membre.genre_label }}{% if membre.age is not None %} &bull; {{ membre.age }} ans{% endif %}</p>
+            </div>
+            <span class="inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[11px] font-bold {% if membre.est_vivant %}bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300{% else %}bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300{% endif %}">
+              {% if membre.est_vivant %}Vivant{% else %}Decede{% endif %}
+            </span>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>{{ membre.village }}</span>
+            <span class="inline-flex items-center gap-1 text-primary">
+              Voir la fiche
+              <span class="material-symbols-outlined text-sm">arrow_outward</span>
+            </span>
+          </div>
+        </div>
+      </a>
+      {% empty %}
+      <div class="col-span-full rounded-2xl border border-dashed border-primary/20 px-6 py-10 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-300">groups</span>
+        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Aucun membre n'est encore rattache a cette famille.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script id="family-tree-data" type="application/json">{{ arbre_json|safe }}</script>
+<script>
+  /* ── Éléments DOM ─────────────────────────────────────────────── */
+  const treePayload      = document.getElementById('family-tree-data');
+  const treeRoot         = document.getElementById('family-tree-root');
+  const treeEmpty        = document.getElementById('family-tree-empty');
+  const treeStage        = document.getElementById('tree-stage');
+  const treeViewer       = document.getElementById('tree-viewer');
+  const treeSurface      = treeStage ? treeStage.parentElement : null;
+  const zoomRange        = document.getElementById('tree-zoom-range');
+  const zoomValue        = document.getElementById('tree-zoom-value');
+  const toggleSpouses    = document.getElementById('toggle-spouses');
+  const toggleMeta       = document.getElementById('toggle-meta');
+  const panelTitle       = document.getElementById('family-node-panel-title');
+  const panelBody        = document.getElementById('family-node-panel-body');
+  const closePanelButton = document.getElementById('family-node-panel-close');
+
+  /* ── Constantes Django ────────────────────────────────────────── */
+  const TREE_UUID_PLACEHOLDER  = '00000000-0000-0000-0000-000000000000';
+  const PERSON_DETAIL_PATTERN  = "{% url 'dashbord:person-detail' person_id='00000000-0000-0000-0000-000000000000' %}";
+  const DEFAULT_VILLAGE        = "{{ famille.village_nom|escapejs }}";
+
+  /* ── État ─────────────────────────────────────────────────────── */
+  let familyTree  = {};
+  let activeNodeId = null;
+  let currentZoom  = 100;
+  const nodesById  = {};
+
+  try {
+    familyTree = JSON.parse(treePayload.textContent || '{}');
+  } catch (_) {
+    familyTree = {};
+  }
+
+  /* ── Utilitaires ──────────────────────────────────────────────── */
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function initials(name) {
+    return String(name || '')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(p => p.charAt(0))
+      .join('')
+      .toUpperCase() || 'OF';
+  }
+
+  function yearFromIso(value) {
+    return value ? String(value).slice(0, 4) : null;
+  }
+
+  function lifeLabel(node) {
+    const birth = yearFromIso(node.date_naissance);
+    const death = yearFromIso(node.date_deces);
+    if (birth && death) return `${birth} - ${death}`;
+    if (birth && node.est_vivant) return `${birth} - ...`;
+    if (node.age !== null && node.age !== undefined) return `${node.age} ans`;
+    return 'Date inconnue';
+  }
+
+  function residenceText(node) {
+    return node.lieu_residence || node.residence_label || DEFAULT_VILLAGE;
+  }
+
+  function statusText(node) {
+    return node.est_vivant ? 'Vivant(e)' : 'Decede(e)';
+  }
+
+  function buildPersonUrl(nodeId) {
+    return PERSON_DETAIL_PATTERN.replace(TREE_UUID_PLACEHOLDER, nodeId);
+  }
+
+  /* ── Collecte récursive des nœuds ────────────────────────────── */
+  function collectNodes(node) {
+    if (!node || !node.id) return;
+    nodesById[node.id] = node;
+    (node.enfants || []).forEach(collectNodes);
+  }
+
+  /* ── Rendu HTML d'un nœud ────────────────────────────────────── */
+  function renderNode(node) {
+    const children    = Array.isArray(node.enfants) ? node.enfants : [];
+    const genderClass = node.genre === 'F' ? 'tree-card--female' : 'tree-card--male';
+
+    const metaPills = [
+      `<span class="tree-pill">
+         <span class="material-symbols-outlined" style="font-size:13px">calendar_month</span>
+         ${escapeHtml(lifeLabel(node))}
+       </span>`,
+      `<span class="tree-pill">
+         <span class="material-symbols-outlined" style="font-size:13px">pin_drop</span>
+         ${escapeHtml(residenceText(node))}
+       </span>`
+    ].join('');
+
+    const spouseMarkup = node.conjoint
+      ? `<div class="tree-spouse">
+           <span class="material-symbols-outlined" style="font-size:14px">favorite</span>
+           ${escapeHtml(node.conjoint)}
+         </div>`
+      : '';
+
+    const avatarMarkup = node.photo
+      ? `<div class="tree-avatar"><img src="${escapeHtml(node.photo)}" alt="${escapeHtml(node.nom_complet)}"></div>`
+      : `<div class="tree-avatar">${escapeHtml(initials(node.nom_complet))}</div>`;
+
+    const statusClass = node.est_vivant
+      ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300'
+      : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
+
+    return `
+      <div class="tree-node">
+        <button type="button" class="tree-card ${genderClass}" data-node-id="${escapeHtml(node.id)}">
+          <div class="flex items-start gap-2.5">
+            ${avatarMarkup}
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-black text-slate-900 dark:text-white">${escapeHtml(node.nom_complet)}</p>
+              <p class="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">${escapeHtml(lifeLabel(node))}</p>
+              <div class="mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${statusClass}">
+                ${escapeHtml(statusText(node))}
+              </div>
+            </div>
+          </div>
+          <div class="tree-meta-row">${metaPills}</div>
+          ${spouseMarkup}
+        </button>
+        ${children.length ? `
+          <div class="tree-children ${children.length === 1 ? 'tree-children--single' : ''}">
+            <div class="tree-children-list">
+              ${children.map(renderNode).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  /* ── Libellé descendants ─────────────────────────────────────── */
+  function descendantsLabel(node) {
+    const count = Array.isArray(node.enfants) ? node.enfants.length : 0;
+    return `${count} descendant${count > 1 ? 's' : ''} direct${count > 1 ? 's' : ''}`;
+  }
+
+  /* ── Rendu panneau fiche rapide ──────────────────────────────── */
+  function renderPanel(node) {
+    if (!node || !panelBody) return;
+
+    if (panelTitle) {
+      panelTitle.textContent = node.nom_complet || 'Membre';
+    }
+
+    const avatarMarkup = node.photo
+      ? `<div class="h-16 w-16 overflow-hidden rounded-2xl bg-slate-100 flex-shrink-0">
+           <img class="h-full w-full object-cover" src="${escapeHtml(node.photo)}" alt="${escapeHtml(node.nom_complet)}">
+         </div>`
+      : `<div class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-xl font-black uppercase text-primary">
+           ${escapeHtml(initials(node.nom_complet))}
+         </div>`;
+
+    panelBody.innerHTML = `
+      <div class="flex items-center gap-4">
+        ${avatarMarkup}
+        <div class="min-w-0">
+          <h4 class="truncate text-xl font-black leading-tight text-slate-900 dark:text-white">${escapeHtml(node.nom_complet)}</h4>
+          <p class="mt-1 text-sm font-bold text-primary">${escapeHtml(lifeLabel(node))}</p>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined mt-0.5 text-slate-400" style="font-size:18px">info</span>
+          <p>${escapeHtml(statusText(node))}</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined mt-0.5 text-slate-400" style="font-size:18px">pin_drop</span>
+          <p>${escapeHtml(residenceText(node))}</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined mt-0.5 text-slate-400" style="font-size:18px">family_star</span>
+          <p>Generation ${escapeHtml(String(node.generation + 1))}</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined mt-0.5 text-slate-400" style="font-size:18px">group</span>
+          <p>${escapeHtml(descendantsLabel(node))}</p>
+        </div>
+        ${node.conjoint ? `
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined mt-0.5 text-slate-400" style="font-size:18px">favorite</span>
+            <p>Conjoint(e) : ${escapeHtml(node.conjoint)}</p>
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="pt-2">
+        <a
+          href="${escapeHtml(buildPersonUrl(node.id))}"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-bold text-white transition-colors hover:bg-primary/90"
+        >
+          <span class="material-symbols-outlined text-base">visibility</span>
+          Voir le profil complet
+        </a>
+      </div>
+    `;
+  }
+
+  /* ── Sélection d'un nœud ─────────────────────────────────────── */
+  function selectNode(nodeId) {
+    if (!nodesById[nodeId]) return;
+    activeNodeId = nodeId;
+    document.querySelectorAll('[data-node-id]').forEach(card => {
+      card.classList.toggle('is-selected', card.dataset.nodeId === nodeId);
+    });
+    renderPanel(nodesById[nodeId]);
+  }
+
+  /* ── Sync toggles ────────────────────────────────────────────── */
+  function syncToggleState() {
+    if (!treeRoot) return;
+    treeRoot.classList.toggle('tree-hide-spouses', toggleSpouses && !toggleSpouses.checked);
+    treeRoot.classList.toggle('tree-hide-meta',    toggleMeta    && !toggleMeta.checked);
+  }
+
+  /* ── Zoom ─────────────────────────────────────────────────────── */
+  function setZoom(nextZoom) {
+    currentZoom = Math.max(60, Math.min(160, nextZoom));
+    if (treeStage) treeStage.style.transform = `scale(${currentZoom / 100})`;
+    if (zoomRange) zoomRange.value = String(currentZoom);
+    if (zoomValue) zoomValue.textContent = `${currentZoom}%`;
+  }
+
+  /* ── Recentrer ────────────────────────────────────────────────── */
+  function recenterTree() {
+    if (!treeSurface) return;
+    window.requestAnimationFrame(() => {
+      const left = Math.max(0, (treeSurface.scrollWidth - treeSurface.clientWidth) / 2);
+      treeSurface.scrollTo({ left, top: 0, behavior: 'smooth' });
+    });
+  }
+
+  /* ── Rendu principal ─────────────────────────────────────────── */
+  function renderTree() {
+    if (!familyTree || !familyTree.id) {
+      if (treeRoot)  treeRoot.innerHTML = '';
+      if (treeEmpty) treeEmpty.classList.remove('hidden');
+      return;
+    }
+    collectNodes(familyTree);
+    treeRoot.innerHTML = renderNode(familyTree);
+    treeEmpty.classList.add('hidden');
+    syncToggleState();
+    selectNode(familyTree.id);
+    setZoom(currentZoom);
+    recenterTree();
+  }
+
+  /* ── Listeners ───────────────────────────────────────────────── */
+  if (toggleSpouses) toggleSpouses.addEventListener('change', syncToggleState);
+  if (toggleMeta)    toggleMeta.addEventListener('change', syncToggleState);
+
+  if (zoomRange) {
+    zoomRange.addEventListener('input', e => setZoom(Number(e.target.value)));
+  }
+
+  if (treeRoot) {
+    treeRoot.addEventListener('click', e => {
+      const trigger = e.target.closest('[data-node-id]');
+      if (!trigger) return;
+      selectNode(trigger.dataset.nodeId);
+    });
+  }
+
+  if (treeViewer) {
+    treeViewer.querySelectorAll('[data-tree-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switch (btn.dataset.treeAction) {
+          case 'zoom-in':
+            setZoom(currentZoom + 10);
+            break;
+          case 'zoom-out':
+            setZoom(currentZoom - 10);
+            break;
+          case 'recenter':
+            recenterTree();
+            break;
+          case 'fullscreen':
+            if (document.fullscreenElement) {
+              document.exitFullscreen();
+            } else if (treeViewer.requestFullscreen) {
+              treeViewer.requestFullscreen();
+            }
+            break;
+        }
+      });
+    });
+  }
+
+  if (closePanelButton) {
+    closePanelButton.addEventListener('click', () => {
+      if (activeNodeId && nodesById[activeNodeId]) {
+        renderPanel(nodesById[activeNodeId]);
+        return;
+      }
+      if (panelTitle) panelTitle.textContent = 'Selectionne un membre';
+      if (panelBody) {
+        panelBody.innerHTML = '<p class="text-sm leading-7 text-slate-500 dark:text-slate-400">Clique sur une personne dans l\'arbre pour afficher ses informations ici.</p>';
+      }
+    });
+  }
+
+  /* ── Init ────────────────────────────────────────────────────── */
+  renderTree();
+</script>
+{% endblock %}

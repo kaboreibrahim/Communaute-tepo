@@ -1,0 +1,482 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ title }} — Olodio{% endblock %}
+{% block topbar_title %}Rapports{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-emerald-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-emerald-700 transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-emerald-950 dark:text-white font-medium">Rapports et Exportations</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto relative z-10">
+
+  {# ── Header ── #}
+  <div class="mb-10">
+    <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-[0.2em] mb-2">
+      <span class="material-symbols-outlined text-sm">description</span>
+      Centre de Rapports — Exportation de Données
+    </div>
+    <h1 class="text-4xl font-black text-emerald-950 dark:text-white tracking-tight">
+      Rapports et Exportations
+    </h1>
+    <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl">
+      Téléchargez des rapports détaillés en format Excel contenant les données complètes 
+      du recensement d'Olodio. Tous les exports sont générés en temps réel.
+    </p>
+  </div>
+
+  {# ── Statistiques ── #}
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 mb-10">
+    <article class="group relative overflow-hidden rounded-2xl border border-emerald-10 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900">
+      <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-5 transition-transform duration-500 group-hover:scale-125"></div>
+      <div class="relative flex items-start justify-between gap-4">
+        <div class="rounded-2xl p-3 bg-emerald-100 text-emerald-700">
+          <span class="material-symbols-outlined">people</span>
+        </div>
+        <span class="rounded-full px-3 py-1 text-[11px] font-bold bg-emerald-100 text-emerald-700">
+          Total
+        </span>
+      </div>
+      <p class="relative mt-5 text-sm font-semibold text-slate-500 dark:text-slate-400">Personnes recensées</p>
+      <h3 class="relative mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ stats.total_personnes }}</h3>
+      <p class="relative mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Dans le registre officiel</p>
+    </article>
+
+    <article class="group relative overflow-hidden rounded-2xl border border-blue-10 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900">
+      <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-5 transition-transform duration-500 group-hover:scale-125"></div>
+      <div class="relative flex items-start justify-between gap-4">
+        <div class="rounded-2xl p-3 bg-blue-100 text-blue-700">
+          <span class="material-symbols-outlined">family_restroom</span>
+        </div>
+        <span class="rounded-full px-3 py-1 text-[11px] font-bold bg-blue-100 text-blue-700">
+          Total
+        </span>
+      </div>
+      <p class="relative mt-5 text-sm font-semibold text-slate-500 dark:text-slate-400">Familles enregistrées</p>
+      <h3 class="relative mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ stats.total_familles }}</h3>
+      <p class="relative mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Réparties dans les villages</p>
+    </article>
+
+    <article class="group relative overflow-hidden rounded-2xl border border-purple-10 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900">
+      <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-purple-5 transition-transform duration-500 group-hover:scale-125"></div>
+      <div class="relative flex items-start justify-between gap-4">
+        <div class="rounded-2xl p-3 bg-purple-100 text-purple-700">
+          <span class="material-symbols-outlined">location_city</span>
+        </div>
+        <span class="rounded-full px-3 py-1 text-[11px] font-bold bg-purple-100 text-purple-700">
+          Total
+        </span>
+      </div>
+      <p class="relative mt-5 text-sm font-semibold text-slate-500 dark:text-slate-400">Villages couverts</p>
+      <h3 class="relative mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ stats.total_villages }}</h3>
+      <p class="relative mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Dans la sous-préfecture</p>
+    </article>
+
+    <article class="group relative overflow-hidden rounded-2xl border border-orange-10 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-900">
+      <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-5 transition-transform duration-500 group-hover:scale-125"></div>
+      <div class="relative flex items-start justify-between gap-4">
+        <div class="rounded-2xl p-3 bg-orange-100 text-orange-700">
+          <span class="material-symbols-outlined">domain</span>
+        </div>
+        <span class="rounded-full px-3 py-1 text-[11px] font-bold bg-orange-100 text-orange-700">
+          Total
+        </span>
+      </div>
+      <p class="relative mt-5 text-sm font-semibold text-slate-500 dark:text-slate-400">Infrastructures</p>
+      <h3 class="relative mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ stats.total_infrastructures }}</h3>
+      <p class="relative mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Services disponibles</p>
+    </article>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 mb-10">
+    <article class="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Campagnes de cotisation</p>
+          <h3 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ stats.total_cotisations }}</h3>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Modules de collecte disponibles pour le suivi financier communautaire.</p>
+        </div>
+        <div class="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
+          <span class="material-symbols-outlined">payments</span>
+        </div>
+      </div>
+    </article>
+    <article class="rounded-3xl border border-amber-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Paiements a verifier</p>
+          <h3 class="mt-2 text-3xl font-black tracking-tight text-amber-600">{{ stats.paiements_cotisation_pending }}</h3>
+          <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Paiements de cotisation encore en attente de validation.</p>
+        </div>
+        <div class="rounded-2xl bg-amber-100 p-3 text-amber-700">
+          <span class="material-symbols-outlined">fact_check</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  {# ── Rapports disponibles ── #}
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-2 mb-10">
+    <!-- Rapport Personnes -->
+    <article class="rounded-3xl border border-emerald-10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="rounded-2xl p-3 bg-emerald-100 text-emerald-700">
+          <span class="material-symbols-outlined text-2xl">people</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Liste des Personnes</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Export complet de toutes les personnes recensées avec leurs informations détaillées
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-6 rounded-2xl bg-emerald-50 p-4 dark:bg-emerald-900/20">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-emerald-600">info</span>
+          <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Champs inclus</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Code, Nom, Prénom, Surnom
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Genre, Date de naissance, Âge
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Contact (Téléphone, Email)
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Situation matrimoniale
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Type et lieu de résidence
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Famille et Village d'origine
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+          <span class="material-symbols-outlined">description</span>
+          Format Excel (.xlsx)
+        </div>
+        <a href="{% url 'dashbord:export_personnes' %}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-transform hover:bg-emerald-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Télécharger
+        </a>
+      </div>
+    </article>
+
+    <!-- Rapport Familles -->
+    <article class="rounded-3xl border border-blue-10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="rounded-2xl p-3 bg-blue-100 text-blue-700">
+          <span class="material-symbols-outlined text-2xl">family_restroom</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Liste des Familles</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Export de toutes les familles avec statistiques démographiques et chef de famille
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-6 rounded-2xl bg-blue-50 p-4 dark:bg-blue-900/20">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-blue-600">info</span>
+          <span class="text-sm font-semibold text-blue-700 dark:text-blue-400">Champs inclus</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Nom de famille
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Village d'origine
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Description
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Nombre total de membres
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Répartition par genre
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Chef de famille identifié
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+          <span class="material-symbols-outlined">description</span>
+          Format Excel (.xlsx)
+        </div>
+        <a href="{% url 'dashbord:export_familles' %}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-transform hover:bg-blue-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Télécharger
+        </a>
+      </div>
+    </article>
+
+    <!-- Rapport Villages -->
+    <article class="rounded-3xl border border-purple-10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="rounded-2xl p-3 bg-purple-100 text-purple-700">
+          <span class="material-symbols-outlined text-2xl">location_city</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Liste des Villages</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Export des villages avec caractéristiques et dénombrement des infrastructures
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-6 rounded-2xl bg-purple-50 p-4 dark:bg-purple-900/20">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-purple-600">info</span>
+          <span class="text-sm font-semibold text-purple-700 dark:text-purple-400">Champs inclus</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Nom et description
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Population estimée
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Chef du village
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Coordonnées GPS
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Familles et habitants
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xs">check_circle</span>
+            Infrastructures par type
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+          <span class="material-symbols-outlined">description</span>
+          Format Excel (.xlsx)
+        </div>
+        <a href="{% url 'dashbord:export_villages' %}" class="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-purple-600/20 transition-transform hover:bg-purple-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Télécharger
+        </a>
+      </div>
+    </article>
+
+    <!-- Rapport Démographique -->
+    <article class="rounded-3xl border border-orange-10 bg-white p-6 shadow-sm dark:bg-slate-900">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="rounded-2xl p-3 bg-orange-100 text-orange-700">
+          <span class="material-symbols-outlined text-2xl">analytics</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Rapport Démographique Complet</h4>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Analyse démographique complète avec statistiques générales et répartition par village
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-6 rounded-2xl bg-orange-50 p-4 dark:bg-orange-900/20">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-orange-600">info</span>
+          <span class="text-sm font-semibold text-orange-700 dark:text-orange-400">Feuilles incluses</span>
+        </div>
+        <div class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+          <div>
+            <div class="flex items-center gap-2 mb-2 font-semibold text-slate-700 dark:text-slate-300">
+              <span class="material-symbols-outlined text-xs">tab</span>
+              Feuille 1: Statistiques générales
+            </div>
+            <div class="ml-6 space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">arrow_right</span>
+                Total personnes, hommes, femmes
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">arrow_right</span>
+                Personnes vivantes/décédées
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">arrow_right</span>
+                Répartition par type de résidence
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-2 font-semibold text-slate-700 dark:text-slate-300">
+              <span class="material-symbols-outlined text-xs">tab</span>
+              Feuille 2: Répartition par village
+            </div>
+            <div class="ml-6 space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">arrow_right</span>
+                Habitants par village
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">arrow_right</span>
+                Répartition par genre et diaspora
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-slate-500">
+          <span class="material-symbols-outlined">description</span>
+          Format Excel (.xlsx)
+        </div>
+        <a href="{% url 'dashbord:export_demographie' %}" class="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-orange-600/20 transition-transform hover:bg-orange-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Télécharger
+        </a>
+      </div>
+    </article>
+  </div>
+
+  <div class="mb-10">
+    <div class="mb-5 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">payments</span>
+      <h3 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Exports cotisations</h3>
+    </div>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <article class="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Par personne</h4>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Une ligne par personne et par campagne applicable, avec suivi du statut, total verse et dernier paiement.
+        </p>
+        <a href="{% url 'dashbord:export_cotisations_personnes' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Telecharger
+        </a>
+      </article>
+
+      <article class="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Par village et famille</h4>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Deux feuilles de synthese pour comparer les volumes de collecte, les payeurs uniques et les paiements en attente.
+        </p>
+        <a href="{% url 'dashbord:export_cotisations_villages' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Telecharger
+        </a>
+      </article>
+
+      <article class="rounded-3xl border border-violet-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Vue annuelle</h4>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Un recapitulatif mensuel des cotisations et paiements valides, avec ventilation par mode de paiement.
+        </p>
+        <a href="{% url 'dashbord:export_cotisations_annuelles' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-violet-600/20 transition hover:bg-violet-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Telecharger
+        </a>
+      </article>
+
+      <article class="rounded-3xl border border-rose-100 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Liste des relances</h4>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Liste les personnes visibles dans le dashboard qui n'ont encore aucun paiement valide sur une cotisation ouverte.
+        </p>
+        <a href="{% url 'dashbord:export_relances' %}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 active:scale-95">
+          <span class="material-symbols-outlined">download</span>
+          Telecharger
+        </a>
+      </article>
+    </div>
+  </div>
+
+  {# ── Informations ── #}
+  <article class="rounded-3xl border border-slate-10 bg-white p-6 shadow-sm dark:bg-slate-900">
+    <div class="mb-6 flex items-center gap-3">
+      <div class="rounded-2xl p-3 bg-slate-100 text-slate-700">
+        <span class="material-symbols-outlined text-2xl">info</span>
+      </div>
+      <div>
+        <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Informations sur les exportations</h4>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Tout ce qu'il faut savoir sur les rapports générés
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-slate-600">description</span>
+          <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Format des fichiers</span>
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Tous les rapports sont générés au format Excel (.xlsx) avec mise en forme professionnelle 
+          pour une meilleure lisibilité. Les fichiers sont optimisés pour l'impression et 
+          peuvent être facilement importés dans d'autres outils d'analyse.
+        </p>
+      </div>
+
+      <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-slate-600">update</span>
+          <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Fréquence des données</span>
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Les rapports reflètent les données en temps réel de la base de données. 
+          Pour obtenir les informations les plus à jour, téléchargez les rapports 
+          après avoir effectué vos modifications.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 dark:bg-emerald-900/20 dark:border-emerald-800">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-emerald-600 mt-0.5">lightbulb</span>
+        <div>
+          <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Astuce</span>
+          <p class="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+            Les fichiers Excel contiennent des filtres et une mise en forme conditionnelle 
+            pour faciliter l'analyse des données. Vous pouvez utiliser les fonctionnalités 
+            natives d'Excel pour créer des graphiques personnalisés.
+          </p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+</div>
+{% endblock %}

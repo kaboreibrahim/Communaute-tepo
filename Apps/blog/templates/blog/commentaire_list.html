@@ -1,0 +1,118 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Commentaires — Blog{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-dashboard' %}" class="hover:text-primary transition-colors">Blog</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">Commentaires</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">Modération des commentaires</h1>
+    <p class="text-sm text-slate-500 mt-0.5">
+      {% if en_attente %}<span class="text-amber-600 font-bold">{{ en_attente }} en attente</span>{% else %}Tout est à jour{% endif %}
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="?filtre=attente" class="px-3 py-2 rounded-xl text-sm font-medium border transition-colors
+       {% if filtre == 'attente' %}bg-amber-50 border-amber-200 text-amber-700{% else %}border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+      En attente ({{ en_attente }})
+    </a>
+    <a href="?filtre=approuve" class="px-3 py-2 rounded-xl text-sm font-medium border transition-colors
+       {% if filtre == 'approuve' %}bg-emerald-50 border-emerald-200 text-emerald-700{% else %}border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+      Approuvés
+    </a>
+    <a href="?" class="px-3 py-2 rounded-xl text-sm font-medium border border-slate-200 text-slate-600 hover:border-primary hover:text-primary transition-colors">
+      Tous
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+  <div class="divide-y divide-slate-100 dark:divide-slate-700">
+    {% for commentaire in commentaires %}
+    <div class="p-5 flex gap-4 group hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+      <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+        {{ commentaire.initiales }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-3 mb-1">
+          <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ commentaire.nom_affiche }}</span>
+          <span class="text-xs text-slate-400">{{ commentaire.date_creation|date:"d M Y à H:i" }}</span>
+          {% if commentaire.approuve %}
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">Approuvé</span>
+          {% else %}
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">En attente</span>
+          {% endif %}
+          {% if commentaire.parent %}
+          <span class="text-xs text-slate-400 italic">Réponse à {{ commentaire.parent.nom_affiche }}</span>
+          {% endif %}
+        </div>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-2">{{ commentaire.contenu }}</p>
+        <p class="text-xs text-slate-400">
+          Sur : <a href="{% url 'blog:article-detail' commentaire.article.slug %}" target="_blank"
+                   class="text-primary hover:underline font-medium">{{ commentaire.article.titre }}</a>
+        </p>
+      </div>
+      <div class="flex items-start gap-1 shrink-0">
+        {% if not commentaire.approuve %}
+        <form method="post" action="{% url 'dashbord:blog-commentaire-approuver' commentaire.pk %}">
+          {% csrf_token %}
+          <button type="submit" title="Approuver"
+                  class="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 transition-all">
+            <span class="material-symbols-outlined text-base">check_circle</span>
+          </button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'dashbord:blog-commentaire-rejeter' commentaire.pk %}"
+              onsubmit="return confirm('Supprimer ce commentaire ?')">
+          {% csrf_token %}
+          <button type="submit" title="Supprimer"
+                  class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+            <span class="material-symbols-outlined text-base">delete</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="py-16 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+        <span class="material-symbols-outlined text-slate-300 text-2xl">chat_bubble</span>
+      </div>
+      <p class="text-sm text-slate-500">Aucun commentaire trouvé.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+  <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-center">
+    <nav class="flex items-center gap-1">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if filtre %}&filtre={{ filtre }}{% endif %}"
+         class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-base">chevron_left</span>
+      </a>
+      {% endif %}
+      <span class="text-xs font-semibold text-slate-600 px-2">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if filtre %}&filtre={{ filtre }}{% endif %}"
+         class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-primary hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-base">chevron_right</span>
+      </a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

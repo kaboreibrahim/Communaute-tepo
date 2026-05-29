@@ -1,0 +1,42 @@
+from django.urls import path
+from Apps.dashbord.views.person_views import (
+    PersonListView,
+    PersonCreateView,
+    PersonDetailView,
+    PersonUpdateView,
+    PersonDeleteView,
+    PublicPersonSubmissionListView,
+    PublicPersonSubmissionReviewView,
+    PublicPersonSubmissionRejectView,
+    api_search_person,
+)
+urlpatterns = [
+    path('persons/',
+         PersonListView.as_view(),
+         name='person-list'),
+    path('persons/preinscriptions/',
+         PublicPersonSubmissionListView.as_view(),
+         name='public-person-submission-list'),
+    path('persons/preinscriptions/<uuid:submission_id>/verifier/',
+         PublicPersonSubmissionReviewView.as_view(),
+         name='public-person-submission-review'),
+    path('persons/preinscriptions/<uuid:submission_id>/refuser/',
+         PublicPersonSubmissionRejectView.as_view(),
+         name='public-person-submission-reject'),
+    path('persons/ajouter/',
+         PersonCreateView.as_view(),
+         name='person-create'),
+    path('persons/<uuid:person_id>/',
+         PersonDetailView.as_view(),
+         name='person-detail'),
+    path('persons/<uuid:person_id>/modifier/',
+         PersonUpdateView.as_view(),
+         name='person-update'),
+    path('persons/<uuid:person_id>/supprimer/',
+         PersonDeleteView.as_view(),
+         name='person-delete'),
+
+    # ── API AJAX ──────────────────────────────────────────────
+    path('api/personnes/recherche/',
+         api_search_person,          name='api-person-search'),
+]

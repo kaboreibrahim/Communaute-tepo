@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de changement d'email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .code-container {
+            background-color: #f3e5f5;
+            border: 2px solid #9C27B0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .verification-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            letter-spacing: 5px;
+            margin: 10px 0;
+        }
+        .change-info {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .email-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+        }
+        .step-by-step {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{ site_name }}</div>
+            <h1 style="color: #9C27B0;">📧 Changement d'adresse email</h1>
+        </div>
+
+        <div class="change-info">
+            <h2>Bonjour {{ user.first_name|default:user.username }},</h2>
+            <p>Nous avons reçu une demande de changement d'adresse email pour votre compte <strong>{{ site_name }}</strong>.</p>
+        </div>
+
+        <div class="email-info">
+            <h3>📋 Détails du changement :</h3>
+            <p><strong>Nouvelle adresse email :</strong> {{ email }}</p>
+            <p>Pour confirmer ce changement, vous devez vérifier que vous avez bien accès à cette nouvelle adresse.</p>
+        </div>
+
+        <p>Utilisez le code de vérification ci-dessous pour confirmer votre nouvelle adresse email :</p>
+
+        <div class="code-container">
+            <p style="margin: 0; font-size: 14px; color: #666;">Code de confirmation :</p>
+            <div class="verification-code">{{ code }}</div>
+            <p style="margin: 0; font-size: 12px; color: #666;">Saisissez ce code pour valider</p>
+        </div>
+
+        <div class="step-by-step">
+            <h3>📝 Étapes à suivre :</h3>
+            <ol>
+                <li>Retournez sur l'application {{ site_name }}</li>
+                <li>Saisissez le code ci-dessus dans le champ prévu</li>
+                <li>Votre nouvelle adresse email sera alors activée</li>
+                <li>Vous recevrez tous les futurs emails sur cette nouvelle adresse</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important :</strong>
+            <ul style="margin: 5px 0;">
+                <li>Ce code expire dans <strong>{{ validity_minutes }} minutes</strong></li>
+                <li>Il ne peut être utilisé qu'une seule fois</li>
+                <li>Gardez ce code confidentiel</li>
+                <li>Si vous n'avez pas demandé ce changement, contactez-nous immédiatement</li>
+            </ul>
+        </div>
+
+        <p><strong>Après validation :</strong></p>
+        <ul>
+            <li>✅ Votre ancienne adresse email ne recevra plus nos notifications</li>
+            <li>✅ Tous les emails futurs seront envoyés à : <strong>{{ email }}</strong></li>
+            <li>✅ Vous pourrez vous connecter avec cette nouvelle adresse</li>
+        </ul>
+
+        <p>Si vous rencontrez des difficultés ou si vous n'avez pas demandé ce changement, n'hésitez pas à nous contacter.</p>
+
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            <p>Email envoyé à : {{ email }}</p>
+            <p>&copy; {{ site_name }} - Gestion de compte</p>
+        </div>
+    </div>
+</body>
+</html>

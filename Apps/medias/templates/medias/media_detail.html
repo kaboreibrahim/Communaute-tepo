@@ -1,0 +1,238 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ media.titre }} — Médiathèque{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <a href="{% url 'medias:dashboard' %}" class="hover:text-primary transition-colors">Médiathèque</a>
+  <span>/</span>
+  <a href="{% url 'medias:media-list' %}" class="hover:text-primary transition-colors">Bibliothèque</a>
+  <span>/</span>
+  <span class="text-primary font-semibold truncate max-w-[200px]">{{ media.titre }}</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+      {% if media.est_image %}bg-sky-100{% else %}bg-violet-100{% endif %}">
+      <span class="material-symbols-outlined {% if media.est_image %}text-sky-600{% else %}text-violet-600{% endif %}"
+            style="font-size:22px;font-variation-settings:'FILL' 1">
+        {% if media.est_image %}image{% else %}play_circle{% endif %}
+      </span>
+    </div>
+    <div>
+      <h1 class="text-xl font-black text-slate-800 dark:text-slate-100">{{ media.titre }}</h1>
+      <p class="text-xs text-slate-500">
+        {{ media.get_type_media_display }} · {{ media.format_fichier }} · {{ media.taille_affichage }}
+        {% if media.dimensions_affichage %} · {{ media.dimensions_affichage }}{% endif %}
+        {% if media.duree_affichage %} · {{ media.duree_affichage }}{% endif %}
+      </p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{{ media.fichier.url }}" download
+       class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:16px">download</span>
+      Télécharger
+    </a>
+    <a href="{% url 'medias:media-update' media.pk %}"
+       class="flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/20 text-primary text-sm font-medium hover:bg-primary/5 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+      Modifier
+    </a>
+    <button onclick="document.getElementById('delete-modal').classList.remove('hidden')"
+            class="flex items-center gap-2 px-3 py-2 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:16px">delete</span>
+      Supprimer
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  {# ── Prévisualisation ── #}
+  <div class="lg:col-span-2">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      {% if media.est_image and media.fichier %}
+        <div class="bg-slate-900 flex items-center justify-center min-h-[320px] p-4">
+          <img src="{{ media.fichier.url }}"
+               alt="{{ media.titre }}"
+               class="max-w-full max-h-[70vh] object-contain rounded-xl shadow-xl">
+        </div>
+      {% elif media.est_video and media.fichier %}
+        <div class="bg-slate-900 flex items-center justify-center">
+          <video controls class="w-full max-h-[70vh] rounded-xl" preload="metadata">
+            <source src="{{ media.fichier.url }}" type="video/{{ media.format_fichier|lower }}">
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
+        </div>
+      {% else %}
+        <div class="flex flex-col items-center justify-center py-24 text-slate-400">
+          <span class="material-symbols-outlined" style="font-size:56px">broken_image</span>
+          <p class="mt-3 text-sm">Fichier non disponible</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Métadonnées ── #}
+  <div class="space-y-4">
+
+    {# Description #}
+    {% if media.description %}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+      <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px">description</span>
+        Description
+      </h3>
+      <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{{ media.description }}</p>
+    </div>
+    {% endif %}
+
+    {# Informations #}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+      <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px">info</span>
+        Informations
+      </h3>
+      <dl class="space-y-3">
+
+        <div class="flex justify-between items-start">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Type</dt>
+          <dd>
+            {% if media.est_image %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                <span class="material-symbols-outlined" style="font-size:11px;font-variation-settings:'FILL' 1">image</span>Image
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold">
+                <span class="material-symbols-outlined" style="font-size:11px;font-variation-settings:'FILL' 1">play_circle</span>Vidéo
+              </span>
+            {% endif %}
+          </dd>
+        </div>
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Format</dt>
+          <dd class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ media.format_fichier|default:"—" }}</dd>
+        </div>
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Taille</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">{{ media.taille_affichage }}</dd>
+        </div>
+
+        {% if media.dimensions_affichage %}
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dimensions</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">{{ media.dimensions_affichage }}</dd>
+        </div>
+        {% endif %}
+
+        {% if media.duree_affichage %}
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Durée</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">{{ media.duree_affichage }}</dd>
+        </div>
+        {% endif %}
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Catégorie</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">
+            {% if media.categorie %}
+              <a href="{% url 'medias:media-list' %}?categorie={{ media.categorie.slug }}"
+                 class="text-primary font-semibold hover:underline">{{ media.categorie.nom }}</a>
+            {% else %}—{% endif %}
+          </dd>
+        </div>
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Importé par</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">
+            {{ media.uploade_par.get_full_name|default:media.uploade_par.username|default:"—" }}
+          </dd>
+        </div>
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Date d'ajout</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">{{ media.date_creation|date:"d/m/Y à H:i" }}</dd>
+        </div>
+
+        <div class="flex justify-between">
+          <dt class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Dernière modif.</dt>
+          <dd class="text-sm text-slate-600 dark:text-slate-300">{{ media.date_maj|date:"d/m/Y à H:i" }}</dd>
+        </div>
+
+      </dl>
+    </div>
+
+    {# Lien direct #}
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+      <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px">link</span>
+        URL du fichier
+      </h3>
+      <div class="flex items-center gap-2">
+        <input id="file-url" type="text" value="{{ request.scheme }}://{{ request.get_host }}{{ media.fichier.url }}"
+               readonly class="flex-1 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-slate-500 outline-none">
+        <button onclick="copyUrl()" title="Copier"
+                class="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined" style="font-size:16px">content_copy</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{# ── Modal confirmation suppression ── #}
+<div id="delete-modal" class="fixed inset-0 z-[9999] hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="document.getElementById('delete-modal').classList.add('hidden')"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
+      <div class="flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-red-500" style="font-size:28px;font-variation-settings:'FILL' 1">delete_forever</span>
+        </div>
+        <h3 class="font-bold text-slate-800 dark:text-slate-100 text-lg">Supprimer ce média ?</h3>
+        <p class="text-sm text-slate-500 mt-2">
+          <strong class="text-slate-700 dark:text-slate-200">{{ media.titre }}</strong> sera supprimé définitivement.
+        </p>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="document.getElementById('delete-modal').classList.add('hidden')"
+                class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+          Annuler
+        </button>
+        <form method="post" action="{% url 'medias:media-delete' media.pk %}" class="flex-1">
+          {% csrf_token %}
+          <button type="submit"
+                  class="w-full py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+            Supprimer
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyUrl() {
+  const input = document.getElementById('file-url');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = input.nextElementSibling;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">check</span>';
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">content_copy</span>';
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}

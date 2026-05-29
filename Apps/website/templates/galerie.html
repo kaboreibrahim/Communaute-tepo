@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  /* ── Tabs ── */
+  .tab-btn { transition: color .2s, background .2s, box-shadow .2s; }
+  .tab-btn.active {
+    background: #00613a;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,97,58,.25);
+  }
+  .tab-btn:not(.active):hover { background: rgba(0,97,58,.07); color: #00613a; }
+
+  /* ── Cards ── */
+  .media-card { transition: transform .25s ease, box-shadow .25s ease; }
+  .media-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,97,58,.14); }
+  .media-card .card-overlay {
+    opacity: 0;
+    transition: opacity .25s ease;
+  }
+  .media-card:hover .card-overlay { opacity: 1; }
+
+  /* ── Lightbox ── */
+  #lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,.92);
+    backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  #lightbox.open { display: flex; animation: lbFade .2s ease both; }
+  @keyframes lbFade { from { opacity:0; } to { opacity:1; } }
+
+  #lightbox img, #lightbox video {
+    max-width: 92vw; max-height: 86vh;
+    border-radius: 1rem; object-fit: contain;
+    box-shadow: 0 32px 80px rgba(0,0,0,.6);
+    animation: lbScale .22s cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes lbScale { from { transform:scale(.9); } to { transform:scale(1); } }
+
+  /* ── Category pills scroll ── */
+  .pills-wrap { scrollbar-width: none; -ms-overflow-style: none; }
+  .pills-wrap::-webkit-scrollbar { display: none; }
+
+  /* ── Video badge ── */
+  .video-badge { backdrop-filter: blur(4px); }
+</style>
+
+{# ══════════════════ HERO ══════════════════ #}
+<section class="relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/70 py-16 sm:py-24">
+  <div class="absolute inset-0 bg-pattern opacity-30 pointer-events-none"></div>
+  <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/5"></div>
+  <div class="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-white/5"></div>
+
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white/90 text-xs font-semibold mb-6 reveal">
+      <span class="material-symbols-outlined text-accent" style="font-size:14px;font-variation-settings:'FILL' 1">perm_media</span>
+      Médiathèque communautaire
+    </div>
+    <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight reveal delay-100">
+      Galerie <span class="text-accent">Médias</span>
+    </h1>
+    <p class="mt-4 text-white/75 text-base sm:text-lg max-w-xl mx-auto reveal delay-200">
+      Découvrez les images et vidéos de la communauté TEPO
+    </p>
+
+    {# Compteurs #}
+    <div class="mt-10 flex items-center justify-center gap-6 sm:gap-12 reveal delay-300">
+      <div class="text-center">
+        <p class="text-3xl sm:text-4xl font-black text-white">{{ total_images }}</p>
+        <p class="text-xs sm:text-sm text-white/60 font-medium mt-1">Images</p>
+      </div>
+      <div class="w-px h-10 bg-white/20"></div>
+      <div class="text-center">
+        <p class="text-3xl sm:text-4xl font-black text-white">{{ total_videos }}</p>
+        <p class="text-xs sm:text-sm text-white/60 font-medium mt-1">Vidéos</p>
+      </div>
+      <div class="w-px h-10 bg-white/20"></div>
+      <div class="text-center">
+        <p class="text-3xl sm:text-4xl font-black text-accent">{{ total }}</p>
+        <p class="text-xs sm:text-sm text-white/60 font-medium mt-1">Total</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══════════════════ FILTRES ══════════════════ #}
+<section class="lg:sticky lg:top-[73px] z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-primary/10">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
+
+    {# Ligne 1 mobile : tabs + count côte à côte #}
+    <div class="flex items-center justify-between gap-2 sm:contents">
+      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shrink-0">
+        <a href="?{% if categorie_filtre %}categorie={{ categorie_filtre }}{% endif %}"
+           class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 {% if not type_filtre %}active{% endif %}">
+          Tous
+        </a>
+        <a href="?type=image{% if categorie_filtre %}&categorie={{ categorie_filtre }}{% endif %}"
+           class="tab-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 {% if type_filtre == 'image' %}active{% endif %}">
+          <span class="material-symbols-outlined" style="font-size:14px;font-variation-settings:'FILL' 1">image</span>
+          Images
+        </a>
+        <a href="?type=video{% if categorie_filtre %}&categorie={{ categorie_filtre }}{% endif %}"
+           class="tab-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 {% if type_filtre == 'video' %}active{% endif %}">
+          <span class="material-symbols-outlined" style="font-size:14px;font-variation-settings:'FILL' 1">play_circle</span>
+          Vidéos
+        </a>
+      </div>
+      {# Count toujours visible #}
+      <p class="text-xs text-slate-400 shrink-0 sm:ml-auto">
+        <span class="font-semibold text-slate-600 dark:text-slate-300">{{ total }}</span> résultat{{ total|pluralize }}
+      </p>
+    </div>
+
+    {# Ligne 2 mobile (ou flex-1 desktop) : catégories pills #}
+    {% if categories %}
+    <div class="pills-wrap flex items-center gap-2 overflow-x-auto sm:flex-1 sm:min-w-0">
+      <a href="?{% if type_filtre %}type={{ type_filtre }}{% endif %}"
+         class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
+                {% if not categorie_filtre %}bg-primary text-white{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary{% endif %}">
+        Toutes
+      </a>
+      {% for cat in categories %}
+      <a href="?categorie={{ cat.slug }}{% if type_filtre %}&type={{ type_filtre }}{% endif %}"
+         class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
+                {% if categorie_filtre == cat.slug %}bg-primary text-white{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary{% endif %}">
+        {{ cat.nom }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{# ══════════════════ GRILLE MÉDIAS ══════════════════ #}
+<section class="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14">
+
+  {% if page_obj.object_list %}
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    {% for media in page_obj %}
+    <div class="media-card group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 cursor-pointer reveal flex flex-col"
+         onclick="openLightbox('{{ media.pk }}', '{% if media.est_image and media.fichier %}{{ media.fichier.url }}{% elif media.miniature %}{{ media.miniature.url }}{% endif %}', '{{ media.type_media }}', '{% if media.est_video and media.fichier %}{{ media.fichier.url }}{% endif %}', '{{ media.titre|escapejs }}')">
+
+      {# Vignette — 16/9 pour mieux voir les contenus #}
+      <div class="relative aspect-video bg-slate-100 dark:bg-slate-700 overflow-hidden">
+        {% if media.est_image and media.fichier %}
+          <img src="{{ media.fichier.url }}"
+               alt="{{ media.titre }}"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+               loading="lazy">
+        {% elif media.miniature %}
+          <img src="{{ media.miniature.url }}"
+               alt="{{ media.titre }}"
+               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+               loading="lazy">
+        {% else %}
+          <div class="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br {% if media.est_video %}from-violet-50 to-violet-100/50 dark:from-violet-900/20 dark:to-violet-800/10{% else %}from-sky-50 to-sky-100/50 dark:from-sky-900/20 dark:to-sky-800/10{% endif %}">
+            <span class="material-symbols-outlined {% if media.est_video %}text-violet-300{% else %}text-sky-300{% endif %}"
+                  style="font-size:36px;font-variation-settings:'FILL' 1">
+              {% if media.est_video %}play_circle{% else %}image{% endif %}
+            </span>
+            <span class="text-[9px] font-bold {% if media.est_video %}text-violet-400{% else %}text-sky-400{% endif %} uppercase tracking-wider">{{ media.format_fichier }}</span>
+          </div>
+        {% endif %}
+
+        {# Bouton play vidéo centré #}
+        {% if media.est_video %}
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/55 video-badge flex items-center justify-center ring-2 ring-white/30 transition group-hover:scale-110">
+            <span class="material-symbols-outlined text-white" style="font-size:20px;font-variation-settings:'FILL' 1">play_arrow</span>
+          </div>
+        </div>
+        <div class="absolute top-2 left-2">
+          <span class="bg-violet-600/85 video-badge text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+            <span class="material-symbols-outlined" style="font-size:9px">movie</span>
+            VID
+          </span>
+        </div>
+        {% endif %}
+
+        {# Overlay hover (desktop) — toujours visible sur mobile via gradient bottom #}
+        <div class="card-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3 pt-8">
+          <p class="text-white text-[11px] font-semibold truncate leading-tight">{{ media.titre }}</p>
+          {% if media.categorie %}
+          <p class="text-white/60 text-[9px] mt-0.5">{{ media.categorie.nom }}</p>
+          {% endif %}
+        </div>
+
+        {# Icone zoom / play en coin bas-droit (desktop hover) #}
+        <div class="card-overlay absolute bottom-2 right-2">
+          <div class="w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <span class="material-symbols-outlined text-white" style="font-size:14px;font-variation-settings:'FILL' 1">
+              {% if media.est_video %}play_circle{% else %}zoom_in{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {# Info bas de carte — toujours visible #}
+      <div class="px-3 py-2 flex-1 flex flex-col justify-between min-h-0">
+        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate leading-snug">{{ media.titre }}</p>
+        <div class="flex items-center justify-between mt-1 gap-1">
+          <p class="text-[10px] text-slate-400 flex items-center gap-0.5 truncate">
+            {% if media.est_image %}
+              <span class="material-symbols-outlined text-sky-400 shrink-0" style="font-size:11px;font-variation-settings:'FILL' 1">image</span>
+            {% else %}
+              <span class="material-symbols-outlined text-violet-400 shrink-0" style="font-size:11px;font-variation-settings:'FILL' 1">play_circle</span>
+            {% endif %}
+            <span class="truncate">{{ media.format_fichier }}{% if media.duree_affichage %} · {{ media.duree_affichage }}{% endif %}</span>
+          </p>
+          {% if media.taille_affichage %}
+          <span class="text-[10px] text-slate-300 dark:text-slate-600 shrink-0">{{ media.taille_affichage }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Pagination ── #}
+  {% if page_obj.has_other_pages %}
+  <div class="flex items-center justify-center gap-3 mt-10">
+    {% if page_obj.has_previous %}
+    <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+       class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+      <span class="material-symbols-outlined" style="font-size:18px">chevron_left</span>
+      Précédent
+    </a>
+    {% endif %}
+
+    <span class="text-sm text-slate-500">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+    <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+       class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+      Suivant
+      <span class="material-symbols-outlined" style="font-size:18px">chevron_right</span>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  {# ── État vide ── #}
+  <div class="flex flex-col items-center justify-center py-24 text-center">
+    <div class="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
+      <span class="material-symbols-outlined text-primary" style="font-size:48px">perm_media</span>
+    </div>
+    <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200">Aucun média disponible</h3>
+    <p class="text-sm text-slate-400 mt-2 max-w-sm">
+      {% if type_filtre or categorie_filtre %}
+        Aucun résultat pour ce filtre. Essayez une autre sélection.
+      {% else %}
+        La médiathèque est encore vide. Revenez bientôt !
+      {% endif %}
+    </p>
+    {% if type_filtre or categorie_filtre %}
+    <a href="{% url 'website:galerie' %}"
+       class="mt-6 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors">
+      Voir tous les médias
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</section>
+
+{# ══════════════════ LIGHTBOX ══════════════════ #}
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Visualisation du média">
+
+  {# Bouton fermer — plus grand sur mobile #}
+  <button onclick="closeLightbox()" aria-label="Fermer"
+          class="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white flex items-center justify-center transition-colors touch-manipulation">
+    <span class="material-symbols-outlined" style="font-size:24px">close</span>
+  </button>
+
+  {# Titre en haut sur mobile #}
+  <div id="lb-info-top" class="absolute top-3 left-4 right-16 z-10 text-white text-sm font-semibold truncate sm:hidden"></div>
+
+  {# Contenu #}
+  <div class="relative flex flex-col items-center gap-3 px-2 sm:px-4 max-w-6xl w-full">
+    <img id="lb-image" src="" alt="" class="hidden">
+    <video id="lb-video" controls playsinline class="hidden" preload="metadata">
+      <source id="lb-video-src" src="" type="video/mp4">
+    </video>
+    <div id="lb-info" class="hidden sm:block text-white/70 text-sm font-medium text-center"></div>
+  </div>
+
+  {# Tap zone fermeture bas (mobile) #}
+  <div class="absolute bottom-0 left-0 right-0 flex justify-center pb-6 sm:hidden">
+    <button onclick="closeLightbox()"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 text-white text-xs font-semibold active:bg-white/25 touch-manipulation">
+      <span class="material-symbols-outlined" style="font-size:14px">close</span>
+      Fermer
+    </button>
+  </div>
+
+</div>
+
+<script>
+function openLightbox(pk, previewUrl, type, videoUrl, titre) {
+  const lb    = document.getElementById('lightbox');
+  const img   = document.getElementById('lb-image');
+  const vid   = document.getElementById('lb-video');
+  const src   = document.getElementById('lb-video-src');
+  const info  = document.getElementById('lb-info');
+  const infoT = document.getElementById('lb-info-top');
+
+  img.classList.add('hidden');
+  vid.classList.add('hidden');
+  vid.pause();
+
+  if (type === 'image') {
+    img.src = previewUrl;
+    img.alt = titre;
+    img.classList.remove('hidden');
+  } else {
+    src.src = videoUrl || previewUrl;
+    vid.load();
+    vid.classList.remove('hidden');
+  }
+
+  info.textContent  = titre;
+  infoT.textContent = titre;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  const vid = document.getElementById('lb-video');
+  vid.pause();
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+</script>
+
+{% endblock %}

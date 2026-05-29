@@ -1,0 +1,50 @@
+# ============================================================
+# Olodio Platform - Dépendances Python
+# ============================================================
+
+# Django core
+Django==6.0.3
+asgiref==3.11.1
+sqlparse==0.5.5
+
+# Base de données
+psycopg2-binary==2.9.11
+
+# Fichiers statiques
+whitenoise==6.12.0
+
+# Formulaires
+django-crispy-forms==2.6
+crispy-bootstrap5==2026.3
+django-widget-tweaks==1.5.1
+django-formtools==2.5.1
+
+# Sécurité & Authentification
+django-two-factor-auth==1.18.1
+django-otp==1.7.0
+pyotp==2.9.0
+qrcode==8.2
+
+# Modèles & données
+django-safedelete==1.4.1
+django-simple-history==3.11.0
+django-lifecycle==1.2.7
+
+# API & CORS
+django-cors-headers==4.9.0
+
+# Champs spéciaux
+django-colorfield==0.14.0
+django-phonenumber-field==8.4.0
+
+# Images & médias
+pillow==12.1.1
+
+# Export Excel
+openpyxl==3.1.5
+et_xmlfile==2.0.0
+
+# Utilitaires
+colorama==0.4.6
+packaging==26.0
+tzdata==2025.3

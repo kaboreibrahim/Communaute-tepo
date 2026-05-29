@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soumettre une annonce | Communnaute TEPO</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00613a",
+                        accent: "#ff8200",
+                        soft: "#f5f8f7",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: "Inter", sans-serif; }
+        .bg-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(0,97,58,0.06) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: 'liga';
+    }
+    </style>
+</head>
+<body class="bg-soft text-slate-900">
+    <main class="min-h-screen py-8 sm:py-12">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6">
+            <div class="mb-8 flex flex-col gap-6 rounded-[2rem] bg-gradient-to-br from-primary to-primary/85 px-6 py-8 text-white shadow-2xl sm:px-10 sm:py-10">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="max-w-3xl">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-white/90">
+                            <span class="material-symbols-outlined text-sm">campaign</span>
+                            Soumission citoyenne
+                        </span>
+                        <h1 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Soumettre une annonce pour votre village</h1>
+                        <p class="mt-4 max-w-2xl text-sm leading-relaxed text-white/85 sm:text-base">
+                            Chaque annonce envoyee depuis ce formulaire est relue par l'administration avant d'apparaitre sur la page d'accueil d'Olodio.
+                        </p>
+                    </div>
+                    <a href="{% url 'website:accueil' %}" class="inline-flex items-center gap-2 self-start rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
+                        <span class="material-symbols-outlined text-base">arrow_back</span>
+                        Retour a l'accueil
+                    </a>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 1</p>
+                        <p class="mt-2 text-sm font-semibold">Vous renseignez votre annonce et votre village.</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 2</p>
+                        <p class="mt-2 text-sm font-semibold">L'administration verifie les informations.</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                        <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 3</p>
+                        <p class="mt-2 text-sm font-semibold">L'annonce validee apparait dans le fil public.</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+                {% for message in messages %}
+                <div class="rounded-2xl border px-5 py-4 text-sm shadow-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-red-200 bg-red-50 text-red-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="grid gap-8 lg:grid-cols-[1.35fr_0.8fr]">
+                {% csrf_token %}
+
+                <div class="space-y-6">
+                    <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+                        <div class="mb-6 flex items-center gap-3">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-900">Vos informations</h2>
+                                <p class="text-sm text-slate-500">Ces informations aident l'administration a verifier votre annonce.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.nom_contact.label }}</label>
+                                {{ form.nom_contact }}
+                                {% if form.nom_contact.errors %}<p class="mt-1 text-xs text-red-600">{{ form.nom_contact.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.telephone_contact.label }}</label>
+                                {{ form.telephone_contact }}
+                                {% if form.telephone_contact.errors %}<p class="mt-1 text-xs text-red-600">{{ form.telephone_contact.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.email_contact.label }}</label>
+                                {{ form.email_contact }}
+                                {% if form.email_contact.errors %}<p class="mt-1 text-xs text-red-600">{{ form.email_contact.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.village.label }}</label>
+                                {{ form.village }}
+                                {% if form.village.errors %}<p class="mt-1 text-xs text-red-600">{{ form.village.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+                        <div class="mb-6 flex items-center gap-3">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                                <span class="material-symbols-outlined">edit_square</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-900">Contenu de l'annonce</h2>
+                                <p class="text-sm text-slate-500">Vous pouvez publier une naissance, un mariage, un deces, une fete ou une annonce communautaire.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.type.label }}</label>
+                                {{ form.type }}
+                                {% if form.type.errors %}<p class="mt-1 text-xs text-red-600">{{ form.type.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.date_evenement.label }}</label>
+                                {{ form.date_evenement }}
+                                {% if form.date_evenement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.date_evenement.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.titre.label }}</label>
+                                {{ form.titre }}
+                                {% if form.titre.errors %}<p class="mt-1 text-xs text-red-600">{{ form.titre.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.lieu.label }}</label>
+                                {{ form.lieu }}
+                                {% if form.lieu.errors %}<p class="mt-1 text-xs text-red-600">{{ form.lieu.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.resume.label }}</label>
+                                {{ form.resume }}
+                                <div class="mt-2 flex justify-end">
+                                    <span id="resume-counter" class="text-xs font-medium text-slate-400">0 / 250 caracteres</span>
+                                </div>
+                                {% if form.resume.errors %}<p class="mt-1 text-xs text-red-600">{{ form.resume.errors|join:", " }}</p>{% endif %}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}<p class="mt-1 text-xs text-red-600">{{ form.description.errors|join:", " }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="space-y-6">
+                    <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
+                        <div class="mb-4 flex items-center gap-3">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-black text-slate-900">Illustration</h2>
+                                <p class="text-sm text-slate-500">Ajoutez une photo ou une affiche si vous en avez une.</p>
+                            </div>
+                        </div>
+
+                        <label class="group block cursor-pointer rounded-[1.5rem] border-2 border-dashed border-primary/15 bg-pattern px-6 py-10 text-center transition hover:border-primary/35 hover:bg-primary/5">
+                            <span class="material-symbols-outlined text-5xl text-primary/60">cloud_upload</span>
+                            <p class="mt-3 text-sm font-bold text-slate-700">Cliquez pour choisir un fichier</p>
+                            <p id="photo-upload-name" class="mt-1 text-xs text-slate-400">PNG, JPG ou JPEG</p>
+                            {{ form.photo }}
+                        </label>
+                        {% if form.photo.errors %}<p class="mt-1 text-xs text-red-600">{{ form.photo.errors|join:", " }}</p>{% endif %}
+                    </section>
+
+                    <section class="rounded-[2rem] bg-slate-900 p-6 text-white shadow-2xl sm:p-8">
+                        <h2 class="text-lg font-black">Avant d'envoyer</h2>
+                        <div class="mt-5 space-y-3 text-sm text-white/80">
+                            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">verified_user</span> L'annonce reste invisible tant qu'un admin ne l'a pas validee.</p>
+                            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">call</span> L'administration peut vous contacter si un detail manque.</p>
+                            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">public</span> Les annonces validees alimentent ensuite le fil public et l'agenda communautaire.</p>
+                        </div>
+
+                        <button type="submit" class="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-accent/30 transition hover:-translate-y-0.5 hover:bg-accent/90">
+                            Envoyer l'annonce
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </section>
+                </aside>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const photoInput = document.getElementById("id_photo");
+        const photoLabel = document.getElementById("photo-upload-name");
+        const resumeInput = document.getElementById("id_resume");
+        const resumeCounter = document.getElementById("resume-counter");
+
+        if (photoInput && photoLabel) {
+            photoInput.addEventListener("change", () => {
+                const fileName = photoInput.files && photoInput.files[0]
+                    ? photoInput.files[0].name
+                    : "PNG, JPG ou JPEG";
+                photoLabel.textContent = fileName;
+            });
+        }
+
+        function syncResumeCounter() {
+            if (!resumeInput || !resumeCounter) {
+                return;
+            }
+            resumeCounter.textContent = `${resumeInput.value.length} / 250 caracteres`;
+        }
+
+        if (resumeInput) {
+            resumeInput.addEventListener("input", syncResumeCounter);
+            syncResumeCounter();
+        }
+    </script>
+</body>
+</html>

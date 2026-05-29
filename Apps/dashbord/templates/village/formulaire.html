@@ -1,0 +1,1245 @@
+ {% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}
+{% if action == 'update' %}Modifier le village{% else %}Ajouter un village{% endif %}
+{% endblock %}
+
+{% block topbar_title %}
+{% if action == 'update' %}Modifier village{% else %}Ajouter village{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+<style>
+  /* ── Motif carte ── */
+  .motif-carte {
+    background-image:
+      linear-gradient(rgba(0, 97, 58, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 97, 58, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* ── Grille infrastructure (desktop XL uniquement) ── */
+  @media (min-width: 1280px) {
+    .infra-grille {
+      display: grid;
+      grid-template-columns: 1.45fr 2.35fr 1.2fr 0.7fr 1.55fr 1.15fr auto;
+    }
+  }
+
+  /* ── Transitions & micro-interactions ── */
+  input, select, textarea {
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--color-primary, #00613a) !important;
+    box-shadow: 0 0 0 3px rgba(0, 97, 58, 0.12);
+  }
+
+  /* ── Sections accordéon mobile ── */
+  .section-accordeon .section-contenu {
+    display: block;
+  }
+  .section-accordeon.ferme .section-contenu {
+    display: none;
+  }
+  .section-accordeon .chevron-icone {
+    transition: transform 0.25s ease;
+  }
+  .section-accordeon.ferme .chevron-icone {
+    transform: rotate(-90deg);
+  }
+
+  /* ── Barre d'actions flottante (mobile) ── */
+  @media (max-width: 1023px) {
+    .barre-actions-flottante {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 12px 16px;
+      background: white;
+      border-top: 1px solid rgba(0, 97, 58, 0.1);
+      box-shadow: 0 -4px 24px rgba(0, 97, 58, 0.08);
+    }
+    .dark .barre-actions-flottante {
+      background: #0f172a;
+      border-top-color: rgba(255,255,255,0.08);
+    }
+    /* Compenser la hauteur de la barre flottante */
+    .contenu-formulaire {
+      padding-bottom: 80px;
+    }
+  }
+
+  /* ── Indicateur d'étapes (mobile) ── */
+  .indicateur-etapes {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .indicateur-etapes .etape {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(0, 97, 58, 0.4);
+  }
+  .indicateur-etapes .etape.active {
+    color: #00613a;
+  }
+  .indicateur-etapes .etape .num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 97, 58, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+  }
+  .indicateur-etapes .etape.active .num {
+    background: #00613a;
+    color: white;
+  }
+  .indicateur-etapes .sep {
+    width: 20px;
+    height: 1px;
+    background: rgba(0, 97, 58, 0.15);
+    margin: 0 4px;
+  }
+
+  /* ── Rangées infra : gestion mobile ── */
+  .rangee-infra-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  @media (min-width: 640px) {
+    .rangee-infra-mobile {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .rangee-infra-mobile {
+      display: contents;
+    }
+  }
+
+  .village-map-shell {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid rgba(0, 97, 58, 0.12);
+    background:
+      radial-gradient(circle at top right, rgba(0, 97, 58, 0.12), transparent 42%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 246, 243, 0.92));
+  }
+
+  .dark .village-map-shell {
+    background:
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 40%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.92));
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  .village-map-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 12rem;
+  }
+
+  @media (min-width: 640px) {
+    .village-map-canvas {
+      min-height: 16rem;
+    }
+  }
+
+  .village-map-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(0, 97, 58, 0.08));
+  }
+
+  .village-map-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .mapboxgl-popup-content {
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    font-family: 'Sora', sans-serif;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<div class="flex flex-col gap-4">
+  <!-- Fil d'Ariane -->
+  <nav class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-600/60">
+    <a class="hover:text-primary transition-colors" href="{% url 'dashbord:village-list' %}">Registre</a>
+    <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+    <span class="text-emerald-900 dark:text-emerald-100 truncate">
+      {% if action == 'update' %}Modifier le village{% else %}Nouveau village{% endif %}
+    </span>
+  </nav>
+
+  <!-- En-tête -->
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div>
+      <h2 class="text-2xl sm:text-[30px] font-black tracking-tight text-emerald-900 dark:text-white leading-none mb-1.5">
+        {% if action == 'update' %}Modifier le village{% else %}Créer un village{% endif %}
+      </h2>
+      <p class="text-sm text-emerald-700/70 dark:text-slate-400 font-medium">
+        {% if action == 'update' %}
+          Mettez à jour le profil administratif et les coordonnées de ce village.
+        {% else %}
+          Enregistrez un nouveau village dans l'archive souveraine.
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Boutons (desktop) -->
+    <div class="hidden lg:flex flex-wrap gap-3">
+      {% if action == 'update' and village.id and request.user.peut_supprimer_registre %}
+      <form
+        id="supprimer-village-form"
+        method="post"
+        action="{% url 'dashbord:village-delete' village.id %}"
+        onsubmit="return confirm('Supprimer ce village ?');"
+      >
+        {% csrf_token %}
+        <button
+          type="submit"
+          class="h-12 px-6 rounded-lg bg-red-50 text-red-600 font-bold text-sm border border-red-100 hover:bg-red-100 transition-colors inline-flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-[18px]">delete</span>
+          Supprimer
+        </button>
+      </form>
+      {% endif %}
+
+      {% if action == 'update' and village.id %}
+      <a
+        href="{% url 'dashbord:village-detail' village.id %}"
+        class="h-12 px-6 rounded-lg text-emerald-700 dark:text-slate-200 font-bold text-sm border-2 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors inline-flex items-center"
+      >
+        Annuler
+      </a>
+      {% else %}
+      <a
+        href="{% url 'dashbord:village-list' %}"
+        class="h-12 px-6 rounded-lg text-emerald-700 dark:text-slate-200 font-bold text-sm border-2 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors inline-flex items-center"
+      >
+        Annuler
+      </a>
+      {% endif %}
+
+      <button
+        type="submit"
+        form="formulaire-village"
+        class="h-12 px-8 rounded-lg bg-primary text-white font-bold text-sm shadow-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
+      >
+        {% if action == 'update' %}Enregistrer{% else %}Créer le village{% endif %}
+        <span class="material-symbols-outlined text-[20px]">send</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicateur d'étapes (mobile uniquement) -->
+  <div class="flex lg:hidden items-center">
+    <div class="indicateur-etapes">
+      <div class="etape active">
+        <span class="num">1</span>
+        <span class="hidden sm:inline">Infos</span>
+      </div>
+      <div class="sep"></div>
+      <div class="etape">
+        <span class="num">2</span>
+        <span class="hidden sm:inline">Géo</span>
+      </div>
+      <div class="sep"></div>
+      <div class="etape">
+        <span class="num">3</span>
+        <span class="hidden sm:inline">Gouvernance</span>
+      </div>
+      <div class="sep"></div>
+      <div class="etape">
+        <span class="num">4</span>
+        <span class="hidden sm:inline">Infrastructures</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<form id="formulaire-village" method="post" class="contenu-formulaire grid grid-cols-12 gap-5 lg:gap-8">
+  {% csrf_token %}
+
+  <!-- ══════════════════════════════════════════════════════
+       COLONNE PRINCIPALE
+  ══════════════════════════════════════════════════════ -->
+  <div class="col-span-12 lg:col-span-8 flex flex-col gap-5 lg:gap-8">
+
+    <!-- ── Section 1 : Informations de base ── -->
+    <section
+      id="section-infos"
+      class="section-accordeon bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-emerald-100/10 overflow-hidden"
+    >
+      <!-- En-tête de section (cliquable sur mobile) -->
+      <button
+        type="button"
+        class="w-full flex items-center justify-between p-5 sm:p-8 text-left"
+        onclick="basculerSection('section-infos')"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-[20px]" style="font-variation-settings: 'FILL' 1;">info</span>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-900 dark:text-white">Informations de base</h3>
+            <p class="text-xs text-emerald-600/60 dark:text-slate-400 mt-0.5 hidden sm:block">Nom, population et description</p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined chevron-icone text-emerald-600/50 text-[20px]">expand_more</span>
+      </button>
+
+      <!-- Contenu -->
+      <div class="section-contenu px-5 sm:px-8 pb-5 sm:pb-8 pt-0">
+        <div class="h-px bg-emerald-50 dark:bg-slate-700/60 mb-5 sm:mb-6"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+
+          <!-- Nom du village -->
+          <div class="flex flex-col gap-1.5">
+            <label for="id_nom" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">
+              Nom du village <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="id_nom"
+              name="nom"
+              type="text"
+              required
+              maxlength="100"
+              autocomplete="off"
+              class="h-12 sm:h-14 px-4 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm"
+              placeholder="ex. Grand Olodio"
+              value="{% if form_data.nom %}{{ form_data.nom }}{% elif village.nom %}{{ village.nom }}{% endif %}"
+            />
+          </div>
+
+          <!-- Population estimée -->
+          <div class="flex flex-col gap-1.5">
+            <label for="id_population_estimee" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Population estimée</label>
+            <div class="relative">
+              <input
+                id="id_population_estimee"
+                name="population_estimee"
+                type="number"
+                min="0"
+                inputmode="numeric"
+                class="h-12 sm:h-14 w-full pl-4 pr-10 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm"
+                placeholder="0"
+                value="{% if form_data.population_estimee or form_data.population_estimee == '0' %}{{ form_data.population_estimee }}{% elif village.population_estimee or village.population_estimee == 0 %}{{ village.population_estimee }}{% endif %}"
+              />
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-base pointer-events-none">people</span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="sm:col-span-2 flex flex-col gap-1.5">
+            <label for="id_description" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Description du village</label>
+            <textarea
+              id="id_description"
+              name="description"
+              rows="4"
+              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm resize-y"
+              placeholder="Description courte, lieux remarquables, contexte ou notes administratives."
+            >{% if form_data.description %}{{ form_data.description }}{% elif village.description %}{{ village.description }}{% endif %}</textarea>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section 2 : Données géographiques ── -->
+    <section
+      id="section-geo"
+      class="section-accordeon bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-emerald-100/10 overflow-hidden"
+    >
+      <button
+        type="button"
+        class="w-full flex items-center justify-between p-5 sm:p-8 text-left"
+        onclick="basculerSection('section-geo')"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-[20px]" style="font-variation-settings: 'FILL' 1;">public</span>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-900 dark:text-white">Données géographiques</h3>
+            <p class="text-xs text-emerald-600/60 dark:text-slate-400 mt-0.5 hidden sm:block">Coordonnées GPS du village</p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined chevron-icone text-emerald-600/50 text-[20px]">expand_more</span>
+      </button>
+
+      <div class="section-contenu px-5 sm:px-8 pb-5 sm:pb-8 pt-0">
+        <div class="h-px bg-emerald-50 dark:bg-slate-700/60 mb-5 sm:mb-6"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+
+          <!-- Latitude -->
+          <div class="flex flex-col gap-1.5">
+            <label for="id_latitude" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Latitude</label>
+            <div class="relative">
+              <input
+                id="id_latitude"
+                name="latitude"
+                type="number"
+                step="0.000001"
+                inputmode="decimal"
+                class="h-12 sm:h-14 w-full pl-4 pr-10 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm"
+                placeholder="00.000000"
+                value="{% if form_data.latitude or form_data.latitude == '0' %}{{ form_data.latitude }}{% elif village.latitude or village.latitude == 0 %}{{ village.latitude }}{% endif %}"
+              />
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-base pointer-events-none">north</span>
+            </div>
+          </div>
+
+          <!-- Longitude -->
+          <div class="flex flex-col gap-1.5">
+            <label for="id_longitude" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Longitude</label>
+            <div class="relative">
+              <input
+                id="id_longitude"
+                name="longitude"
+                type="number"
+                step="0.000001"
+                inputmode="decimal"
+                class="h-12 sm:h-14 w-full pl-4 pr-10 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm"
+                placeholder="00.000000"
+                value="{% if form_data.longitude or form_data.longitude == '0' %}{{ form_data.longitude }}{% elif village.longitude or village.longitude == 0 %}{{ village.longitude }}{% endif %}"
+              />
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-base pointer-events-none">east</span>
+            </div>
+          </div>
+
+          <!-- Aperçu coordonnées -->
+          <div class="sm:col-span-2 flex flex-col gap-4">
+            <div class="rounded-xl bg-emerald-50 dark:bg-slate-800/70 border border-emerald-100/60 dark:border-slate-700 p-4">
+              <p class="text-sm font-bold text-emerald-900 dark:text-slate-100">Aperçu des coordonnées</p>
+              <p class="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+                Ajoutez la latitude et la longitude pour positionner ce village sur les cartes et les rapports.
+              </p>
+            </div>
+
+            <div class="village-map-shell h-48 sm:h-64">
+              <div id="village-map-preview" class="village-map-canvas"></div>
+              <div
+                id="village-map-overlay"
+                class="village-map-overlay {% if form_data.latitude or form_data.longitude or village.latitude or village.longitude %}hidden{% endif %}"
+              >
+                <div class="rounded-xl bg-white/90 dark:bg-slate-900/90 px-4 py-3 shadow-lg text-center">
+                  <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+                  <p class="mt-2 text-xs font-bold uppercase tracking-[0.3em] text-primary/70">
+                    Cliquez sur la carte
+                  </p>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    pour definir la position du village
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.3em] text-primary/60" id="statut-coordonnees">
+                  {% if form_data.latitude or form_data.longitude or village.latitude or village.longitude %}
+                    Coordonnees detectees
+                  {% else %}
+                    En attente de coordonnees
+                  {% endif %}
+                </p>
+                <p id="village-map-location" class="mt-1 text-xs text-emerald-700/80 dark:text-slate-400">
+                  Cliquez sur la carte pour positionner le village ou saisissez les coordonnees manuellement.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                id="centrer-carte-village"
+                class="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-2 rounded-lg border border-emerald-100 dark:border-slate-700 text-emerald-700 dark:text-slate-200 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span class="material-symbols-outlined text-sm">my_location</span>
+                Recentrer sur Olodio
+              </button>
+            </div>
+
+            {% if False %}
+            <div class="w-full h-48 sm:h-64 bg-slate-50 dark:bg-slate-800 rounded-xl relative overflow-hidden group">
+              <div class="absolute inset-0 bg-emerald-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div class="bg-white dark:bg-slate-900 px-4 py-2 rounded-lg font-bold text-xs text-primary shadow-lg flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">explore</span>
+                  Prêt pour la cartographie
+                </div>
+              </div>
+              <div class="absolute inset-0 motif-carte opacity-60"></div>
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,97,58,0.12),transparent_45%)]"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="flex flex-col items-center">
+                  <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+                  <p class="mt-2 text-xs font-bold uppercase tracking-[0.3em] text-primary/60" id="statut-coordonnees">
+                    {% if form_data.latitude or form_data.longitude or village.latitude or village.longitude %}
+                      Coordonnées détectées
+                    {% else %}
+                      En attente de coordonnées
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       COLONNE LATÉRALE
+  ══════════════════════════════════════════════════════ -->
+  <div class="col-span-12 lg:col-span-4 flex flex-col gap-5 lg:gap-8">
+
+    <!-- ── Section 3 : Gouvernance ── -->
+    <section
+      id="section-gouvernance"
+      class="section-accordeon bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-emerald-100/10 overflow-hidden"
+    >
+      <button
+        type="button"
+        class="w-full flex items-center justify-between p-5 sm:p-8 text-left"
+        onclick="basculerSection('section-gouvernance')"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-[20px]" style="font-variation-settings: 'FILL' 1;">badge</span>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-900 dark:text-white">Gouvernance</h3>
+            <p class="text-xs text-emerald-600/60 dark:text-slate-400 mt-0.5 hidden sm:block">Chef et autorités du village</p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined chevron-icone text-emerald-600/50 text-[20px]">expand_more</span>
+      </button>
+
+      <div class="section-contenu px-5 sm:px-8 pb-5 sm:pb-8 pt-0">
+        <div class="h-px bg-emerald-50 dark:bg-slate-700/60 mb-5 sm:mb-6"></div>
+        <div class="flex flex-col gap-5">
+
+          <!-- Chef de village -->
+          <div class="flex flex-col gap-1.5">
+            <label for="id_chef_village" class="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Chef du village</label>
+            <div class="relative">
+              <input
+                id="id_chef_village"
+                name="chef_village"
+                type="text"
+                maxlength="200"
+                autocomplete="name"
+                class="h-12 sm:h-14 w-full pl-4 pr-10 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-lg text-sm"
+                placeholder="Nom et prénom complets"
+                value="{% if form_data.chef_village %}{{ form_data.chef_village }}{% elif village.chef_village %}{{ village.chef_village }}{% endif %}"
+              />
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 text-base pointer-events-none">person</span>
+            </div>
+          </div>
+
+          <!-- Résumé des champs enregistrés -->
+          <div class="rounded-xl bg-slate-50 dark:bg-slate-800/80 p-4 border border-slate-100 dark:border-slate-700">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 mb-3">Données enregistrées</p>
+            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base flex-shrink-0">check_circle</span>
+                Nom du village
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base flex-shrink-0">check_circle</span>
+                Description
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base flex-shrink-0">check_circle</span>
+                Population estimée
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base flex-shrink-0">check_circle</span>
+                Coordonnées GPS
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base flex-shrink-0">check_circle</span>
+                Chef du village
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Encart infrastructure ── -->
+    <section class="bg-white dark:bg-slate-900 rounded-xl p-5 sm:p-8 shadow-sm border border-emerald-100/10">
+      <div class="flex items-center gap-3 mb-4 sm:mb-6">
+        <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-[20px]" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+        <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-900 dark:text-white">Résumé des infrastructures</h3>
+      </div>
+
+      <div class="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-4">
+        <p class="text-sm font-bold text-amber-800 dark:text-amber-200">Saisie détaillée activée</p>
+        <p class="mt-1 text-sm text-amber-700 dark:text-amber-100/80">
+          Utilisez le tableau ci-dessous pour saisir le type, le nom, l'état, la capacité, le responsable et le contact de chaque infrastructure.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Bouton Supprimer (mobile uniquement) ── -->
+    {% if action == 'update' and village.id and request.user.est_agent_saisie and False %}
+    <div class="lg:hidden">
+      <form
+        method="post"
+        action="{% url 'dashbord:village-delete' village.id %}"
+        onsubmit="return confirm('Supprimer ce village définitivement ?');"
+      >
+        <button
+          type="submit"
+          form="supprimer-village-form"
+          onclick="return confirm('Supprimer ce village dÃ©finitivement ?');"
+          class="w-full h-12 rounded-lg bg-red-50 text-red-600 font-bold text-sm border border-red-100 hover:bg-red-100 transition-colors inline-flex items-center justify-center gap-2"
+        >
+          <span class="material-symbols-outlined text-[18px]">delete</span>
+          Supprimer ce village
+        </button>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION INFRASTRUCTURES (pleine largeur)
+  ══════════════════════════════════════════════════════ -->
+  <section
+    id="section-infrastructures"
+    class="section-accordeon col-span-12 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-emerald-100/10 overflow-hidden"
+  >
+    <!-- En-tête -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-8">
+      <button
+        type="button"
+        class="flex items-center justify-between sm:justify-start gap-3 text-left w-full sm:w-auto"
+        onclick="basculerSection('section-infrastructures')"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg text-[20px]" style="font-variation-settings: 'FILL' 1;">electrical_services</span>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-900 dark:text-white">Registre des infrastructures</h3>
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              Saisissez chaque infrastructure avec ses détails opérationnels.
+            </p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined chevron-icone text-emerald-600/50 text-[20px] sm:hidden">expand_more</span>
+      </button>
+
+      <button
+        type="button"
+        id="ajouter-rangee-infra"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors flex-shrink-0 w-full sm:w-auto"
+      >
+        <span class="material-symbols-outlined text-base">add</span>
+        Ajouter une infrastructure
+      </button>
+    </div>
+
+    <!-- Contenu -->
+    <div class="section-contenu px-5 sm:px-8 pb-5 sm:pb-8 pt-0">
+      <!-- En-têtes colonnes (desktop XL) -->
+      <div class="hidden xl:grid infra-grille gap-4 px-1 pb-3 border-b border-slate-200 dark:border-slate-700 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <div>Type d'infrastructure</div>
+        <div>Nom de l'infrastructure</div>
+        <div>État</div>
+        <div>Capacité</div>
+        <div>Responsable</div>
+        <div>Contact du responsable</div>
+        <div class="text-right">Action</div>
+      </div>
+
+      <!-- Rangées infrastructures -->
+      <div id="rangees-infrastructure" class="mt-4 space-y-3 sm:space-y-4">
+        {% for row in infrastructure_form_rows %}
+        <div data-infrastructure-row class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 overflow-hidden">
+          <input type="hidden" name="infra_id" value="{{ row.id }}">
+
+          <!-- En-tête de rangée -->
+          <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/70 bg-white/50 dark:bg-slate-900/30">
+            <p data-infrastructure-resume class="text-sm font-bold text-emerald-900 dark:text-slate-100 truncate">
+              {% if row.nom %}{{ row.nom }}{% else %}Nouvelle infrastructure{% endif %}
+            </p>
+            <button
+              type="button"
+              data-supprimer-rangee-infra
+              class="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-700 transition-colors px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-500/10"
+            >
+              <span class="material-symbols-outlined text-sm">delete</span>
+              <span class="hidden sm:inline">Supprimer</span>
+            </button>
+          </div>
+
+          <!-- Champs -->
+          <div class="p-4">
+            <div class="rangee-infra-mobile xl:infra-grille xl:gap-4">
+
+              <!-- Type -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Type</label>
+                <select
+                  name="infra_type"
+                  data-infrastructure-type
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                >
+                  <option value="">Choisir un type</option>
+                  {% for option in infrastructure_type_options %}
+                  <option value="{{ option.value }}" {% if option.value == row.type_infrastructure %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Nom -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Nom</label>
+                <input
+                  type="text"
+                  name="infra_name"
+                  data-infrastructure-name
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                  placeholder="Nom de l'infrastructure"
+                  value="{{ row.nom }}"
+                />
+              </div>
+
+              <!-- État -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">État</label>
+                <select
+                  name="infra_state"
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                >
+                  {% for option in infrastructure_state_options %}
+                  <option value="{{ option.value }}" {% if option.value == row.etat %}selected{% endif %}>{{ option.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Capacité -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Capacité</label>
+                <input
+                  type="number"
+                  min="0"
+                  name="infra_capacity"
+                  inputmode="numeric"
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                  placeholder="0"
+                  value="{{ row.capacite }}"
+                />
+              </div>
+
+              <!-- Responsable -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Responsable</label>
+                <input
+                  type="text"
+                  name="infra_responsable"
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                  placeholder="Nom du responsable"
+                  value="{{ row.responsable }}"
+                />
+              </div>
+
+              <!-- Contact -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Contact</label>
+                <input
+                  type="text"
+                  name="infra_contact"
+                  inputmode="tel"
+                  class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                  placeholder="Contact du responsable"
+                  value="{{ row.contact_responsable }}"
+                />
+              </div>
+
+              <!-- Bouton suppression (desktop XL) -->
+              <div class="hidden xl:flex items-end">
+                <button
+                  type="button"
+                  data-supprimer-rangee-infra
+                  class="h-11 w-11 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  title="Supprimer cette infrastructure"
+                >
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+</form>
+
+<!-- ══════════════════════════════════════════════════════
+     TEMPLATE (nouvelle rangée infra)
+══════════════════════════════════════════════════════ -->
+{% if action == 'update' and village.id and request.user.peut_supprimer_registre %}
+<div class="lg:hidden mt-3">
+  <button
+    type="submit"
+    form="supprimer-village-form"
+    onclick="return confirm('Supprimer ce village definitivement ?');"
+    class="w-full h-12 rounded-lg bg-red-50 text-red-600 font-bold text-sm border border-red-100 hover:bg-red-100 transition-colors inline-flex items-center justify-center gap-2"
+  >
+    <span class="material-symbols-outlined text-[18px]">delete</span>
+    Supprimer ce village
+  </button>
+</div>
+{% endif %}
+
+<template id="modele-rangee-infrastructure">
+  <div data-infrastructure-row class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 overflow-hidden">
+    <input type="hidden" name="infra_id" value="">
+
+    <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/70 bg-white/50 dark:bg-slate-900/30">
+      <p data-infrastructure-resume class="text-sm font-bold text-emerald-900 dark:text-slate-100 truncate">Nouvelle infrastructure</p>
+      <button
+        type="button"
+        data-supprimer-rangee-infra
+        class="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-700 transition-colors px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-500/10"
+      >
+        <span class="material-symbols-outlined text-sm">delete</span>
+        <span class="hidden sm:inline">Supprimer</span>
+      </button>
+    </div>
+
+    <div class="p-4">
+      <div class="rangee-infra-mobile xl:infra-grille xl:gap-4">
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Type</label>
+          <select name="infra_type" data-infrastructure-type class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm">
+            <option value="">Choisir un type</option>
+            {% for option in infrastructure_type_options %}
+            <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Nom</label>
+          <input type="text" name="infra_name" data-infrastructure-name class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" placeholder="Nom de l'infrastructure" value="" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">État</label>
+          <select name="infra_state" class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm">
+            {% for option in infrastructure_state_options %}
+            <option value="{{ option.value }}" {% if option.value == 'bon' %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Capacité</label>
+          <input type="number" min="0" name="infra_capacity" inputmode="numeric" class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" placeholder="0" value="" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Responsable</label>
+          <input type="text" name="infra_responsable" class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" placeholder="Nom du responsable" value="" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Contact</label>
+          <input type="text" name="infra_contact" inputmode="tel" class="h-11 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" placeholder="Contact du responsable" value="" />
+        </div>
+
+        <div class="hidden xl:flex items-end">
+          <button type="button" data-supprimer-rangee-infra class="h-11 w-11 inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" title="Supprimer cette infrastructure">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- ══════════════════════════════════════════════════════
+     BARRE D'ACTIONS FLOTTANTE (mobile)
+══════════════════════════════════════════════════════ -->
+<div class="barre-actions-flottante lg:hidden">
+  <div class="flex gap-3">
+    {% if action == 'update' and village.id %}
+    <a
+      href="{% url 'dashbord:village-detail' village.id %}"
+      class="flex-1 h-12 rounded-lg text-emerald-700 dark:text-slate-200 font-bold text-sm border-2 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 transition-colors inline-flex items-center justify-center"
+    >
+      Annuler
+    </a>
+    {% else %}
+    <a
+      href="{% url 'dashbord:village-list' %}"
+      class="flex-1 h-12 rounded-lg text-emerald-700 dark:text-slate-200 font-bold text-sm border-2 border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 transition-colors inline-flex items-center justify-center"
+    >
+      Annuler
+    </a>
+    {% endif %}
+
+    <button
+      type="submit"
+      form="formulaire-village"
+      class="flex-1 h-12 rounded-lg bg-primary text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
+    >
+      {% if action == 'update' %}Enregistrer{% else %}Créer le village{% endif %}
+      <span class="material-symbols-outlined text-[18px]">send</span>
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script>
+  const MAPBOX_TOKEN = '{{ mapbox_token|default:""|escapejs }}';
+  const LOCATIONIQ_API_KEY = '{{ locationiq_api_key|default:""|escapejs }}';
+  const OLODIO_DEFAULT_CENTER = { lat: 4.8521, lng: -7.3842 };
+
+  /* ── Accordéon de sections ── */
+  function basculerSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.classList.toggle('ferme');
+    }
+  }
+
+  /* ── Résumé dynamique d'une rangée infrastructure ── */
+  function mettreAJourResume(rangee) {
+    const resume = rangee.querySelector('[data-infrastructure-resume]');
+    const selectType = rangee.querySelector('[data-infrastructure-type]');
+    const champNom = rangee.querySelector('[data-infrastructure-name]');
+    const libelleType = selectType && selectType.selectedIndex >= 0
+      ? selectType.options[selectType.selectedIndex].text.trim()
+      : '';
+    const valeurType = selectType ? selectType.value.trim() : '';
+    const nomInfra = champNom ? champNom.value.trim() : '';
+
+    if (valeurType && nomInfra) {
+      resume.textContent = `${libelleType} — ${nomInfra}`;
+      return;
+    }
+    if (nomInfra) { resume.textContent = nomInfra; return; }
+    if (valeurType) { resume.textContent = libelleType; return; }
+    resume.textContent = 'Nouvelle infrastructure';
+  }
+
+  /* ── Liaison des événements sur une rangée ── */
+  function lierRangeeInfra(rangee) {
+    rangee.querySelectorAll('[data-infrastructure-type], [data-infrastructure-name]').forEach((champ) => {
+      champ.addEventListener('input', () => mettreAJourResume(rangee));
+      champ.addEventListener('change', () => mettreAJourResume(rangee));
+    });
+
+    rangee.querySelectorAll('[data-supprimer-rangee-infra]').forEach((bouton) => {
+      bouton.addEventListener('click', () => {
+        const conteneur = document.getElementById('rangees-infrastructure');
+        rangee.remove();
+        if (!conteneur.children.length) {
+          ajouterRangeeInfra();
+        }
+      });
+    });
+
+    mettreAJourResume(rangee);
+  }
+
+  /* ── Ajout d'une nouvelle rangée ── */
+  function ajouterRangeeInfra() {
+    const conteneur = document.getElementById('rangees-infrastructure');
+    const modele = document.getElementById('modele-rangee-infrastructure');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = modele.innerHTML.trim();
+    const rangee = wrapper.firstElementChild;
+    conteneur.appendChild(rangee);
+    lierRangeeInfra(rangee);
+    // Scroll vers la nouvelle rangée sur mobile
+    rangee.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ── Mise à jour du statut des coordonnées ── */
+  function surveillerCoordonnees() {
+    const lat = document.getElementById('id_latitude');
+    const lng = document.getElementById('id_longitude');
+    const statut = document.getElementById('statut-coordonnees');
+    if (!lat || !lng || !statut) return;
+    const maj = () => {
+      statut.textContent = (lat.value || lng.value)
+        ? 'Coordonnées détectées'
+        : 'En attente de coordonnées';
+    };
+    lat.addEventListener('input', maj);
+    lng.addEventListener('input', maj);
+  }
+
+  /* ── Initialisation ── */
+  function lireCoordonnee(value, min, max) {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+      return null;
+    }
+    return parsed;
+  }
+
+  function lireCoordonnees() {
+    const lat = document.getElementById('id_latitude');
+    const lng = document.getElementById('id_longitude');
+    if (!lat || !lng) return null;
+
+    const latitude = lireCoordonnee(lat.value, -90, 90);
+    const longitude = lireCoordonnee(lng.value, -180, 180);
+
+    if (latitude === null || longitude === null) {
+      return null;
+    }
+
+    return { lat: latitude, lng: longitude };
+  }
+
+  function ecrireCoordonnees(coords) {
+    const lat = document.getElementById('id_latitude');
+    const lng = document.getElementById('id_longitude');
+    if (!lat || !lng || !coords) return;
+
+    lat.value = coords.lat.toFixed(6);
+    lng.value = coords.lng.toFixed(6);
+  }
+
+  function mettreAJourStatutCoordonnees(coords) {
+    const statut = document.getElementById('statut-coordonnees');
+    const overlay = document.getElementById('village-map-overlay');
+    if (statut) {
+      statut.textContent = coords
+        ? 'Coordonnees detectees'
+        : 'En attente de coordonnees';
+    }
+    if (overlay) {
+      overlay.classList.toggle('hidden', Boolean(coords));
+    }
+  }
+
+  async function mettreAJourLibelleCarte(coords) {
+    const label = document.getElementById('village-map-location');
+    if (!label) return;
+
+    if (!coords) {
+      label.textContent = 'Cliquez sur la carte pour positionner le village ou saisissez les coordonnees manuellement.';
+      label.dataset.lookupKey = '';
+      return;
+    }
+
+    const lookupKey = `${coords.lat.toFixed(4)},${coords.lng.toFixed(4)}`;
+    const fallbackLabel = `Latitude ${coords.lat.toFixed(4)}, longitude ${coords.lng.toFixed(4)}`;
+
+    if (!LOCATIONIQ_API_KEY) {
+      label.textContent = fallbackLabel;
+      return;
+    }
+
+    label.dataset.lookupKey = lookupKey;
+    label.textContent = 'Recherche du lieu en cours...';
+
+    try {
+      const response = await fetch(
+        `https://us1.locationiq.com/v1/reverse?key=${encodeURIComponent(LOCATIONIQ_API_KEY)}&lat=${coords.lat}&lon=${coords.lng}&format=json`
+      );
+      if (!response.ok) {
+        throw new Error('location lookup failed');
+      }
+
+      const payload = await response.json();
+      if (label.dataset.lookupKey !== lookupKey) {
+        return;
+      }
+
+      const address = payload.address || {};
+      const parts = [
+        address.village,
+        address.town,
+        address.city,
+        address.county,
+        address.state,
+        address.country,
+      ].filter(Boolean);
+
+      label.textContent = parts.slice(0, 3).join(', ') || payload.display_name || fallbackLabel;
+    } catch (error) {
+      if (label.dataset.lookupKey === lookupKey) {
+        label.textContent = fallbackLabel;
+      }
+    }
+  }
+
+  function initialiserCarteVillage() {
+    const container = document.getElementById('village-map-preview');
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    const recenterButton = document.getElementById('centrer-carte-village');
+
+    if (!container || !latInput || !lngInput) return;
+
+    const initialCoords = lireCoordonnees();
+    mettreAJourStatutCoordonnees(initialCoords);
+    mettreAJourLibelleCarte(initialCoords);
+
+    if (!MAPBOX_TOKEN || typeof mapboxgl === 'undefined') {
+      container.innerHTML = `
+        <div class="h-full flex items-center justify-center px-4 text-center text-sm text-slate-500 dark:text-slate-300">
+          Carte indisponible. Ajoutez le token Mapbox pour activer la localisation interactive.
+        </div>
+      `;
+      return;
+    }
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: 'village-map-preview',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: initialCoords
+        ? [initialCoords.lng, initialCoords.lat]
+        : [OLODIO_DEFAULT_CENTER.lng, OLODIO_DEFAULT_CENTER.lat],
+      zoom: initialCoords ? 13 : 8,
+      attributionControl: true,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    let marker = null;
+
+    function appliquerCoordonnees(coords, options = {}) {
+      const { syncInputs = false, flyTo = false } = options;
+
+      mettreAJourStatutCoordonnees(coords);
+      mettreAJourLibelleCarte(coords);
+
+      if (!coords) {
+        if (marker) {
+          marker.remove();
+          marker = null;
+        }
+        return;
+      }
+
+      if (!marker) {
+        marker = new mapboxgl.Marker({
+          color: '#00613a',
+          draggable: true,
+        });
+        marker.on('dragend', () => {
+          const current = marker.getLngLat();
+          appliquerCoordonnees(
+            { lat: current.lat, lng: current.lng },
+            { syncInputs: true, flyTo: false }
+          );
+        });
+      }
+
+      marker
+        .setLngLat([coords.lng, coords.lat])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 16 }).setHTML(
+            `<p class="text-sm font-bold text-slate-900">Position du village</p>
+             <p class="mt-1 text-xs text-slate-600">Lat ${coords.lat.toFixed(4)} · Lng ${coords.lng.toFixed(4)}</p>`
+          )
+        )
+        .addTo(map);
+
+      if (syncInputs) {
+        ecrireCoordonnees(coords);
+      }
+
+      if (flyTo) {
+        map.flyTo({
+          center: [coords.lng, coords.lat],
+          zoom: 13,
+          essential: true,
+        });
+      }
+    }
+
+    map.on('load', () => {
+      map.resize();
+      appliquerCoordonnees(initialCoords, { flyTo: false });
+    });
+
+    map.on('click', (event) => {
+      appliquerCoordonnees(
+        { lat: event.lngLat.lat, lng: event.lngLat.lng },
+        { syncInputs: true, flyTo: true }
+      );
+    });
+
+    const syncFromInputs = (flyTo = false) => {
+      const coords = lireCoordonnees();
+      appliquerCoordonnees(coords, { flyTo });
+    };
+
+    latInput.addEventListener('input', () => syncFromInputs(false));
+    lngInput.addEventListener('input', () => syncFromInputs(false));
+    latInput.addEventListener('change', () => syncFromInputs(true));
+    lngInput.addEventListener('change', () => syncFromInputs(true));
+
+    if (recenterButton) {
+      recenterButton.addEventListener('click', () => {
+        map.flyTo({
+          center: [OLODIO_DEFAULT_CENTER.lng, OLODIO_DEFAULT_CENTER.lat],
+          zoom: 8,
+          essential: true,
+        });
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-infrastructure-row]').forEach(lierRangeeInfra);
+    document.getElementById('ajouter-rangee-infra').addEventListener('click', ajouterRangeeInfra);
+    initialiserCarteVillage();
+
+  /* ── Si aucune rangée infra au démarrage, en créer une ── */
+    if (!document.querySelector('[data-infrastructure-row]')) {
+      ajouterRangeeInfra();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,913 @@
+{% extends "base.html" %}
+
+{% block page_title %}Communauté TEPO — Portail Officiel de la Communauté{% endblock %}
+{% block meta_description %}Portail officiel de la Communauté TEPO : villages, événements communautaires, actualités, recensement et services en ligne. Côte d'Ivoire.{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'website:accueil' %}{% endblock %}
+{% block og_title_fallback %}Communauté TEPO — Portail Officiel{% endblock %}
+{% block og_description %}Portail officiel de la Communauté TEPO : villages, événements communautaires, actualités et services.{% endblock %}
+{% block twitter_title %}Communauté TEPO — Portail Officiel{% endblock %}
+{% block twitter_description %}Portail officiel de la Sous-Préfecture d'Olodio : villages, événements communautaires, actualités et services.{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GovernmentOrganization",
+  "name": "Sous-Préfecture d'Olodio",
+  "alternateName": "Communauté d'Olodio",
+  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "description": "Portail officiel de la Sous-Préfecture d'Olodio, Côte d'Ivoire.",
+  "areaServed": {
+    "@type": "AdministrativeArea",
+    "name": "Olodio, Côte d'Ivoire"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "contact@olodio-pref.ci",
+    "contactType": "customer service"
+  }
+}
+</script>
+{% endblock %}
+
+{% block topbar_title %}Accueil{% endblock %}
+
+{% block content %}
+    <!-- Main content with bottom padding for mobile nav -->
+
+    <!-- Hero Section -->
+    <section class="relative h-[460px] sm:h-[580px] lg:h-[640px] w-full overflow-hidden" data-hero-carousel>
+        <div class="absolute inset-0">
+            {% for hero_image in hero_images %}
+            <div class="absolute inset-0 transition-opacity duration-1000 ease-out {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}" data-hero-slide>
+                <img src="{{ hero_image.image_url }}" alt="{{ hero_image.alt_text }}" class="h-full w-full object-cover">
+                <div class="hidden" data-hero-slide-content>
+                    <span data-hero-slide-title>{{ hero_image.title }}</span>
+                    <span data-hero-slide-subtitle>{{ hero_image.subtitle }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-primary/20"></div>
+            <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950/70 via-slate-950/30 to-transparent"></div>
+        </div>
+
+        <!-- Hero content -->
+        <div class="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 pb-20 sm:pb-24">
+            <div class="max-w-xl space-y-3 sm:space-y-5">
+                <div class="flex items-center gap-2">
+                    <span class="h-1.5 w-1.5 rounded-full bg-accent pulse-dot"></span>
+                    <span class="inline-block rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3 py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white">Portail Officiel TEPO</span>
+                </div>
+                <h1 class="text-xl sm:text-4xl lg:text-5xl font-black leading-tight text-white">
+                    Bienvenue sur la plateforme de la communauté TEPO.
+                </h1>
+                <p class="text-xs sm:text-base text-slate-100 leading-relaxed max-w-md">
+                    Un portail pensé pour le recensement, les annonces et le lien vivant entre Grabo, Olodio et la diaspora.
+                </p>
+                <div class="flex flex-wrap gap-2 sm:gap-3 pt-1">
+                    <a href="{% url 'website:person-register' %}" class="flex h-10 sm:h-11 items-center justify-center rounded-xl bg-accent px-5 sm:px-7 font-bold text-white shadow-lg shadow-accent/30 text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95">
+                        <span class="material-symbols-outlined text-sm mr-1.5" style="font-variation-settings:'FILL' 1">person_add</span>
+                         S'inscrire ici !
+                    </a>
+                    <a href="{% url 'website:cotisation-payment-submit' %}" class="flex h-10 sm:h-11 items-center justify-center rounded-xl border border-white/25 bg-white/10 px-5 sm:px-7 font-bold text-white backdrop-blur-md hover:bg-white/20 text-xs sm:text-sm transition-all">
+                        <span class="material-symbols-outlined text-sm mr-1.5">post_add</span>
+                        ma cotisation
+                    </a>
+                    <a href="#actualites" class="flex h-10 sm:h-11 items-center justify-center rounded-xl bg-white/10 px-4 font-bold text-white backdrop-blur-md border border-white/25 hover:bg-white/20 transition-all">
+                        <span class="material-symbols-outlined text-base">newspaper</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom bar : caption + indicators -->
+        <div class="absolute inset-x-0 bottom-0 z-10 pb-3 sm:pb-5">
+            <div class="mx-auto flex max-w-7xl items-end justify-between gap-3 px-4 sm:px-6">
+                <!-- Caption — hidden on very small screens, shown from sm -->
+                <div class="hidden sm:block max-w-sm rounded-2xl border border-white/15 bg-slate-950/40 px-4 py-3 text-white backdrop-blur-md">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-white/65">Image à l'honneur</p>
+                    <h2 id="hero-slide-title" class="mt-1 text-base font-black sm:text-lg">{{ hero_featured_image.title }}</h2>
+                    <p id="hero-slide-subtitle" class="mt-1 text-xs text-slate-200 {% if not hero_featured_image.subtitle %}hidden{% endif %}">{{ hero_featured_image.subtitle }}</p>
+                </div>
+                <!-- Indicators -->
+                {% if hero_images|length > 1 %}
+                <div class="flex items-center gap-2 ml-auto" data-hero-indicators>
+                    {% for hero_image in hero_images %}
+                    <button type="button" class="h-2 rounded-full transition-all {% if forloop.first %}w-8 bg-white{% else %}w-2 bg-white/45{% endif %}" data-hero-indicator aria-label="Image {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Quick Look -->
+    <section class="relative z-10 -mt-6 sm:-mt-12 px-3 sm:px-6" data-stats-section>
+        <div class="mx-auto grid max-w-7xl grid-cols-2 gap-2 sm:gap-4 md:grid-cols-4">
+            <!-- Villages -->
+            <div class="reveal flex flex-row sm:flex-col items-center gap-3 sm:gap-2 rounded-2xl bg-white px-3 py-3 sm:p-6 shadow-lg dark:bg-slate-800 group transition-all hover:-translate-y-1 hover:shadow-2xl">
+                <div class="flex h-9 w-9 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                    <span class="material-symbols-outlined text-lg sm:text-2xl">map</span>
+                </div>
+                <div class="flex flex-col sm:items-center min-w-0">
+                    <span class="text-2xl sm:text-4xl font-black text-primary leading-none" data-count="{{ stats.villages_count }}">{{ stats.villages_count }}</span>
+                    <p class="text-[11px] sm:text-sm font-medium text-slate-500 truncate">Villages</p>
+                </div>
+            </div>
+            <!-- Familles -->
+            <div class="reveal delay-100 flex flex-row sm:flex-col items-center gap-3 sm:gap-2 rounded-2xl bg-white px-3 py-3 sm:p-6 shadow-lg dark:bg-slate-800 border-b-4 border-accent group transition-all hover:-translate-y-1 hover:shadow-2xl">
+                <div class="flex h-9 w-9 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors duration-300">
+                    <span class="material-symbols-outlined text-lg sm:text-2xl">family_restroom</span>
+                </div>
+                <div class="flex flex-col sm:items-center min-w-0">
+                    <span class="text-2xl sm:text-4xl font-black text-primary leading-none" data-count="{{ stats.families_count }}">{{ stats.families_count }}</span>
+                    <p class="text-[11px] sm:text-sm font-medium text-slate-500 truncate">Familles</p>
+                </div>
+            </div>
+            <!-- Résidents -->
+            <div class="reveal delay-200 flex flex-row sm:flex-col items-center gap-3 sm:gap-2 rounded-2xl bg-white px-3 py-3 sm:p-6 shadow-lg dark:bg-slate-800 group transition-all hover:-translate-y-1 hover:shadow-2xl">
+                <div class="flex h-9 w-9 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                    <span class="material-symbols-outlined text-lg sm:text-2xl">person</span>
+                </div>
+                <div class="flex flex-col sm:items-center min-w-0">
+                    <span class="text-2xl sm:text-4xl font-black text-primary leading-none" data-count="{{ stats.residents_count }}">{{ stats.residents_count }}</span>
+                    <p class="text-[11px] sm:text-sm font-medium text-slate-500 truncate">Résidents</p>
+                </div>
+            </div>
+            <!-- Diaspora -->
+            <div class="reveal delay-300 flex flex-row sm:flex-col items-center gap-3 sm:gap-2 rounded-2xl bg-white px-3 py-3 sm:p-6 shadow-lg dark:bg-slate-800 group transition-all hover:-translate-y-1 hover:shadow-2xl">
+                <div class="flex h-9 w-9 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors duration-300">
+                    <span class="material-symbols-outlined text-lg sm:text-2xl">flight</span>
+                </div>
+                <div class="flex flex-col sm:items-center min-w-0">
+                    <span class="text-2xl sm:text-4xl font-black text-primary leading-none" data-count="{{ stats.diaspora_count }}">{{ stats.diaspora_count }}</span>
+                    <p class="text-[11px] sm:text-sm font-medium text-slate-500 truncate">Diaspora</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="py-10 sm:py-20 bg-pattern">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="grid gap-8 sm:gap-12 lg:grid-cols-2 items-center">
+                <div class="relative reveal-left">
+                    <div class="relative aspect-square rounded-3xl bg-primary/10 overflow-hidden shadow-2xl">
+                        <img alt="{{ about_image.alt_text }}" class="h-full w-full object-cover transition duration-700 hover:scale-105" src="{{ about_image.image_url }}">
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent p-5 sm:p-7 text-white">
+                            <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/75"> OUELLE DOUAI CLEMENT</p>
+                            <h3 class="mt-2 text-xl font-black sm:text-2xl">{{ about_image.title }}</h3>
+                            {% if about_image.subtitle %}
+                            <p class="mt-2 max-w-md text-sm text-slate-100 sm:text-base">{{ about_image.subtitle }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Badge mobile : en dessous de l'image (inline), desktop : absolu -->
+                    <div class="sm:hidden mt-3 flex items-center gap-3 rounded-2xl bg-accent p-3 text-white shadow-lg">
+                        <span class="material-symbols-outlined text-lg shrink-0" style="font-variation-settings:'FILL' 1">location_on</span>
+                        <p class="text-xs font-medium leading-snug">Entre Grabo et Olodio, l'espace TEPO s'étend sur environ 37  villages.</p>
+                    </div>
+                    <div class="hidden sm:block absolute -bottom-6 -right-6 w-52 rounded-2xl bg-accent p-5 shadow-2xl text-white">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">location_on</span>
+                            <span class="text-xs font-bold uppercase tracking-wider">Repère TEPO</span>
+                        </div>
+                        <p class="text-xs opacity-90 leading-relaxed">Entre Grabo et Olodio, l'espace TEPO s'étend sur environ 37  villages.</p>
+                    </div>
+                </div>
+                <div class="space-y-4 sm:space-y-6 mt-4 sm:mt-0 reveal-right">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">Qui sommes-nous ?</p>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-primary">Notre Communauté</h2>
+                    </div>
+                    <p class="text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                        La communauté TEPO est un sous-groupe du peuple Kroumen, rattaché au grand ensemble culturel Krou de l'ouest de la Côte d'Ivoire et du Libéria.
+                    </p>
+                    <p class="text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                        Elle est principalement implantée dans les zones de Grabo et d'Olodio. Grabo est généralement considéré comme le chef-lieu traditionnel du grand canton TEPO, tandis qu'Olodio reste un foyer majeur de peuplement.
+                    </p>
+                    <p class="text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                        En regroupant les deux sous-préfectures, l'ancrage TEPO couvre environ 37 villages dont 29 à Olodio & 8 à Grabo. Cette plateforme aide à renfocer les liens familiaux,et a garder un lien fort avec la diaspora en valorisant leur mémoire.
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                            <span class="material-symbols-outlined text-sm">star</span>Grabo : chef-lieu 8 villages
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                            <span class="material-symbols-outlined text-sm">location_city</span>Olodio : 29 villages
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">
+                            <span class="material-symbols-outlined text-sm">forest</span>~37 villages TEPO
+                        </span>
+                    </div>
+                    <a href="#villages" class="inline-flex items-center gap-2 font-bold text-primary group transition-colors hover:text-accent">
+                        Explorer les localités TEPO
+                        <span class="material-symbols-outlined transition-transform group-hover:translate-x-1">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Feed Section -->
+    <section class="bg-white py-12 sm:py-20 dark:bg-background-dark/50" id="actualites">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between reveal">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="h-1.5 w-1.5 rounded-full bg-accent pulse-dot"></span>
+                        <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-accent">En direct</p>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-primary">Le Fil de la Communauté</h2>
+                    <p class="text-sm text-slate-500 mt-1">Les derniers événements publics validés par l'administration.</p>
+                </div>
+                <div class="flex flex-col items-start gap-3 sm:items-end">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 font-bold text-accent text-xs">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">campaign</span>
+                        {{ actualites_events|length }} publication{{ actualites_events|length|pluralize }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        {# Boutons de navigation #}
+                        {% if actualites_events %}
+                        <button id="actualites-prev"
+                            class="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-primary hover:text-primary hover:shadow-md disabled:opacity-25 disabled:pointer-events-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                        </button>
+                        <button id="actualites-next"
+                            class="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-primary hover:text-primary hover:shadow-md disabled:opacity-25 disabled:pointer-events-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'website:event-submit' %}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-primary/15 transition hover:bg-primary/90 hover:scale-[1.02] active:scale-95">
+                            <span class="material-symbols-outlined text-sm">post_add</span>
+                            Faire une annonce
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Carrousel horizontal ── #}
+            <div class="relative">
+                {# Dégradé fondu côté droit #}
+                <div class="pointer-events-none absolute right-0 top-0 z-10 h-full w-20 bg-gradient-to-l from-white to-transparent dark:from-[#0f172a] sm:w-28"></div>
+
+                <div id="actualites-scroll"
+                     class="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4"
+                     style="scrollbar-width:none; -ms-overflow-style:none;">
+                    {% for event in actualites_events %}
+                    <a href="{% url 'website:evenement-detail' event.id %}"
+                       class="flex-none w-[290px] sm:w-[320px] snap-start group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 dark:border-slate-800 dark:bg-slate-900 flex flex-col reveal">
+                        {% if event.photo_url %}
+                        <div class="h-44 w-full overflow-hidden">
+                            <img src="{{ event.photo_url }}" alt="{{ event.title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                        </div>
+                        {% else %}
+                        <div class="h-44 w-full {{ event.surface_classes }} flex items-center justify-center">
+                            <span class="material-symbols-outlined {{ event.icon_classes }} text-6xl" style="opacity:0.3">{{ event.icon }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="p-5 flex flex-col flex-1">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    {% if event.type_label %}
+                                    <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase {{ event.badge_classes }}">{{ event.type_label }}</span>
+                                    {% endif %}
+                                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                                        <span class="material-symbols-outlined {{ event.icon_classes }} text-[16px]" style="font-variation-settings:'FILL' 1">{{ event.icon }}</span>
+                                    </span>
+                                </div>
+                                <span class="text-xs text-slate-400 italic shrink-0">{{ event.time_label }}</span>
+                            </div>
+                            <h3 class="mb-2 text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors line-clamp-2">{{ event.title }}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 flex-1">{{ event.description }}</p>
+                            <div class="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+                                <span class="inline-flex items-center gap-1 text-primary">
+                                    <span class="material-symbols-outlined text-sm">location_on</span>{{ event.location }}
+                                </span>
+                                {% if event.subject != "Communaute d'Olodio" %}
+                                <span class="inline-flex items-center gap-1 text-slate-400">
+                                    <span class="material-symbols-outlined text-sm">person</span>{{ event.subject }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-400">{{ event.date_label }}</span>
+                                <span class="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:gap-2 transition-all">
+                                    Voir les détails
+                                    <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="w-full rounded-3xl border border-dashed border-primary/20 bg-background-light p-8 text-center dark:bg-slate-900">
+                        <span class="material-symbols-outlined text-5xl text-primary/40">newspaper</span>
+                        <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-200">Aucune actualité validée pour le moment.</p>
+                        <p class="mt-1 text-sm text-slate-500">Les publications approuvées par l'administration apparaîtront ici automatiquement.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# ── Voir tous les événements ── #}
+            {% if actualites_events %}
+            <div class="mt-8 flex justify-center reveal">
+                <a href="{% url 'website:evenement-list' %}"
+                   class="inline-flex items-center gap-3 rounded-2xl border-2 border-primary/20 bg-white px-8 py-3.5 text-sm font-bold text-primary shadow-sm hover:border-primary hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 group">
+                    <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">celebration</span>
+                    Voir tous les événements
+                    <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <script>
+    (function () {
+        const scroll = document.getElementById('actualites-scroll');
+        const prev   = document.getElementById('actualites-prev');
+        const next   = document.getElementById('actualites-next');
+        if (!scroll || !prev || !next) return;
+
+        const STEP = 340;
+
+        function updateButtons() {
+            prev.disabled = scroll.scrollLeft <= 0;
+            next.disabled = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 1;
+        }
+
+        prev.addEventListener('click', () => { scroll.scrollBy({ left: -STEP, behavior: 'smooth' }); });
+        next.addEventListener('click', () => { scroll.scrollBy({ left:  STEP, behavior: 'smooth' }); });
+        scroll.addEventListener('scroll', updateButtons, { passive: true });
+        updateButtons();
+    })();
+    </script>
+
+    <div
+        id="community-news-modal"
+        class="fixed inset-0 z-[70] hidden items-center justify-center p-4 sm:p-6"
+        data-news-modal
+        aria-hidden="true"
+    >
+        <div class="absolute inset-0 bg-slate-950/70 opacity-0 backdrop-blur-sm transition-opacity duration-200" data-news-modal-overlay data-news-modal-close></div>
+        <div
+            class="relative z-10 flex max-h-[90vh] w-full max-w-3xl translate-y-4 flex-col overflow-hidden rounded-[2rem] bg-white opacity-0 shadow-2xl transition duration-200 dark:bg-slate-900"
+            data-news-modal-panel
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="community-news-modal-title"
+        >
+            <div id="community-news-modal-visual" class="relative h-56 overflow-hidden sm:h-64">
+                <img id="community-news-modal-image" class="hidden h-full w-full object-cover" alt="">
+                <div id="community-news-modal-fallback" class="flex h-full w-full items-center justify-center bg-primary/5">
+                    <span id="community-news-modal-icon" class="material-symbols-outlined text-6xl text-primary sm:text-7xl">groups</span>
+                </div>
+                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/75 via-slate-950/35 to-transparent px-6 pb-6 pt-16 text-white sm:px-8">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span id="community-news-modal-badge" class="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] bg-primary text-white">Communaute</span>
+                        <span id="community-news-modal-time" class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80"></span>
+                    </div>
+                    <h3 id="community-news-modal-title" class="mt-3 text-2xl font-black sm:text-3xl"></h3>
+                </div>
+                <button
+                    type="button"
+                    class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-lg transition hover:scale-105"
+                    data-news-modal-close
+                    data-news-modal-close-button
+                    aria-label="Fermer les details"
+                >
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 sm:p-8">
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-2xl bg-background-light p-4 dark:bg-slate-800/80">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Date</p>
+                        <p id="community-news-modal-date" class="mt-2 text-sm font-semibold text-primary"></p>
+                    </div>
+                    <div class="rounded-2xl bg-background-light p-4 dark:bg-slate-800/80">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Lieu</p>
+                        <p id="community-news-modal-location" class="mt-2 text-sm font-semibold text-primary"></p>
+                    </div>
+                    <div class="rounded-2xl bg-background-light p-4 dark:bg-slate-800/80">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Sujet</p>
+                        <p id="community-news-modal-subject" class="mt-2 text-sm font-semibold text-primary"></p>
+                    </div>
+                </div>
+                <div class="mt-6 rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/40 sm:p-6">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Description detaillee</p>
+                    <p id="community-news-modal-description" class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Section -->
+    <section class="py-12 sm:py-20" id="evenements">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="text-center mb-8 sm:mb-12 reveal">
+                <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">Calendrier</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-primary">Agenda Culturel &amp; Citoyen</h2>
+            </div>
+            <div class="grid gap-4 sm:gap-6 sm:grid-cols-2">
+                {% for event in agenda_events %}
+                <article class="reveal flex gap-3 sm:gap-4 rounded-2xl border-l-4 p-4 sm:p-6 {{ event.agenda_classes }} transition-all hover:shadow-md hover:-translate-y-0.5">
+                    <div class="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-white shadow-sm">
+                        <span class="text-xs font-bold {{ event.date_classes }}">{{ event.month }}</span>
+                        <span class="text-xl sm:text-2xl font-black">{{ event.day }}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm">
+                                <span class="material-symbols-outlined {{ event.icon_classes }} text-[18px]" style="font-variation-settings:'FILL' 1">{{ event.icon }}</span>
+                            </span>
+                            <span class="rounded-md px-2 py-1 text-[10px] font-bold uppercase {{ event.badge_classes }}">{{ event.type_label }}</span>
+                        </div>
+                        <h4 class="text-base sm:text-lg font-bold">{{ event.title }}</h4>
+                        <p class="text-xs sm:text-sm text-slate-600">{{ event.description|truncatechars:150 }}</p>
+                        <span class="flex items-center gap-1 text-xs text-primary font-medium">
+                            <span class="material-symbols-outlined text-sm">location_on</span> {{ event.location }}
+                        </span>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="sm:col-span-2 rounded-3xl border border-dashed border-primary/20 bg-white p-8 text-center dark:bg-slate-900">
+                    <span class="material-symbols-outlined text-5xl text-primary/40">event_busy</span>
+                    <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-200">Aucun evenement communautaire valide pour l'instant.</p>
+                    <p class="mt-1 text-sm text-slate-500">Les fetes et rendez-vous communautaires valides par l'administration s'afficheront ici.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Villages Section -->
+    <section class="bg-background-light py-12 sm:py-20 dark:bg-background-dark/20" id="villages">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="text-center mb-8 sm:mb-12 reveal">
+                <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">Cartographie</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-primary mb-3">Nos {{ villages|length }} Villages</h2>
+                <p class="text-slate-500 text-sm sm:text-base max-w-xl mx-auto">Découvrez la richesse et la diversité de notre sous-préfecture. Glissez pour explorer chaque localité.</p>
+            </div>
+
+            <div class="relative text-left">
+                <div class="pointer-events-none absolute inset-y-0 left-0 hidden w-12 bg-gradient-to-r from-background-light to-transparent sm:block dark:from-background-dark/20"></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-12 bg-gradient-to-l from-background-light to-transparent sm:block dark:from-background-dark/20"></div>
+                <div class="villages-scroll flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth">
+                    {% for village in villages %}
+                    <article class="min-w-[280px] sm:min-w-[320px] snap-start rounded-2xl bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg dark:bg-slate-800 flex flex-col gap-4 flex-shrink-0 border border-slate-100 dark:border-slate-700">
+                        <!-- Village Header -->
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/10 to-accent/20 text-accent">
+                                <span class="material-symbols-outlined text-3xl">location_city</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium dark:bg-emerald-900/20 dark:text-emerald-400">
+                                    <span class="material-symbols-outlined text-sm">people</span>
+                                    {{ village.population_estimee|default:"0" }} hab.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Village Info -->
+                        <div class="space-y-3">
+                            <div>
+                                <h3 class="text-base sm:text-lg font-bold text-primary leading-tight">{{ village.nom }}</h3>
+                                {% if village.chef_village %}
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Chef: {{ village.chef_village }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Village Stats -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-center">
+                                    <div class="text-sm font-semibold text-primary">{{ village.nombre_familles|default:"0" }}</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Familles</div>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-2 text-center">
+                                    <div class="text-sm font-semibold text-primary">{{ village.nombre_habitants|default:"0" }}</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Habitants</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Infrastructure Badges -->
+                            <div class="flex flex-wrap gap-1">
+                                {% if village.nombre_ecoles > 0 %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs dark:bg-blue-900/20 dark:text-blue-400">
+                                    <span class="material-symbols-outlined text-xs">school</span>
+                                    {{ village.nombre_ecoles }} école{{ village.nombre_ecoles|pluralize }}
+                                </span>
+                                {% endif %}
+                                {% if village.nombre_hopitaux > 0 %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 text-xs dark:bg-red-900/20 dark:text-red-400">
+                                    <span class="material-symbols-outlined text-xs">local_hospital</span>
+                                    {{ village.nombre_hopitaux }} hôpital{{ village.nombre_hopitaux|pluralize }}
+                                </span>
+                                {% endif %}
+                                {% if village.nombre_dispensaires > 0 %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs dark:bg-amber-900/20 dark:text-amber-400">
+                                    <span class="material-symbols-outlined text-xs">medical_services</span>
+                                    {{ village.nombre_dispensaires }} dispensaire{{ village.nombre_dispensaires|pluralize }}
+                                </span>
+                                {% endif %}
+                                {% if village.nombre_total_infrastructures > 0 %}
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-50 text-purple-700 text-xs dark:bg-purple-900/20 dark:text-purple-400">
+                                    <span class="material-symbols-outlined text-xs">domain</span>
+                                    {{ village.nombre_total_infrastructures }} infrastructure{{ village.nombre_total_infrastructures|pluralize }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Challenge Button -->
+                            <button class="w-full mt-2 px-4 py-2 bg-gradient-to-r from-accent to-accent/80 text-white rounded-lg text-sm font-medium transition-all hover:from-accent/90 hover:to-accent/70 hover:shadow-md flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-base">explore</span>
+                                Explorer le village
+                            </button>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="w-full rounded-2xl border border-dashed border-primary/20 bg-white/60 p-8 text-center text-sm text-slate-500 dark:bg-slate-800">
+                        <span class="material-symbols-outlined text-3xl text-slate-400 mb-2">location_off</span>
+                        <p>Aucun village n'est disponible pour le moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mt-8 flex items-center justify-center gap-3 text-sm text-slate-500">
+                <span class="material-symbols-outlined text-base text-primary/60">swipe</span>
+                <span class="font-medium">Glissez pour explorer tous les villages</span>
+                <span class="hidden sm:block text-slate-300">·</span>
+                <span class="hidden sm:flex items-center gap-1 font-medium text-accent">
+                    <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">emoji_events</span>
+                    Défis &amp; réussites de chaque communauté
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const heroCarousel = document.querySelector('[data-hero-carousel]');
+        const heroSlides = heroCarousel ? Array.from(heroCarousel.querySelectorAll('[data-hero-slide]')) : [];
+        const heroIndicators = heroCarousel ? Array.from(heroCarousel.querySelectorAll('[data-hero-indicator]')) : [];
+        const heroTitle = document.getElementById('hero-slide-title');
+        const heroSubtitle = document.getElementById('hero-slide-subtitle');
+        let heroActiveIndex = 0;
+        let heroIntervalId = null;
+
+        function updateHeroCaption(index) {
+            const slide = heroSlides[index];
+            const title = slide?.querySelector('[data-hero-slide-title]')?.textContent.trim() || '';
+            const subtitle = slide?.querySelector('[data-hero-slide-subtitle]')?.textContent.trim() || '';
+
+            if (heroTitle) {
+                heroTitle.textContent = title;
+            }
+
+            if (heroSubtitle) {
+                heroSubtitle.textContent = subtitle;
+                heroSubtitle.classList.toggle('hidden', !subtitle);
+            }
+        }
+
+        function setHeroSlide(index) {
+            heroSlides.forEach(function(slide, slideIndex) {
+                slide.classList.toggle('opacity-100', slideIndex === index);
+                slide.classList.toggle('opacity-0', slideIndex !== index);
+            });
+
+            heroIndicators.forEach(function(indicator, indicatorIndex) {
+                indicator.classList.toggle('w-10', indicatorIndex === index);
+                indicator.classList.toggle('bg-white', indicatorIndex === index);
+                indicator.classList.toggle('w-2.5', indicatorIndex !== index);
+                indicator.classList.toggle('bg-white/45', indicatorIndex !== index);
+            });
+
+            heroActiveIndex = index;
+            updateHeroCaption(index);
+        }
+
+        function startHeroAutoplay() {
+            if (heroSlides.length < 2) {
+                return;
+            }
+
+            if (heroIntervalId) {
+                window.clearInterval(heroIntervalId);
+            }
+
+            heroIntervalId = window.setInterval(function() {
+                const nextIndex = (heroActiveIndex + 1) % heroSlides.length;
+                setHeroSlide(nextIndex);
+            }, 5000);
+        }
+
+        if (heroSlides.length) {
+            setHeroSlide(0);
+            startHeroAutoplay();
+
+            heroIndicators.forEach(function(indicator, index) {
+                indicator.addEventListener('click', function() {
+                    setHeroSlide(index);
+                    startHeroAutoplay();
+                });
+            });
+
+            heroCarousel?.addEventListener('mouseenter', function() {
+                if (heroIntervalId) {
+                    window.clearInterval(heroIntervalId);
+                }
+            });
+
+            heroCarousel?.addEventListener('mouseleave', startHeroAutoplay);
+        }
+
+        const villagesScroll = document.querySelector('.villages-scroll');
+        if (villagesScroll && villagesScroll.children.length > 1) {
+            // Configuration du défilement automatique
+            let scrollAmount = 0;
+            let scrollDirection = 1;
+            let isPaused = false;
+            
+            // Vitesse de défilement (pixels par frame)
+            const scrollSpeed = 3;
+            
+            // Pause au survol
+            villagesScroll.addEventListener('mouseenter', () => {
+                isPaused = true;
+            });
+            
+            villagesScroll.addEventListener('mouseleave', () => {
+                isPaused = false;
+            });
+            
+            // Fonction de défilement automatique
+            function autoScroll() {
+                if (!isPaused) {
+                    scrollAmount += scrollSpeed * scrollDirection;
+                    
+                    // Si on atteint la fin, on change de direction
+                    if (scrollAmount >= villagesScroll.scrollWidth - villagesScroll.clientWidth) {
+                        scrollDirection = -1;
+                    } else if (scrollAmount <= 0) {
+                        scrollDirection = 1;
+                    }
+                    
+                    villagesScroll.scrollLeft = scrollAmount;
+                }
+                
+                requestAnimationFrame(autoScroll);
+            }
+            
+            // Démarrer le défilement
+            autoScroll();
+            
+            // Ajouter des indicateurs visuels
+            const scrollContainer = villagesScroll.parentElement;
+            const leftIndicator = document.createElement('div');
+            const rightIndicator = document.createElement('div');
+            
+            leftIndicator.className = 'absolute left-0 top-1/2 -translate-y-1/2 bg-accent/80 text-white p-2 rounded-full shadow-lg cursor-pointer z-10 transition-opacity opacity-0 hover:opacity-100';
+            leftIndicator.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+            
+            rightIndicator.className = 'absolute right-0 top-1/2 -translate-y-1/2 bg-accent/80 text-white p-2 rounded-full shadow-lg cursor-pointer z-10 transition-opacity opacity-0 hover:opacity-100';
+            rightIndicator.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+            
+            scrollContainer.appendChild(leftIndicator);
+            scrollContainer.appendChild(rightIndicator);
+            
+            // Contrôles manuels
+            leftIndicator.addEventListener('click', () => {
+                scrollDirection = -1;
+                scrollAmount = Math.max(0, scrollAmount - 200);
+                villagesScroll.scrollLeft = scrollAmount;
+            });
+            
+            rightIndicator.addEventListener('click', () => {
+                scrollDirection = 1;
+                scrollAmount = Math.min(villagesScroll.scrollWidth - villagesScroll.clientWidth, scrollAmount + 200);
+                villagesScroll.scrollLeft = scrollAmount;
+            });
+            
+            // Afficher les indicateurs au survol du conteneur
+            scrollContainer.addEventListener('mouseenter', () => {
+                leftIndicator.classList.remove('opacity-0');
+                rightIndicator.classList.remove('opacity-0');
+            });
+            
+            scrollContainer.addEventListener('mouseleave', () => {
+                leftIndicator.classList.add('opacity-0');
+                rightIndicator.classList.add('opacity-0');
+            });
+        }
+
+        const newsModal = document.querySelector('[data-news-modal]');
+        const newsModalOverlay = newsModal?.querySelector('[data-news-modal-overlay]');
+        const newsModalPanel = newsModal?.querySelector('[data-news-modal-panel]');
+        const newsModalCloseButton = newsModal?.querySelector('[data-news-modal-close-button]');
+        const newsTriggers = document.querySelectorAll('[data-news-trigger]');
+        let lastFocusedTrigger = null;
+
+        function setNewsModalVisual(payloadNode, title) {
+            const modalImage = document.getElementById('community-news-modal-image');
+            const modalFallback = document.getElementById('community-news-modal-fallback');
+            const modalIcon = document.getElementById('community-news-modal-icon');
+            const icon = payloadNode.dataset.icon || 'groups';
+            const iconClasses = payloadNode.dataset.iconClasses || 'text-primary';
+            const surfaceClasses = payloadNode.dataset.surfaceClasses || 'bg-primary/5';
+            const photoUrl = payloadNode.dataset.photoUrl || '';
+
+            modalImage.className = 'hidden h-full w-full object-cover';
+            modalFallback.className = `flex h-full w-full items-center justify-center ${surfaceClasses}`;
+            modalIcon.className = `material-symbols-outlined text-6xl sm:text-7xl ${iconClasses}`;
+            modalIcon.textContent = icon;
+
+            if (photoUrl) {
+                modalImage.src = photoUrl;
+                modalImage.alt = title;
+                modalImage.classList.remove('hidden');
+                modalFallback.classList.add('hidden');
+                return;
+            }
+
+            modalImage.removeAttribute('src');
+            modalImage.alt = '';
+        }
+
+        function openNewsModal(trigger) {
+            if (!newsModal || !newsModalOverlay || !newsModalPanel) {
+                return;
+            }
+
+            const card = trigger.closest('article');
+            const payloadNode = card?.querySelector('[data-news-payload]');
+            if (!payloadNode) {
+                return;
+            }
+
+            const title = payloadNode.querySelector('[data-news-title]')?.textContent.trim() || '';
+            const typeLabel = payloadNode.querySelector('[data-news-type]')?.textContent.trim() || '';
+            const timeLabel = payloadNode.querySelector('[data-news-time]')?.textContent.trim() || '';
+            const dateLabel = payloadNode.querySelector('[data-news-date]')?.textContent.trim() || '';
+            const location = payloadNode.querySelector('[data-news-location]')?.textContent.trim() || '';
+            const subject = payloadNode.querySelector('[data-news-subject]')?.textContent.trim() || '';
+            const description = payloadNode.querySelector('[data-news-description]')?.textContent.trim() || '';
+            const badgeClasses = payloadNode.dataset.badgeClasses || 'bg-primary text-white';
+
+            document.getElementById('community-news-modal-title').textContent = title;
+            document.getElementById('community-news-modal-time').textContent = timeLabel;
+            document.getElementById('community-news-modal-date').textContent = dateLabel;
+            document.getElementById('community-news-modal-location').textContent = location;
+            document.getElementById('community-news-modal-subject').textContent = subject;
+            document.getElementById('community-news-modal-description').textContent = description;
+
+            const modalBadge = document.getElementById('community-news-modal-badge');
+            modalBadge.className = `rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${badgeClasses}`;
+            modalBadge.textContent = typeLabel;
+
+            setNewsModalVisual(payloadNode, title);
+
+            lastFocusedTrigger = trigger;
+            newsModal.setAttribute('aria-hidden', 'false');
+            newsModal.classList.remove('hidden');
+            newsModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+
+            requestAnimationFrame(function() {
+                newsModalOverlay.classList.remove('opacity-0');
+                newsModalPanel.classList.remove('opacity-0', 'translate-y-4');
+            });
+
+            newsModalCloseButton?.focus();
+        }
+
+        function closeNewsModal() {
+            if (!newsModal || newsModal.classList.contains('hidden')) {
+                return;
+            }
+
+            newsModalOverlay?.classList.add('opacity-0');
+            newsModalPanel?.classList.add('opacity-0', 'translate-y-4');
+            newsModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+
+            window.setTimeout(function() {
+                newsModal.classList.add('hidden');
+                newsModal.classList.remove('flex');
+                lastFocusedTrigger?.focus();
+            }, 200);
+        }
+
+        newsTriggers.forEach(function(trigger) {
+            trigger.addEventListener('click', function() {
+                openNewsModal(trigger);
+            });
+        });
+
+        newsModal?.querySelectorAll('[data-news-modal-close]').forEach(function(element) {
+            element.addEventListener('click', closeNewsModal);
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeNewsModal();
+            }
+        });
+    });
+    </script>
+
+    <!-- Diaspora Highlight -->
+    <section class="py-12 sm:py-20" id="diaspora">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="reveal-scale relative overflow-hidden rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-primary/90 to-slate-900 px-6 py-12 sm:px-8 sm:py-16 text-white md:px-20 shadow-2xl">
+                <!-- Decorative background pattern -->
+                <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+                <div class="absolute right-0 top-0 h-full w-1/2 opacity-15 hidden lg:block">
+                    <img alt="Diaspora communauté internationale" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb60-UuRDTHEfEu6JjUBKPQJWgSgXNrkMaZU_FDKxP4lywUFDp4EKYK2IP4UWjoh71KBoLrtTj9kYGioZ1eMK7bSMtH0TIX6XnpOCYRowsPu5kDddYN1r9eOIwyuF25gpkfZnprNwSuUnsbPxoLN_udKTlFREO2FRxXvwKsETms8h9DylPeBxUsJFll6lJH_yN_c7XIUG1DYHlWJ57tIEgBAvyeTUQmPXsbvYK9otNGy3XGv71A27wEG6LxpV16_cjIi5LYDMgLao"/>
+                </div>
+                <!-- Accent circle decoration -->
+                <div class="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-accent/10 blur-2xl"></div>
+                <div class="absolute -bottom-12 right-1/3 h-40 w-40 rounded-full bg-primary/30 blur-3xl"></div>
+                <div class="relative z-10 max-w-xl">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-accent/20 px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-accent mb-3 sm:mb-4">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">flight</span>
+                        Communauté mondiale
+                    </span>
+                    <h2 class="text-2xl sm:text-4xl font-black leading-tight mb-3 sm:mb-6">Notre Diaspora, <br/><span class="text-accent">Notre Fierté</span></h2>
+                    <p class="mb-5 sm:mb-8 text-sm sm:text-lg text-slate-300 leading-relaxed">
+                        Vous vivez à Abidjan, en Europe ou ailleurs ? Restez connectés à vos racines. Contribuez au développement de votre village natal.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <div class="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium backdrop-blur-sm border border-white/10">
+                            <span class="material-symbols-outlined text-accent text-base shrink-0" style="font-variation-settings:'FILL' 1">public</span>
+                            Présents dans le monde entier
+                        </div>
+                        <div class="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium backdrop-blur-sm border border-white/10">
+                            <span class="material-symbols-outlined text-accent text-base shrink-0" style="font-variation-settings:'FILL' 1">volunteer_activism</span>
+                            Engagés pour nos villages
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions (CTA) -->
+    <section class="py-10 sm:py-20 bg-primary/5">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6">
+            <div class="text-center mb-6 sm:mb-12 reveal">
+                <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">Accès rapide</p>
+                <h2 class="text-xl sm:text-3xl font-bold text-primary">Services en un clic</h2>
+                <p class="mt-1 text-xs sm:text-sm text-slate-500">Toutes vos démarches communautaires simplifiées.</p>
+            </div>
+            <div class="grid gap-3 sm:gap-5 grid-cols-2 lg:grid-cols-4">
+                <!-- Carte service : icône + label compact sur mobile -->
+                <button class="reveal delay-100 group flex flex-col items-center gap-2 sm:gap-4 rounded-2xl bg-white p-4 sm:p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-primary/10">
+                    <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-white">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">child_care</span>
+                    </div>
+                    <span class="text-[11px] sm:text-sm font-bold text-center leading-tight text-slate-700 dark:text-slate-200">Déclarer une naissance</span>
+                </button>
+                <a href="{% url 'website:person-register' %}" class="reveal delay-200 group flex flex-col items-center gap-2 sm:gap-4 rounded-2xl bg-white p-4 sm:p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-accent/10">
+                    <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-accent/10 text-accent transition-all group-hover:bg-accent group-hover:text-white">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">groups</span>
+                    </div>
+                    <span class="text-[11px] sm:text-sm font-bold text-center leading-tight text-slate-700 dark:text-slate-200">S'enregistrer</span>
+                </a>
+                <a href="{% url 'website:event-submit' %}" class="reveal delay-300 group flex flex-col items-center gap-2 sm:gap-4 rounded-2xl bg-white p-4 sm:p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-primary/10">
+                    <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-white">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">post_add</span>
+                    </div>
+                    <span class="text-[11px] sm:text-sm font-bold text-center leading-tight text-slate-700 dark:text-slate-200">Publier une annonce</span>
+                </a>
+                <a href="{% url 'website:cotisation-payment-submit' %}" class="reveal delay-400 group flex flex-col items-center gap-2 sm:gap-4 rounded-2xl bg-white p-4 sm:p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-accent/10">
+                    <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-accent/10 text-accent transition-all group-hover:bg-accent group-hover:text-white">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">payments</span>
+                    </div>
+                    <span class="text-[11px] sm:text-sm font-bold text-center leading-tight text-slate-700 dark:text-slate-200">Cotisation</span>
+                </a>
+            </div>
+            <!-- Banner CTA -->
+            <div class="mt-4 sm:mt-6 reveal">
+                <a href="{% url 'website:event-submit' %}" class="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary/80 px-4 sm:px-8 py-4 sm:py-5 text-white shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 group">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-9 w-9 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                            <span class="material-symbols-outlined text-lg sm:text-2xl" style="font-variation-settings:'FILL' 1">campaign</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-xs sm:text-base">Soumettre une annonce au village</p>
+                            <p class="text-[10px] sm:text-xs text-white/75 hidden sm:block">Informez votre communauté d'un événement important</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined shrink-0 text-white/80 transition-transform group-hover:translate-x-1">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+ 
+
+{% endblock %}

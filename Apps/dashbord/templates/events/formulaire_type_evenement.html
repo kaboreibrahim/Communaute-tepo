@@ -1,0 +1,215 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{% if action == "update" %}Modifier un type{% else %}Nouveau type{% endif %} - Olodio{% endblock %}
+{% block topbar_title %}{% if action == "update" %}Edition type{% else %}Nouveau type{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:event-list' %}" class="hover:text-primary transition-colors">Evenements</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:type-evenement-list' %}" class="hover:text-primary transition-colors">Types</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="text-slate-700 dark:text-slate-200 font-medium">{% if action == "update" %}Modification{% else %}Creation{% endif %}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl">
+
+  {% include "layouts/_message.html" %}
+
+  <!-- En-tete -->
+  <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+        {% if action == "update" %}Modifier — {{ type_obj.nom }}{% else %}Nouveau type d'evenement{% endif %}
+      </h1>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Definissez le nom, l'icone et les couleurs du badge qui apparaitra sur la plateforme.
+      </p>
+    </div>
+    <a href="{% url 'dashbord:type-evenement-list' %}"
+       class="inline-flex items-center gap-2 self-start rounded-2xl border border-primary/15 bg-white px-5 py-3 text-sm font-bold text-primary shadow-sm transition hover:bg-primary/5 dark:bg-slate-900">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Retour
+    </a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="flex flex-col gap-6 rounded-3xl border border-slate-100 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+
+      <!-- Apercu badge dynamique -->
+      <div class="flex items-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/50">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Apercu :</span>
+        <span id="badge-preview"
+              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all"
+              style="background:{{ values.couleur_fond }};color:{{ values.couleur_texte }};">
+          <span id="preview-icon" class="material-symbols-outlined" style="font-size:14px;">{{ values.icone }}</span>
+          <span id="preview-nom">{% if values.nom %}{{ values.nom }}{% else %}Nom du type{% endif %}</span>
+        </span>
+      </div>
+
+      <!-- Nom + Slug -->
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Nom <span class="text-red-400">*</span>
+          </label>
+          <input type="text" name="nom" id="id_nom" required
+                 value="{{ values.nom }}"
+                 placeholder="Ex : Naissance"
+                 class="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+        </div>
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Slug <span class="text-red-400">*</span>
+          </label>
+          <input type="text" name="slug" id="id_slug" required
+                 value="{{ values.slug }}"
+                 placeholder="Ex : naissance"
+                 pattern="[-a-zA-Z0-9_]+"
+                 class="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+          <p class="mt-1 text-[11px] text-slate-400">Identifiant unique, sans espaces ni accents.</p>
+        </div>
+      </div>
+
+      <!-- Icone Material -->
+      <div>
+        <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Icone Material Symbols</label>
+        <div class="flex items-center gap-3">
+          <span id="icone-preview" class="material-symbols-outlined text-3xl text-slate-400">{{ values.icone }}</span>
+          <input type="text" name="icone" id="id_icone"
+                 value="{{ values.icone }}"
+                 placeholder="event_note"
+                 class="h-12 flex-1 rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+        </div>
+        <p class="mt-1 text-[11px] text-slate-400">
+          Nom d'icone depuis
+          <a href="https://fonts.google.com/icons" target="_blank" class="text-primary underline">Material Symbols</a>
+          (ex : child_care, favorite, school…)
+        </p>
+      </div>
+
+      <!-- Couleurs -->
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Couleur de fond du badge</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="couleur_fond" id="id_couleur_fond"
+                   value="{{ values.couleur_fond }}"
+                   class="h-10 w-10 cursor-pointer rounded-xl border border-slate-200 p-0.5">
+            <input type="text" id="id_couleur_fond_text"
+                   value="{{ values.couleur_fond }}"
+                   placeholder="#F8FAFC"
+                   class="h-10 flex-1 rounded-2xl border border-slate-200 bg-white px-3 font-mono text-sm text-slate-700 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+          </div>
+        </div>
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Couleur du texte du badge</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="couleur_texte" id="id_couleur_texte"
+                   value="{{ values.couleur_texte }}"
+                   class="h-10 w-10 cursor-pointer rounded-xl border border-slate-200 p-0.5">
+            <input type="text" id="id_couleur_texte_text"
+                   value="{{ values.couleur_texte }}"
+                   placeholder="#334155"
+                   class="h-10 flex-1 rounded-2xl border border-slate-200 bg-white px-3 font-mono text-sm text-slate-700 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+          </div>
+        </div>
+      </div>
+
+      <!-- Est communautaire + Ordre -->
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="flex items-start gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/40">
+          <input type="checkbox" name="est_communautaire" id="id_est_communautaire"
+                 {% if values.est_communautaire %}checked{% endif %}
+                 class="mt-0.5 h-5 w-5 rounded accent-primary">
+          <div>
+            <label for="id_est_communautaire" class="cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-200">
+              Type communautaire
+            </label>
+            <p class="mt-1 text-xs text-slate-400">Cocher pour les fetes, reunions et evenements collectifs.</p>
+          </div>
+        </div>
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Ordre d'affichage</label>
+          <input type="number" name="ordre" min="0" max="99"
+                 value="{{ values.ordre }}"
+                 class="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+          <p class="mt-1 text-[11px] text-slate-400">Nombre entier. Plus petit = affiché en premier.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-6 dark:border-slate-800">
+        <a href="{% url 'dashbord:type-evenement-list' %}"
+           class="rounded-2xl border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300">
+          Annuler
+        </a>
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary/90">
+          <span class="material-symbols-outlined text-base">save</span>
+          {% if action == "update" %}Enregistrer les modifications{% else %}Creer le type{% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const nomInput    = document.getElementById('id_nom');
+  const slugInput   = document.getElementById('id_slug');
+  const iconeInput  = document.getElementById('id_icone');
+  const fondPicker  = document.getElementById('id_couleur_fond');
+  const fondText    = document.getElementById('id_couleur_fond_text');
+  const textePicker = document.getElementById('id_couleur_texte');
+  const texteText   = document.getElementById('id_couleur_texte_text');
+  const badge       = document.getElementById('badge-preview');
+  const prevIcon    = document.getElementById('preview-icon');
+  const prevNom     = document.getElementById('preview-nom');
+  const iconePreview= document.getElementById('icone-preview');
+  const isUpdate    = "{{ action }}" === "update";
+
+  function slugify(str) {
+    return str.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+  }
+
+  function updatePreview() {
+    const fond  = fondPicker.value;
+    const texte = textePicker.value;
+    const icone = iconeInput.value.trim() || 'event_note';
+    const nom   = nomInput.value.trim() || 'Nom du type';
+    badge.style.background    = fond;
+    badge.style.color         = texte;
+    prevIcon.textContent      = icone;
+    prevNom.textContent       = nom;
+    iconePreview.textContent  = icone;
+  }
+
+  fondPicker.addEventListener('input', () => { fondText.value = fondPicker.value; updatePreview(); });
+  fondText.addEventListener('input', () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(fondText.value)) fondPicker.value = fondText.value;
+    updatePreview();
+  });
+  textePicker.addEventListener('input', () => { texteText.value = textePicker.value; updatePreview(); });
+  texteText.addEventListener('input', () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(texteText.value)) textePicker.value = texteText.value;
+    updatePreview();
+  });
+
+  nomInput.addEventListener('input', () => {
+    if (!isUpdate && !slugInput.dataset.locked) slugInput.value = slugify(nomInput.value);
+    updatePreview();
+  });
+  slugInput.addEventListener('input', () => { slugInput.dataset.locked = '1'; });
+  iconeInput.addEventListener('input', updatePreview);
+</script>
+{% endblock %}

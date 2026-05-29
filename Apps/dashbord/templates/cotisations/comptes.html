@@ -1,0 +1,134 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Comptes de paiement{% endblock %}
+{% block topbar_title %}Comptes de depot{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Tableau de bord</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="font-medium text-slate-700">Comptes de depot</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-[11px] font-black uppercase tracking-[0.25em] text-primary/60">Coordonnees de depot</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900">Comptes de paiement</h1>
+      <p class="mt-2 text-sm text-slate-500">Configure les numeros, IBAN et QR codes affiches aux cotisants.</p>
+    </div>
+    <a href="{% url 'dashbord:compte-paiement-create' %}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition hover:opacity-95">
+      <span class="material-symbols-outlined text-[18px]">add_circle</span>
+      Nouveau compte
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-sm font-semibold text-slate-500">Total</p>
+      <p class="mt-2 text-3xl font-black text-slate-900">{{ stats.total }}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-sm font-semibold text-slate-500">Actifs</p>
+      <p class="mt-2 text-3xl font-black text-emerald-700">{{ stats.actifs }}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-sm font-semibold text-slate-500">Inactifs</p>
+      <p class="mt-2 text-3xl font-black text-slate-500">{{ stats.inactifs }}</p>
+    </article>
+  </div>
+
+  <form method="get" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Mode</label>
+        <select name="mode" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10">
+          <option value="">Tous</option>
+          {% for value, meta in mode_meta.items %}
+          <option value="{{ value }}" {% if mode == value %}selected{% endif %}>{{ meta.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">Etat</label>
+        <select name="status" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10">
+          <option value="">Tous</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Actifs</option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactifs</option>
+        </select>
+      </div>
+    </div>
+    <div class="mt-4 flex gap-3">
+      <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
+        <span class="material-symbols-outlined text-[18px]">filter_alt</span>
+        Filtrer
+      </button>
+      <a href="{% url 'dashbord:compte-paiement-list' %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+        <span class="material-symbols-outlined text-[18px]">refresh</span>
+        Reinitialiser
+      </a>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+    {% for account in accounts %}
+    <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold
+              {% if account.mode == 'wave' %}bg-sky-100 text-sky-700
+              {% elif account.mode == 'orange_money' %}bg-orange-100 text-orange-700
+              {% elif account.mode == 'moov' %}bg-teal-100 text-teal-700
+              {% elif account.mode == 'mtn' %}bg-yellow-100 text-yellow-700
+              {% elif account.mode == 'virement' %}bg-indigo-100 text-indigo-700
+              {% else %}bg-slate-100 text-slate-700{% endif %}">
+              {{ account.get_mode_display }}
+            </span>
+            {% if account.est_actif %}
+            <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Actif</span>
+            {% else %}
+            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Inactif</span>
+            {% endif %}
+          </div>
+          <h3 class="mt-3 text-2xl font-black text-slate-900">{{ account.get_mode_display }}</h3>
+          <p class="mt-1 text-sm font-semibold text-slate-500">{{ account.nom_titulaire }}</p>
+        </div>
+        <a href="{% url 'dashbord:compte-paiement-update' account.id %}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[18px]">edit</span>
+          Modifier
+        </a>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div class="space-y-3">
+          <div class="rounded-2xl bg-slate-50 px-4 py-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Numero / reference</p>
+            <p class="mt-2 text-lg font-black text-slate-900">{{ account.numero }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 px-4 py-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Instructions</p>
+            <p class="mt-2 text-sm leading-6 text-slate-500">{{ account.instructions|default:"Aucune instruction fournie." }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 px-4 py-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Utilisation</p>
+            <p class="mt-2 text-lg font-black text-slate-900">{{ account.paiements_count }} paiement{{ account.paiements_count|pluralize }}</p>
+          </div>
+        </div>
+        {% if account.qr_code %}
+        <img src="{{ account.qr_code.url }}" alt="{{ account.nom_titulaire }}" class="h-36 w-36 rounded-3xl border border-slate-200 object-cover">
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="xl:col-span-2 rounded-3xl border border-dashed border-slate-300 bg-white px-8 py-12 text-center shadow-sm">
+      <span class="material-symbols-outlined text-5xl text-slate-300">account_balance_wallet</span>
+      <h3 class="mt-4 text-lg font-black text-slate-900">Aucun compte configure</h3>
+      <p class="mt-2 text-sm text-slate-500">Ajoute un premier numero de depot pour permettre les paiements mobiles ou les virements.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

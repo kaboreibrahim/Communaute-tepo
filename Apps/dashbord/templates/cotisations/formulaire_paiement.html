@@ -1,0 +1,116 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{% if action == 'update' %}Modifier paiement{% else %}Nouveau paiement{% endif %}{% endblock %}
+{% block topbar_title %}{% if action == 'update' %}Edition paiement{% else %}Nouveau paiement{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-sm text-slate-400">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Tableau de bord</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <a href="{% url 'dashbord:cotisation-list' %}" class="hover:text-primary transition-colors">Cotisations</a>
+  <span class="material-symbols-outlined text-base">chevron_right</span>
+  <span class="font-medium text-slate-700">{% if action == 'update' %}Modification paiement{% else %}Enregistrement paiement{% endif %}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl rounded-[2rem] border border-primary/10 bg-white p-8 shadow-sm">
+  <div class="mb-8">
+    <p class="text-[11px] font-black uppercase tracking-[0.25em] text-primary/60">Encaissement</p>
+    <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900">
+      {% if action == 'update' %}Modifier le paiement{% else %}Enregistrer un paiement{% endif %}
+    </h1>
+    <p class="mt-2 text-sm text-slate-500">
+      Rattache le paiement a une personne et a une campagne de cotisation, puis choisis son statut de validation.
+    </p>
+  </div>
+
+  {% if form.non_field_errors %}
+  <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+    {{ form.non_field_errors }}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.personne.label }}</label>
+        {{ form.personne }}
+        {% if form.personne.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.personne.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.cotisation.label }}</label>
+        {{ form.cotisation }}
+        {% if form.cotisation.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.cotisation.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.montant.label }}</label>
+        {{ form.montant }}
+        {% if form.montant.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.montant.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.date_paiement.label }}</label>
+        {{ form.date_paiement }}
+        {% if form.date_paiement.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.date_paiement.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.mode_paiement.label }}</label>
+        {{ form.mode_paiement }}
+        {% if form.mode_paiement.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.mode_paiement.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.compte_paiement.label }}</label>
+        {{ form.compte_paiement }}
+        {% if form.compte_paiement.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.compte_paiement.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.reference_transaction.label }}</label>
+        {{ form.reference_transaction }}
+        {% if form.reference_transaction.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.reference_transaction.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.nom_soumetteur.label }}</label>
+        {{ form.nom_soumetteur }}
+        {% if form.nom_soumetteur.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.nom_soumetteur.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.telephone_soumetteur.label }}</label>
+        {{ form.telephone_soumetteur }}
+        {% if form.telephone_soumetteur.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.telephone_soumetteur.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.email_soumetteur.label }}</label>
+        {{ form.email_soumetteur }}
+        {% if form.email_soumetteur.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.email_soumetteur.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.statut_validation.label }}</label>
+        {{ form.statut_validation }}
+        {% if form.statut_validation.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.statut_validation.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.recu.label }}</label>
+        {{ form.recu }}
+        {% if form.recu.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.recu.errors|join:", " }}</p>{% endif %}
+      </div>
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-400">{{ form.notes.label }}</label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.notes.errors|join:", " }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 border-t border-slate-100 pt-6">
+      <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        Enregistrer
+      </button>
+      <a href="{{ cancel_url }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Retour
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

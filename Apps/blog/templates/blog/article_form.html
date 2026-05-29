@@ -1,0 +1,272 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{{ action }} un article — Blog{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <span class="material-symbols-outlined" style="font-size:14px">home</span>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-dashboard' %}" class="hover:text-primary transition-colors">Blog</a>
+  <span>/</span>
+  <a href="{% url 'dashbord:blog-article-list' %}" class="hover:text-primary transition-colors">Articles</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">{{ action }}</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ action }} un article</h1>
+    <p class="text-sm text-slate-500 mt-0.5">Remplissez les informations ci-dessous</p>
+  </div>
+  <a href="{% url 'dashbord:blog-article-list' %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm hover:border-primary hover:text-primary transition-colors">
+    <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+    Retour
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+  .ql-toolbar { border-radius: 12px 12px 0 0 !important; border-color: #e2e8f0 !important; background: #f8fafc; }
+  .ql-container { border-radius: 0 0 12px 12px !important; border-color: #e2e8f0 !important; font-family: 'Inter', sans-serif; font-size: 15px; min-height: 320px; }
+  .ql-editor { min-height: 320px; line-height: 1.8; }
+  .ql-editor.ql-blank::before { font-style: normal; color: #94a3b8; }
+  .tag-checkbox input[type=checkbox] { display: none; }
+  .tag-checkbox label {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600;
+    border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: all 0.15s;
+  }
+  .tag-checkbox input:checked + label { background: #00613a; color: white; border-color: #00613a; }
+  .seo-counter { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 2px; }
+  .seo-counter.warn { color: #f59e0b; }
+  .seo-counter.danger { color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="article-form">
+  {% csrf_token %}
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+    {# ── Main column ── #}
+    <div class="xl:col-span-2 space-y-5">
+
+      {# Titre #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
+          Titre de l'article *
+        </label>
+        {{ form.titre }}
+        {% if form.titre.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ form.titre.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# Extrait #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
+          Extrait / Résumé
+          <span class="text-slate-400 font-normal normal-case ml-1">(optionnel — généré automatiquement si vide)</span>
+        </label>
+        {{ form.extrait }}
+        {% if form.extrait.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ form.extrait.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# Contenu WYSIWYG #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+          Contenu de l'article *
+        </label>
+        <div id="quill-editor"></div>
+        <textarea name="contenu" id="contenu-hidden" style="display:none">{{ form.contenu.value|default_if_none:'' }}</textarea>
+        {% if form.contenu.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ form.contenu.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# SEO #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">travel_explore</span>
+          SEO & Réseaux sociaux
+        </h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Meta titre <span class="font-normal text-slate-400">(max 70 car.)</span></label>
+            {{ form.meta_title }}
+            <p id="meta-title-counter" class="seo-counter">0 / 70</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Meta description <span class="font-normal text-slate-400">(max 160 car.)</span></label>
+            {{ form.meta_description }}
+            <p id="meta-desc-counter" class="seo-counter">0 / 160</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Image Open Graph <span class="font-normal text-slate-400">(1200×630 recommandé)</span></label>
+            {{ form.og_image }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── Sidebar column ── #}
+    <div class="space-y-5">
+
+      {# Publication #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">publish</span>
+          Publication
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Statut</label>
+            {{ form.statut }}
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Date de publication</label>
+            {{ form.date_publication }}
+            <p class="text-[10px] text-slate-400 mt-1">Laissez vide pour publier immédiatement.</p>
+          </div>
+          <label class="flex items-center gap-3 cursor-pointer py-1">
+            {{ form.featured }}
+            <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <span class="material-symbols-outlined text-amber-500 text-base align-middle" style="font-variation-settings:'FILL' 1">star</span>
+              Article mis en avant
+            </span>
+          </label>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
+          <button type="submit" name="statut_action" value="save"
+                  class="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-white hover:bg-primary/90 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-base">save</span>
+            Enregistrer
+          </button>
+          {% if not form.instance.pk or form.instance.statut != 'publie' %}
+          <button type="submit" name="statut_action" value="publish"
+                  onclick="document.getElementById('id_statut').value='publie';"
+                  class="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-base">publish</span>
+            Publier
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Catégorie #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">category</span>
+          Catégorie
+        </h3>
+        {{ form.categorie }}
+        <a href="{% url 'dashbord:blog-categorie-create' %}" target="_blank"
+           class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
+          <span class="material-symbols-outlined text-sm">add</span>
+          Nouvelle catégorie
+        </a>
+      </div>
+
+      {# Tags #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">label</span>
+          Tags
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in tags_disponibles %}
+          <span class="tag-checkbox">
+            <input type="checkbox" name="tags" value="{{ tag.id }}" id="tag-{{ tag.id }}"
+              {% if tag in form.instance.tags.all %}checked{% endif %}>
+            <label for="tag-{{ tag.id }}">#{{ tag.nom }}</label>
+          </span>
+          {% empty %}
+          <p class="text-xs text-slate-400">Aucun tag disponible.</p>
+          {% endfor %}
+        </div>
+        <a href="{% url 'dashbord:blog-tag-create' %}" target="_blank"
+           class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-3">
+          <span class="material-symbols-outlined text-sm">add</span>
+          Nouveau tag
+        </a>
+      </div>
+
+      {# Image de couverture #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">image</span>
+          Image de couverture
+        </h3>
+        {% if form.instance.image_couverture %}
+        <div class="mb-3 rounded-xl overflow-hidden aspect-[16/9]">
+          <img src="{{ form.instance.image_couverture.url }}" alt="" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+        <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-primary/40 transition-colors">
+          {{ form.image_couverture }}
+          <p class="text-xs text-slate-400 mt-2">JPEG, PNG, WebP · Max 5 Mo</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+// Quill WYSIWYG
+const quill = new Quill('#quill-editor', {
+  theme: 'snow',
+  placeholder: 'Rédigez votre article ici...',
+  modules: {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],
+      ['link', 'image'],
+      ['clean']
+    ]
+  }
+});
+
+// Load initial content
+const hiddenField = document.getElementById('contenu-hidden');
+if (hiddenField.value) {
+  quill.root.innerHTML = hiddenField.value;
+}
+
+// Sync on submit
+document.getElementById('article-form').addEventListener('submit', function() {
+  hiddenField.value = quill.root.innerHTML;
+});
+
+// SEO counters
+function updateCounter(inputId, counterId, max) {
+  const input = document.getElementById(inputId);
+  const counter = document.getElementById(counterId);
+  if (!input || !counter) return;
+  function update() {
+    const len = input.value.length;
+    counter.textContent = len + ' / ' + max;
+    counter.className = 'seo-counter';
+    if (len > max * 0.9) counter.classList.add('warn');
+    if (len > max) counter.classList.add('danger');
+  }
+  input.addEventListener('input', update);
+  update();
+}
+updateCounter('id_meta_title', 'meta-title-counter', 70);
+updateCounter('id_meta_description', 'meta-desc-counter', 160);
+</script>
+{% endblock %}

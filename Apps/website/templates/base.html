@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{% block page_title %}Communauté Tepo  - Portail Officiel{% endblock %}</title>
+
+{# ── SEO Meta de base ── #}
+<meta name="description" content="{% block meta_description %}Portail officiel de la Communauté Tepo — actualités, villages, événements et services communautaires.{% endblock %}">
+<meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+<link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+
+{# ── Open Graph ── #}
+<meta property="og:site_name" content="Communauté d'Olodio">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:title" content="{% block og_title %}{% block og_title_fallback %}La Communauté Tepo - Portail Officiel{% endblock %}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Portail officiel de la Communauté Tepo — actualités, villages, événements et services communautaires.{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% block og_image %}{% endblock %}">
+
+{# ── Twitter Card ── #}
+<meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+<meta name="twitter:title" content="{% block twitter_title %}Communauté TEPO{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}Portail officiel de la Communauté TEPO.{% endblock %}">
+<meta name="twitter:image" content="{% block twitter_image %}{% endblock %}">
+
+{# ── Performance hints ── #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+
+{# ── Extra head (JSON-LD, meta spécifiques à la page) ── #}
+{% block extra_head %}{% endblock %}
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#00613a",
+                    "accent": "#ff8200",
+                    "background-light": "#f5f8f7",
+                    "background-dark": "#0f231b",
+                },
+                fontFamily: {
+                    "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+                },
+            },
+        },
+    }
+</script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .bg-pattern {
+        background-image: radial-gradient(circle at 2px 2px, rgba(0,97,58,0.05) 1px, transparent 0);
+        background-size: 24px 24px;
+    }
+    /* Safe area for bottom nav on iOS */
+    .bottom-nav-safe {
+        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+    .villages-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 97, 58, 0.45) transparent;
+    }
+    .villages-scroll::-webkit-scrollbar {
+        height: 8px;
+    }
+    .villages-scroll::-webkit-scrollbar-thumb {
+        background: rgba(0, 97, 58, 0.45);
+        border-radius: 9999px;
+    }
+    .villages-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .material-symbols-outlined {
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+        font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24;
+    }
+
+    /* Scroll-reveal animations */
+    .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.55s cubic-bezier(.4,0,.2,1), transform 0.55s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .reveal-left {
+        opacity: 0;
+        transform: translateX(-28px);
+        transition: opacity 0.6s cubic-bezier(.4,0,.2,1), transform 0.6s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal-left.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .reveal-right {
+        opacity: 0;
+        transform: translateX(28px);
+        transition: opacity 0.6s cubic-bezier(.4,0,.2,1), transform 0.6s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal-right.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .reveal-scale {
+        opacity: 0;
+        transform: scale(0.94);
+        transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .reveal-scale.visible {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Stagger delay helpers */
+    .delay-100 { transition-delay: 0.10s; }
+    .delay-200 { transition-delay: 0.20s; }
+    .delay-300 { transition-delay: 0.30s; }
+    .delay-400 { transition-delay: 0.40s; }
+
+    /* Pulse dot for live indicator */
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.55; transform: scale(1.4); }
+    }
+    .pulse-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+
+    /* Number counter animation */
+    .count-up { display: inline-block; }
+
+    /* Bottom nav active indicator */
+    .bottom-nav-item.active .bottom-nav-icon {
+        font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+    }
+    .bottom-nav-item.active {
+        color: #00613a;
+    }
+
+    /* Header scroll shadow */
+    .header-scrolled {
+        box-shadow: 0 2px 20px rgba(0,97,58,0.10);
+    }
+
+    /* Message slide-in */
+    @keyframes slide-in-down {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .website-message {
+        animation: slide-in-down 0.28s cubic-bezier(.4,0,.2,1) both;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+
+<!-- Header / Nav — hidden on mobile, visible on lg+ -->
+<header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/80 backdrop-blur-md dark:bg-background-dark/80 hidden lg:block">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
+                <span class="material-symbols-outlined">account_balance</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold leading-none text-primary">Communauté</h1>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-accent">TEPO</p>
+            </div>
+        </div>
+        <nav class="hidden space-x-1 lg:flex">
+            <a class="relative px-3 py-1.5 text-sm font-semibold text-primary rounded-lg bg-primary/8 transition-colors flex items-center gap-1" href="{% url 'website:accueil' %}">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">home</span>
+                Accueil
+            </a>
+            <a class="relative px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-1" href="#villages">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">holiday_village</span>
+                Villages
+            </a>
+            <a class="relative px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-1" href="{% url 'website:evenement-list' %}">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">celebration</span>
+                Événements
+            </a>
+            <a class="relative px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-1" href="{% url 'blog:article-list' %}">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">newspaper</span>
+                Blog
+            </a>
+            <a class="relative px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-1" href="#diaspora">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">diversity_3</span>
+                Diaspora
+            </a>
+            <a class="relative px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-1" href="{% url 'website:galerie' %}">
+                <span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">perm_media</span>
+                Médias
+            </a>
+        </nav>
+        <div class="ml-8 flex items-center justify-end gap-3 xl:ml-12 xl:gap-4">
+            <a href="{% url 'website:person-register' %}" class="flex h-10 items-center justify-center rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap">
+                S'inscrire ici !
+            </a>
+            <a href="{% url 'website:cotisation-payment-submit' %}" class="flex h-10 items-center justify-center rounded-xl border border-primary/15 bg-white px-5 text-sm font-bold text-primary shadow-sm transition-transform hover:scale-105 active:scale-95 whitespace-nowrap">
+                Je paie ma cotisation
+            </a>
+            <a href="{% url 'accounts:login' %}" class="flex h-10 items-center justify-center rounded-xl bg-accent px-6 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-transform hover:scale-105 active:scale-95 whitespace-nowrap">
+                Se connecter
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Top Bar — visible only on mobile -->
+<header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/95 backdrop-blur-md dark:bg-background-dark/95 lg:hidden">
+    <div class="flex items-center justify-between px-4 py-2.5">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 shrink-0">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+                <span class="material-symbols-outlined text-base">account_balance</span>
+            </div>
+            <div>
+                <p class="text-sm font-extrabold leading-none text-primary">Communauté</p>
+                <p class="text-[9px] font-bold uppercase tracking-wider text-accent">TEPO</p>
+            </div>
+        </a>
+        <!-- Actions -->
+        <div class="flex items-center gap-1.5">
+            <a href="{% url 'website:person-register' %}" class="flex h-8 items-center justify-center rounded-lg bg-primary px-3 text-xs font-bold text-white shadow-sm whitespace-nowrap">
+                S'inscrire
+            </a>
+            <a href="{% url 'website:cotisation-payment-submit' %}" class="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-white text-primary shadow-sm" title="Payer ma cotisation">
+                <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">payments</span>
+            </a>
+            <a href="{% url 'accounts:login' %}" class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white shadow-sm">
+                <span class="material-symbols-outlined text-base">login</span>
+            </a>
+        </div>
+    </div>
+</header>
+<!-- ── Main content ── -->
+{% if messages %}
+<div class="fixed inset-x-0 top-16 z-[90] px-4 sm:top-20 sm:px-6">
+    <div class="mx-auto flex max-w-3xl flex-col gap-3">
+        {% for message in messages %}
+        <div class="website-message flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md {% if 'success' in message.tags %}border-emerald-200 bg-emerald-50/95 text-emerald-800{% elif 'error' in message.tags %}border-red-200 bg-red-50/95 text-red-800{% elif 'warning' in message.tags %}border-amber-200 bg-amber-50/95 text-amber-800{% else %}border-primary/15 bg-white/95 text-primary{% endif %}">
+            <span class="material-symbols-outlined mt-0.5 text-lg">
+                {% if 'success' in message.tags %}check_circle{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}
+            </span>
+            <div class="flex-1 text-sm font-medium leading-6">{{ message }}</div>
+            <button type="button" class="website-message-close rounded-full p-1 text-current/70 transition hover:bg-black/5 hover:text-current" aria-label="Fermer le message">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+ <main class="pb-20 lg:pb-0">
+
+{% block content %}
+
+{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-background-dark text-white pt-12 sm:pt-20 pb-24 sm:pb-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <!-- Footer CTA Banner -->
+        <div class="mb-10 sm:mb-14 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-primary via-primary/90 to-primary/70 px-5 py-6 sm:px-10 sm:py-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h3 class="text-lg sm:text-2xl font-black text-white mb-1">Rejoignez la communauté TEPO</h3>
+                <p class="text-xs sm:text-sm text-white/75">Enregistrez-vous et restez connecté à vos racines.</p>
+            </div>
+            <a href="{% url 'website:person-register' %}" class="self-stretch sm:self-auto shrink-0 flex h-11 items-center justify-center gap-2 rounded-xl bg-accent px-6 font-bold text-white shadow-lg shadow-accent/30 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap text-sm">
+                <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">person_add</span>
+                S'enregistrer maintenant
+            </a>
+        </div>
+        <div class="grid gap-8 sm:gap-12 border-b border-white/10 pb-10 sm:pb-12 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="col-span-2 sm:col-span-1 space-y-4 sm:space-y-6">
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <div class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary">
+                        <span class="material-symbols-outlined text-base sm:text-xl">account_balance</span>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-extrabold text-white">Communauté TEPO</h1>
+                        <p class="text-[9px] sm:text-[10px] font-bold text-accent uppercase">Portail Communautaire</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-xs sm:text-sm">
+                    La Communauté TEPO s'engage pour une administration de proximité et digitale pour tous ses fils et filles.
+                </p>
+            </div>
+            <div>
+                <h4 class="mb-4 sm:mb-6 font-bold text-primary text-sm sm:text-base">Liens Utiles</h4>
+                <ul class="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-400">
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:person-register' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Recensement</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="#"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>État Civil</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:accueil' %}#villages"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Nos Villages</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:evenement-list' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Événements</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="mb-4 sm:mb-6 font-bold text-primary text-sm sm:text-base"></h4>
+                <ul class="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-400">
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:galerie' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Médias</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'blog:article-list' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Blog</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:cotisation-payment-submit' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>Payer cotisation</a></li>
+                    <li><a class="transition-colors hover:text-accent flex items-center gap-1.5 group" href="{% url 'website:person-register' %}"><span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>S'inscrire</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="mb-4 sm:mb-6 font-bold text-primary text-sm sm:text-base">Contact</h4>
+                <div class="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-400">
+                    <p class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-accent text-sm">mail</span>
+                        <a href="mailto:info@tepocommunaute.com" class="hover:text-accent transition-colors">info@tepocommunaute.com</a>
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-accent text-sm">call</span>
+                        <a href="https://wa.me/2250749353415" target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">+225 07 49 35 34 15</a>
+                    </p>
+                    <div class="flex gap-3 sm:gap-4 pt-2 sm:pt-4">
+                        <a class="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary" href="#"><span class="material-symbols-outlined text-base sm:text-lg">public</span></a>
+                        <a class="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary" href="#"><span class="material-symbols-outlined text-base sm:text-lg">social_leaderboard</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 sm:mt-10 flex flex-col items-center justify-between gap-3 sm:gap-4 text-[10px] sm:text-xs text-slate-500 md:flex-row">
+            <p>© <script>document.write(new Date().getFullYear());</script> communauté TEPO. Tous droits réservés. — Conçu par <span class="font-semibold text-primary">Ibrahim Kaboré</span></p>
+            <div class="flex gap-4 sm:gap-6">
+                <a href="#">Mentions légales</a>
+                <a href="#">Confidentialité</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- ── Bouton retour en haut ── -->
+<button
+    id="scroll-top-btn"
+    aria-label="Retour en haut de page"
+    class="fixed bottom-24 right-4 z-50 lg:bottom-8 lg:right-8
+           flex h-11 w-11 items-center justify-center
+           rounded-full bg-primary text-white shadow-lg shadow-primary/30
+           opacity-0 translate-y-4 pointer-events-none
+           transition-all duration-300 ease-out
+           hover:scale-110 hover:shadow-xl hover:shadow-primary/40
+           active:scale-95"
+>
+    <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">arrow_upward</span>
+</button>
+
+<!-- =====================================================
+     BOTTOM NAVIGATION BAR — Mobile only (hidden on lg+)
+     ===================================================== -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-primary/10 px-4 pb-4 pt-2 lg:hidden bottom-nav-safe">
+    <div class="flex justify-between items-center max-w-lg mx-auto">
+        <a class="flex flex-col items-center gap-1 text-primary" href="{% url 'website:accueil' %}">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">home</span>
+            <p class="text-[10px] font-bold">Accueil</p>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="{% url 'blog:article-list' %}">
+            <span class="material-symbols-outlined">newspaper</span>
+            <p class="text-[10px] font-medium">Blog</p>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="{% url 'website:evenement-list' %}">
+            <span class="material-symbols-outlined">celebration</span>
+            <p class="text-[10px] font-medium">Événements</p>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="#diaspora">
+            <span class="material-symbols-outlined">diversity_3</span>
+            <p class="text-[10px] font-medium">Dispo</p>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 hover:text-primary transition-colors" href="{% url 'website:galerie' %}">
+            <span class="material-symbols-outlined">perm_media</span>
+            <p class="text-[10px] font-medium">Médias</p>
+        </a>
+    </div>
+</nav>
+
+<script>
+    // ── Active bottom nav highlighting ──
+    const navLinks = document.querySelectorAll('nav.fixed a');
+    const sections = ['actualites', 'villages', 'diaspora'];
+
+    function updateActiveNav() {
+        let current = 'home';
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && window.scrollY >= el.offsetTop - 140) current = id;
+        });
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            const icon = link.querySelector('.material-symbols-outlined');
+            const isActive = (current === 'home' && href === '#') || (href === '#' + current);
+            if (isActive) {
+                link.classList.remove('text-slate-400');
+                link.classList.add('text-primary');
+                if (icon) icon.style.fontVariationSettings = "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24";
+            } else {
+                link.classList.remove('text-primary');
+                link.classList.add('text-slate-400');
+                if (icon) icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+            }
+        });
+    }
+
+    // ── Header scroll shadow ──
+    const desktopHeader = document.querySelector('header.sticky.hidden.lg\\:block');
+    function updateHeaderShadow() {
+        if (!desktopHeader) return;
+        desktopHeader.classList.toggle('header-scrolled', window.scrollY > 8);
+    }
+
+    // ── Bouton retour en haut ──
+    const scrollTopBtn = document.getElementById('scroll-top-btn');
+    function updateScrollTopBtn() {
+        const visible = window.scrollY > 300;
+        scrollTopBtn.classList.toggle('opacity-0', !visible);
+        scrollTopBtn.classList.toggle('opacity-100', visible);
+        scrollTopBtn.classList.toggle('translate-y-4', !visible);
+        scrollTopBtn.classList.toggle('translate-y-0', visible);
+        scrollTopBtn.classList.toggle('pointer-events-none', !visible);
+    }
+    scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+    window.addEventListener('scroll', () => { updateActiveNav(); updateHeaderShadow(); updateScrollTopBtn(); }, { passive: true });
+    updateActiveNav();
+    updateHeaderShadow();
+    updateScrollTopBtn();
+
+    // ── Message notifications ──
+    document.querySelectorAll('.website-message').forEach((message) => {
+        const closeButton = message.querySelector('.website-message-close');
+        const removeMessage = () => {
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-8px)';
+            window.setTimeout(() => message.remove(), 180);
+        };
+        closeButton?.addEventListener('click', removeMessage);
+        window.setTimeout(removeMessage, 4500);
+    });
+
+    // ── Scroll-reveal (Intersection Observer) ──
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+        revealObserver.observe(el);
+    });
+
+    // ── Animated number counter ──
+    function animateCount(el) {
+        const target = parseInt(el.dataset.target || el.textContent, 10);
+        if (isNaN(target) || target === 0) return;
+        const duration = 1200;
+        const start = performance.now();
+        function tick(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(ease * target);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.querySelectorAll('[data-count]').forEach(animateCount);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('[data-stats-section]').forEach(el => counterObserver.observe(el));
+</script>
+
+</body></html>
