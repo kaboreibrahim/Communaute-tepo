@@ -154,9 +154,34 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Database loacal
 
+# DATABASES = {
+
+#     'default': {
+
+#         'ENGINE': 'django.db.backends.postgresql',
+
+#         'NAME': 'Olodio',
+
+#         'USER': 'postgres',
+
+#         'PASSWORD': '1234',
+
+#         'HOST': 'localhost',  # Essayez 'localhost' au lieu de '127.0.0.1'
+
+#         'PORT': '5432',
+
+#         'OPTIONS': {
+
+#             'client_encoding': 'UTF8',
+
+#         },
+
+#     }
+# }
+
+#Database production
 
 DATABASES = {
 
@@ -164,11 +189,11 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'Olodio',
+        'NAME': 'c2805526c_tepov1',
 
-        'USER': 'postgres',
+        'USER': 'c2805526c_admin',
 
-        'PASSWORD': '1234',
+        'PASSWORD': '.(6Ty~i)^dGM,HF@',
 
         'HOST': 'localhost',  # Essayez 'localhost' au lieu de '127.0.0.1'
 
@@ -182,7 +207,6 @@ DATABASES = {
 
     }
 }
-
 
 
 # Password validation
