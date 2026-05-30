@@ -154,7 +154,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database loacal
 
 # DATABASES = {
 
@@ -181,7 +180,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 #     }
 # }
 
-#Database production
 
 DATABASES = {
     "default": {
