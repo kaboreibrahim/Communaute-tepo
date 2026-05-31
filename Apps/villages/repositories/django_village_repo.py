@@ -53,7 +53,6 @@ def _village_to_dto(
         description=village.description,
         latitude=village.latitude,
         longitude=village.longitude,
-        population_estimee=village.population_estimee,
         chef_village=village.chef_village,
         date_creation=village.date_creation,
         nombre_familles=village.nombre_familles,
@@ -147,7 +146,6 @@ class DjangoVillageRepository(VillageRepositoryInterface):
             description=data.description,
             latitude=data.latitude,
             longitude=data.longitude,
-            population_estimee=data.population_estimee,
             chef_village=data.chef_village,
             created_by_id=data.created_by_id,
         )
@@ -159,12 +157,11 @@ class DjangoVillageRepository(VillageRepositoryInterface):
             id=data.id,
             deleted__isnull=True
         )
-        village.nom                = data.nom
-        village.description        = data.description
-        village.latitude           = data.latitude
-        village.longitude          = data.longitude
-        village.population_estimee = data.population_estimee
-        village.chef_village       = data.chef_village
+        village.nom         = data.nom
+        village.description = data.description
+        village.latitude    = data.latitude
+        village.longitude   = data.longitude
+        village.chef_village = data.chef_village
         village.save()
         _sync_quick_infrastructures(village, data.infrastructure_types)
         return _village_to_dto(village)

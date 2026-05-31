@@ -23,7 +23,6 @@ class Village(SafeDeleteModel):
     description      = models.TextField(blank=True)
     latitude         = models.FloatField(null=True, blank=True)
     longitude        = models.FloatField(null=True, blank=True)
-    population_estimee = models.IntegerField(default=0)
     chef_village     = models.CharField(max_length=200, blank=True)
     created_by       = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -77,17 +76,12 @@ class Village(SafeDeleteModel):
 
     @property
     def nombre_habitants(self):
-        familles = self._get_familles_manager()
-        if familles is None:
-            return 0
-
-        total = 0
-        for famille in familles.all():
-            membres = getattr(famille, 'membres', None)
-            if membres is None:
-                continue
-            total += membres.count()
-        return total
+        from Apps.person.models import Person
+        return Person.objects.filter(
+            famille__village=self,
+            famille__deleted__isnull=True,
+            deleted__isnull=True,
+        ).count()
     
     @property
     def nombre_ecoles(self):

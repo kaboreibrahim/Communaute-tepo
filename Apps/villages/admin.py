@@ -27,7 +27,6 @@ class VillageAdmin(admin.ModelAdmin):
     list_display = (
         "nom",
         "chef_village",
-        "population_estimee",
         "nb_familles_display",
         "nb_habitants_display",
         "nb_infras_display",
@@ -65,7 +64,6 @@ class VillageAdmin(admin.ModelAdmin):
             "Population",
             {
                 "fields": (
-                    "population_estimee",
                     "nb_familles_display",
                     "nb_habitants_display",
                 )
@@ -187,9 +185,8 @@ class VillageAdmin(admin.ModelAdmin):
                 "ID",
                 "Nom",
                 "Chef de village",
-                "Population estimee",
+                "Membres enregistres",
                 "Nb familles",
-                "Nb habitants",
                 "Nb infrastructures",
                 "Latitude",
                 "Longitude",
@@ -202,9 +199,8 @@ class VillageAdmin(admin.ModelAdmin):
                     str(village.id),
                     village.nom,
                     village.chef_village or "-",
-                    village.population_estimee,
-                    village.nombre_familles,
                     village.nombre_habitants,
+                    village.nombre_familles,
                     village.nombre_total_infrastructures,
                     village.latitude or "",
                     village.longitude or "",

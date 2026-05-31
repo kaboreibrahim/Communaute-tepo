@@ -13,7 +13,7 @@ from django.contrib.auth.decorators   import login_required
 from django.utils.decorators          import method_decorator
 from django.views                     import View
 from django.core.paginator            import Paginator
-from django.db.models                 import Q, Sum, Count
+from django.db.models                 import Q, Count
 
 from Apps.villages.repositories.django_village_repo import DjangoVillageRepository
 from Apps.villages.use_cases.list_villages   import ListVillagesUseCase
@@ -509,10 +509,9 @@ def _get_stats() -> dict:
     villages_qs = Village.objects.filter(deleted__isnull=True)
     infras_qs   = Infrastructure.objects.filter(deleted__isnull=True)
 
+    from Apps.person.models import Person
     total_villages        = villages_qs.count()
-    population_totale     = villages_qs.aggregate(
-                                total=Sum('population_estimee')
-                            )['total'] or 0
+    population_totale     = Person.objects.filter(deleted__isnull=True).count()
     total_infrastructures = infras_qs.count()
 
     # Pourcentage arbitraire pour la barre de progression
@@ -597,14 +596,6 @@ class VillageListView(View):
                 infrastructures__type_infrastructure=infra,
                 infrastructures__deleted__isnull=True
             ).distinct()
-
-        if pop:
-            try:
-                villages_qs = villages_qs.filter(
-                    population_estimee__gte=int(pop)
-                )
-            except ValueError:
-                pass
 
         # Prefetch infrastructures pour éviter N+1 dans le template
         villages_qs = villages_qs.prefetch_related(
@@ -743,9 +734,6 @@ class VillageCreateView(View):
             description=request.POST.get('description', '').strip(),
             latitude=self._float_or_none(request.POST.get('latitude')),
             longitude=self._float_or_none(request.POST.get('longitude')),
-            population_estimee=_safe_int(
-                request.POST.get('population_estimee', 0) or 0
-            ),
             chef_village=request.POST.get('chef_village', '').strip(),
             created_by_id=str(request.user.id),
         )
@@ -821,9 +809,6 @@ class VillageUpdateView(View):
             ),
             longitude=VillageCreateView._float_or_none(
                 request.POST.get('longitude')
-            ),
-            population_estimee=_safe_int(
-                request.POST.get('population_estimee', 0) or 0
             ),
             chef_village=request.POST.get('chef_village', '').strip(),
         )

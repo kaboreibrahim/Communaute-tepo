@@ -1,0 +1,397 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}{% if action == 'create' %}Ajouter une image{% else %}Modifier l'image{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+  #drop-zone { transition: border-color 0.2s, background 0.2s; }
+  #drop-zone.drag-over { border-color: #00613a; background: rgba(0,97,58,0.05); }
+  #drop-zone.has-file { border-color: #00613a; background: rgba(0,97,58,0.03); }
+  .preview-anim { animation: fadeIn 0.3s ease both; }
+  @keyframes fadeIn { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+  .tab-btn.active { background: #00613a; color: #fff; border-color: #00613a; }
+  .tab-btn:not(.active) { background: white; color: #475569; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+  <a href="{% url 'dashbord:admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span>/</span>
+  <a href="{% url 'dashbord:site-images-list' %}" class="hover:text-primary transition-colors">Images du site</a>
+  <span>/</span>
+  <span class="text-primary font-semibold">{% if action == 'create' %}Ajouter{% else %}Modifier{% endif %}</span>
+</nav>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100">
+      {% if action == 'create' %}Ajouter une image{% else %}Modifier l'image{% endif %}
+    </h1>
+    <p class="text-sm text-slate-500 mt-0.5">
+      {% if action == 'create' %}Choisissez un fichier ou collez une URL externe.{% else %}Modifiez les informations et l'image.{% endif %}
+    </p>
+  </div>
+  <a href="{% url 'dashbord:site-images-list' %}"
+     class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+    <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+    Retour
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if errors %}
+<div class="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+  <span class="material-symbols-outlined mt-0.5 text-base shrink-0">error</span>
+  <div class="space-y-1">
+    {% for field, msg in errors.items %}
+    <p><span class="font-semibold capitalize">{{ field }} :</span> {{ msg }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" id="image-form">
+  {% csrf_token %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    {# ── Colonne gauche : Upload + URL ── #}
+    <div class="lg:col-span-3 space-y-5">
+
+      {# Section #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+          <span class="material-symbols-outlined text-primary" style="font-size:18px">web</span>
+          Section cible
+        </h2>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="section-card relative flex flex-col items-center gap-2 cursor-pointer rounded-2xl border-2 p-4 transition-all
+            {% if obj.section == 'hero' or section_defaut == 'hero' or not obj and not section_defaut %}border-primary bg-primary/5{% else %}border-slate-200 hover:border-primary/40{% endif %}"
+            id="card-section-hero">
+            <input type="radio" name="section" value="hero" class="sr-only"
+              {% if obj.section == 'hero' or section_defaut == 'hero' or not obj and not section_defaut %}checked{% endif %}
+              onchange="updateSectionCards()">
+            <span class="material-symbols-outlined text-3xl text-primary" style="font-variation-settings:'FILL' 1">slideshow</span>
+            <span class="text-sm font-bold text-slate-800 dark:text-slate-100">Héros</span>
+            <span class="text-[10px] text-slate-500 text-center">Carrousel en haut de la page</span>
+          </label>
+          <label class="section-card relative flex flex-col items-center gap-2 cursor-pointer rounded-2xl border-2 p-4 transition-all
+            {% if obj.section == 'about' or section_defaut == 'about' %}border-primary bg-primary/5{% else %}border-slate-200 hover:border-primary/40{% endif %}"
+            id="card-section-about">
+            <input type="radio" name="section" value="about" class="sr-only"
+              {% if obj.section == 'about' or section_defaut == 'about' %}checked{% endif %}
+              onchange="updateSectionCards()">
+            <span class="material-symbols-outlined text-3xl text-violet-500" style="font-variation-settings:'FILL' 1">info</span>
+            <span class="text-sm font-bold text-slate-800 dark:text-slate-100">À propos</span>
+            <span class="text-[10px] text-slate-500 text-center">Section présentation</span>
+          </label>
+        </div>
+      </div>
+
+      {# Upload / URL avec onglets #}
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+          <span class="material-symbols-outlined text-primary" style="font-size:18px">image</span>
+          Image
+          <span class="text-red-400 text-sm">*</span>
+        </h2>
+
+        {# Onglets #}
+        <div class="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-600 mb-4 w-fit">
+          <button type="button" id="tab-upload" onclick="switchTab('upload')"
+                  class="tab-btn active px-4 py-2 text-xs font-bold border transition-colors">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined" style="font-size:14px">upload_file</span>
+              Fichier
+            </span>
+          </button>
+          <button type="button" id="tab-url" onclick="switchTab('url')"
+                  class="tab-btn px-4 py-2 text-xs font-bold border-l-0 border transition-colors">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined" style="font-size:14px">link</span>
+              URL externe
+            </span>
+          </button>
+        </div>
+
+        {# Panneau Upload #}
+        <div id="panel-upload" class="tab-panel active">
+          <div id="drop-zone"
+               class="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-600 p-6 text-center cursor-pointer relative"
+               onclick="document.getElementById('file-input').click()"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)"
+               ondrop="handleDrop(event)">
+            <input type="file" name="image" id="file-input" accept="image/*" class="hidden">
+
+            <div id="upload-placeholder">
+              <div class="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
+                <span class="material-symbols-outlined text-primary" style="font-size:28px">cloud_upload</span>
+              </div>
+              <p class="font-semibold text-slate-600 dark:text-slate-300 text-sm">Glissez votre image ici</p>
+              <p class="text-xs text-slate-400 mt-1">ou <span class="text-primary font-semibold">parcourir</span></p>
+              <p class="text-xs text-slate-300 dark:text-slate-600 mt-2">JPG, PNG, WebP — max 10 Mo</p>
+            </div>
+
+            <div id="upload-preview" class="hidden">
+              <img id="preview-img" src="" alt="" class="preview-anim max-h-52 mx-auto rounded-xl object-contain shadow">
+              <div class="mt-3 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-primary" style="font-size:14px;font-variation-settings:'FILL' 1">check_circle</span>
+                <p id="file-name" class="text-sm font-semibold text-primary truncate max-w-xs"></p>
+              </div>
+              <p id="file-size" class="text-xs text-slate-400 mt-1"></p>
+            </div>
+          </div>
+
+          {# Image actuelle (mode edit) #}
+          {% if obj and obj.image %}
+          <div class="mt-3 flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50">
+            <img src="{{ obj.image.url }}" alt="" class="w-14 h-14 rounded-xl object-cover border border-slate-200">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">Image actuelle</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Choisir un nouveau fichier remplacera celle-ci.</p>
+            </div>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="supprimer_image" id="supprimer_image" class="rounded border-slate-300 text-red-500">
+              <span class="text-xs text-red-500 font-medium">Supprimer</span>
+            </label>
+          </div>
+          {% elif obj and obj.image_url %}
+          <div class="mt-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 p-3 text-xs text-slate-500">
+            Image actuelle depuis URL — ajoutez un fichier pour la remplacer.
+          </div>
+          {% endif %}
+        </div>
+
+        {# Panneau URL #}
+        <div id="panel-url" class="tab-panel">
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">URL de l'image</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400" style="font-size:16px">link</span>
+              <input type="url" name="image_url" id="image-url-input"
+                     value="{{ obj.image_url|default:'' }}"
+                     placeholder="https://exemple.com/image.jpg"
+                     class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors"
+                     oninput="previewUrl(this.value)">
+            </div>
+            <div id="url-preview-wrap" class="hidden mt-3">
+              <img id="url-preview-img" src="" alt=""
+                   class="preview-anim max-h-40 rounded-xl object-contain mx-auto shadow border border-slate-100">
+            </div>
+            <p class="text-xs text-slate-400">Collez l'URL complète d'une image hébergée en ligne.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Colonne droite : Informations ── #}
+    <div class="lg:col-span-2 space-y-5">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-5 space-y-5">
+        <h2 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary" style="font-size:18px">text_fields</span>
+          Informations
+        </h2>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Titre</label>
+          <input type="text" name="titre"
+                 value="{{ obj.titre|default:'' }}"
+                 placeholder="Ex. Cérémonie annuelle 2025"
+                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Sous-titre</label>
+          <input type="text" name="sous_titre"
+                 value="{{ obj.sous_titre|default:'' }}"
+                 placeholder="Description courte affichée sous le titre"
+                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Texte alternatif (alt)</label>
+          <input type="text" name="texte_alt"
+                 value="{{ obj.texte_alt|default:'' }}"
+                 placeholder="Description pour l'accessibilité et le SEO"
+                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors">
+          <p class="mt-1 text-[10px] text-slate-400">Décrivez l'image brièvement pour l'accessibilité.</p>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Ordre d'affichage</label>
+          <input type="number" name="ordre" min="0"
+                 value="{{ obj.ordre|default:'0' }}"
+                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors">
+          <p class="mt-1 text-[10px] text-slate-400">Plus le chiffre est petit, plus l'image apparaît en premier.</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50">
+          <div>
+            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Image active</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Affichée sur le site si activée.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="est_active" id="toggle-active"
+                   {% if obj.est_active or action == 'create' %}checked{% endif %}
+                   class="sr-only peer">
+            <div class="w-10 h-5 bg-slate-200 peer-checked:bg-primary rounded-full transition-colors peer-focus:ring-2 peer-focus:ring-primary/30"></div>
+            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+          </label>
+        </div>
+      </div>
+
+      {# Bouton de soumission #}
+      <button type="submit" id="submit-btn"
+              class="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-colors shadow-md">
+        <span class="material-symbols-outlined" style="font-size:20px">{% if action == 'create' %}add_photo_alternate{% else %}save{% endif %}</span>
+        {% if action == 'create' %}Ajouter l'image{% else %}Enregistrer les modifications{% endif %}
+      </button>
+
+      {# Infos mode édition #}
+      {% if obj %}
+      <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-2 text-xs text-slate-500">
+        <p><span class="font-semibold">Section :</span> {{ obj.get_section_display }}</p>
+        <p><span class="font-semibold">Ajouté le :</span> {{ obj.date_creation|date:"d/m/Y à H:i" }}</p>
+        <p><span class="font-semibold">Statut :</span>
+          {% if obj.est_active %}
+          <span class="text-emerald-600 font-semibold">Active</span>
+          {% else %}
+          <span class="text-slate-400 font-semibold">Inactive</span>
+          {% endif %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Onglets upload / URL ──
+  function switchTab(tab) {
+    ['upload', 'url'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+      document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
+    });
+    // Vider l'autre champ pour éviter les conflits
+    if (tab === 'upload') {
+      document.getElementById('image-url-input').value = '';
+      document.getElementById('url-preview-wrap').classList.add('hidden');
+    } else {
+      document.getElementById('file-input').value = '';
+      document.getElementById('upload-preview').classList.add('hidden');
+      document.getElementById('upload-placeholder').classList.remove('hidden');
+      document.getElementById('drop-zone').classList.remove('has-file');
+    }
+  }
+
+  // Auto-detect : si une URL est pré-remplie, activer l'onglet URL
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlVal = document.getElementById('image-url-input').value.trim();
+    if (urlVal) {
+      switchTab('url');
+      previewUrl(urlVal);
+    }
+  });
+
+  // ── Upload drag & drop ──
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  }
+  function handleDragLeave() {
+    dropZone.classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) processFile(fileInput.files[0]);
+  });
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' o';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' Ko';
+    return (b/1024/1024).toFixed(1) + ' Mo';
+  }
+
+  function processFile(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner un fichier image (JPG, PNG, WebP…).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('file-name').textContent = file.name;
+      document.getElementById('file-size').textContent = formatBytes(file.size);
+      document.getElementById('upload-placeholder').classList.add('hidden');
+      document.getElementById('upload-preview').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+    dropZone.classList.add('has-file');
+
+    // Auto-remplir l'alt si vide
+    const altInput = document.querySelector('[name="texte_alt"]');
+    if (altInput && !altInput.value.trim()) {
+      altInput.value = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    }
+  }
+
+  // ── Prévisualisation URL ──
+  function previewUrl(url) {
+    const wrap = document.getElementById('url-preview-wrap');
+    const img = document.getElementById('url-preview-img');
+    if (!url.trim()) {
+      wrap.classList.add('hidden');
+      return;
+    }
+    img.src = url;
+    img.onload = () => wrap.classList.remove('hidden');
+    img.onerror = () => wrap.classList.add('hidden');
+  }
+
+  // ── Cards de section ──
+  function updateSectionCards() {
+    const hero = document.querySelector('[name="section"][value="hero"]');
+    const about = document.querySelector('[name="section"][value="about"]');
+    document.getElementById('card-section-hero').classList.toggle('border-primary', hero.checked);
+    document.getElementById('card-section-hero').classList.toggle('bg-primary/5', hero.checked);
+    document.getElementById('card-section-hero').classList.toggle('border-slate-200', !hero.checked);
+    document.getElementById('card-section-about').classList.toggle('border-primary', about.checked);
+    document.getElementById('card-section-about').classList.toggle('bg-primary/5', about.checked);
+    document.getElementById('card-section-about').classList.toggle('border-slate-200', !about.checked);
+  }
+
+  // ── Loading soumission ──
+  document.getElementById('image-form').addEventListener('submit', () => {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      Enregistrement…
+    `;
+  });
+</script>
+{% endblock %}

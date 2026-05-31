@@ -269,10 +269,7 @@ class AccueilView(TemplateView):
         context["title"] = "Accueil"
         context["villages"] = (
             Village.objects.filter(deleted__isnull=True)
-            .only(
-                "nom",
-                "population_estimee",
-            )
+            .only("nom")
             .order_by("nom")
         )
         # Calculate real statistics from database

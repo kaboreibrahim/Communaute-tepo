@@ -9,6 +9,7 @@ from .rapports_urls import urlpatterns as rapports_urls
 from .history_urls import urlpatterns as history_urls
 from .cotisations_urls import urlpatterns as cotisations_urls
 from .blog_urls import urlpatterns as blog_urls
+from .website_images_urls import urlpatterns as website_images_urls
 
 app_name = 'dashbord'
 
@@ -23,4 +24,5 @@ urlpatterns = [
     path('', include(history_urls)),
     path('', include(cotisations_urls)),
     path('', include(blog_urls)),
+    path('', include(website_images_urls)),
 ]

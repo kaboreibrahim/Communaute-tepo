@@ -186,6 +186,115 @@
     </article>
   </div>
 
+  {# ── Section Médiathèque / Images ── #}
+  <article class="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
+    <div class="flex flex-col gap-4 border-b border-primary/10 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 dark:bg-sky-900/30">
+          <span class="material-symbols-outlined" style="font-size:22px;font-variation-settings:'FILL' 1">photo_library</span>
+        </div>
+        <div>
+          <h4 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Médiathèque — Images</h4>
+          <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+            Gérez vos photos, illustrations et documents visuels.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'medias:media-upload' %}"
+           class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary/20 transition-transform hover:bg-primary/90 active:scale-95">
+          <span class="material-symbols-outlined text-base">upload</span>
+          Ajouter une image
+        </a>
+        <a href="{% url 'medias:media-list' %}?type=image"
+           class="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-primary hover:text-primary dark:bg-slate-900 dark:text-slate-200">
+          Voir tout
+          <span class="material-symbols-outlined text-base">north_east</span>
+        </a>
+      </div>
+    </div>
+
+    {# Statistiques rapides #}
+    <div class="grid grid-cols-3 divide-x divide-primary/10 border-b border-primary/10 dark:divide-slate-700 dark:border-slate-700">
+      <div class="flex items-center gap-3 px-6 py-4">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-900/30">
+          <span class="material-symbols-outlined text-sky-600" style="font-size:18px;font-variation-settings:'FILL' 1">image</span>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-slate-900 dark:text-white">{{ media_total_images }}</p>
+          <p class="text-xs font-medium text-slate-500">Images</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 px-6 py-4">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/30">
+          <span class="material-symbols-outlined text-violet-600" style="font-size:18px;font-variation-settings:'FILL' 1">play_circle</span>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-slate-900 dark:text-white">{{ media_total_videos }}</p>
+          <p class="text-xs font-medium text-slate-500">Vidéos</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 px-6 py-4">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30">
+          <span class="material-symbols-outlined text-amber-600" style="font-size:18px;font-variation-settings:'FILL' 1">hard_drive</span>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-slate-900 dark:text-white">{{ media_taille_affichage }}</p>
+          <p class="text-xs font-medium text-slate-500">Stockage</p>
+        </div>
+      </div>
+    </div>
+
+    {# Grille des dernières images #}
+    <div class="p-6">
+      {% if media_recent_images %}
+      <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+        {% for img in media_recent_images %}
+        <a href="{% url 'medias:media-detail' img.pk %}"
+           class="group relative aspect-square overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 block"
+           title="{{ img.titre }}">
+          {% if img.fichier %}
+          <img src="{{ img.fichier.url }}"
+               alt="{{ img.titre }}"
+               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+               loading="lazy">
+          {% else %}
+          <div class="flex h-full w-full items-center justify-center">
+            <span class="material-symbols-outlined text-slate-300" style="font-size:28px;font-variation-settings:'FILL' 1">image</span>
+          </div>
+          {% endif %}
+          <div class="absolute inset-0 bg-black/0 transition-colors duration-200 group-hover:bg-black/25"></div>
+          <div class="absolute bottom-0 left-0 right-0 translate-y-full p-1.5 transition-transform duration-200 group-hover:translate-y-0">
+            <p class="truncate rounded-lg bg-black/60 px-1.5 py-1 text-[9px] font-semibold text-white">{{ img.titre }}</p>
+          </div>
+        </a>
+        {% endfor %}
+
+        {# Carte "Ajouter" #}
+        <a href="{% url 'medias:media-upload' %}"
+           class="group relative flex aspect-square flex-col items-center justify-center gap-1.5 overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10 dark:border-primary/30 dark:bg-primary/10">
+          <span class="material-symbols-outlined text-3xl transition-transform duration-200 group-hover:scale-110">add_photo_alternate</span>
+          <span class="text-[10px] font-bold uppercase tracking-[0.18em]">Ajouter</span>
+        </a>
+      </div>
+      {% else %}
+      <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-primary/20 bg-primary/5 px-6 py-14 text-center dark:border-primary/30 dark:bg-slate-800/60">
+        <span class="material-symbols-outlined text-5xl text-primary/40">photo_library</span>
+        <p class="mt-4 text-base font-bold text-slate-900 dark:text-white">Aucune image pour l'instant</p>
+        <p class="mt-2 max-w-xs text-sm text-slate-500 dark:text-slate-400">
+          Importez des photos, illustrations ou documents visuels pour enrichir la médiathèque.
+        </p>
+        <a href="{% url 'medias:media-upload' %}"
+           class="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary/20 transition-transform hover:bg-primary/90 active:scale-95">
+          <span class="material-symbols-outlined text-base">upload</span>
+          Importer la première image
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </article>
+
+  {# ── Dernieres inscriptions de familles ── #}
   <article class="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm dark:bg-slate-900">
     <div class="flex flex-col gap-4 border-b border-primary/10 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div>

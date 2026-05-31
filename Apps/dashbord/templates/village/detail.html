@@ -222,12 +222,12 @@
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-primary/10 shadow-sm">
-    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Population estimee</p>
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Membres enregistrés</p>
     <div class="flex items-end justify-between gap-3 mt-2">
-      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ village.population_estimee|floatformat:0 }}</p>
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ village.nombre_habitants }}</p>
       <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
         <span class="material-symbols-outlined text-sm">groups</span>
-        Habitants
+        Personnes
       </span>
     </div>
   </div>
@@ -260,7 +260,7 @@
     </div>
   </div>
 </div>
-
+{% comment %} 
 <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-primary/10 overflow-hidden mb-6">
   <div class="p-6 border-b border-primary/10 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
     <div>
@@ -305,7 +305,7 @@
     <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Ajoutez la latitude et la longitude dans le formulaire du village pour afficher sa position ici.</p>
   </div>
   {% endif %}
-</div>
+</div> {% endcomment %}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
   <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-primary/10">

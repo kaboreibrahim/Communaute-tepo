@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ titre }} inscription Communauté TEPO</title>
+  <title>Pré-inscription — Communauté TEPO</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -14,1068 +17,1048 @@
           colors: {
             primary: "#00613a",
             accent: "#ff8200",
-            "background-light": "#f4f7f4",
-            "background-dark": "#0f231b",
             "primary-dark": "#0b2d20",
-            "surface-soft": "#f7faf8"
-          },
-          boxShadow: {
-            soft: "0 24px 60px rgba(15, 23, 42, 0.08)",
-            hero: "0 28px 70px rgba(15, 23, 42, 0.22)"
           },
           fontFamily: {
             body: ["Inter", "sans-serif"],
-            display: ["Sora", "sans-serif"]
+            display: ["Sora", "sans-serif"],
           }
         }
       }
     };
   </script>
+
   <style>
     :root { color-scheme: light; }
-    body {
-      font-family: "Inter", sans-serif;
-      background-image:
-        radial-gradient(circle at top left, rgba(0,97,58,0.06), transparent 32%),
-        radial-gradient(circle at top right, rgba(255,130,0,0.10), transparent 28%),
-        linear-gradient(180deg, #f4f7f4 0%, #eef3ef 100%);
-    }
+    body { font-family: "Inter", sans-serif; background: #f2f5f2; }
     .font-display { font-family: "Sora", sans-serif; }
-    .section-anchor { scroll-margin-top: 9.5rem; }
-    .floating-grid {
-      background-image:
-        linear-gradient(rgba(0,97,58,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,97,58,0.04) 1px, transparent 1px);
-      background-size: 32px 32px;
-    }
-    .glass-card {
-      background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(16px);
-    }
-    .field-label {
-      display: block;
-      margin-bottom: 0.55rem;
-      padding-left: 0.15rem;
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #64748b;
-    }
-    .field-base {
-      width: 100%;
-      min-height: 3.25rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: #f8faf8;
-      padding: 0.85rem 1rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #0f172a;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-    }
-    .field-base::placeholder {
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .field-base:focus {
-      outline: none;
-      border-color: rgba(0,97,58,0.35);
-      box-shadow: 0 0 0 4px rgba(0,97,58,0.12);
-      background: #ffffff;
-    }
-    .field-base:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
-    .field-base[size] {
-      min-height: 13rem;
-      padding-top: 0.9rem;
-      padding-bottom: 0.9rem;
-    }
-    textarea.field-base {
-      min-height: 10rem;
-      resize: vertical;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-    }
-    .panel-card {
-      border: 1px solid rgba(226,232,240,0.95);
-      border-radius: 1.5rem;
-      background: rgba(248,250,252,0.72);
-      padding: 1.35rem;
-    }
-    .summary-kpi {
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 1.25rem;
-      background: rgba(255,255,255,0.08);
-      padding: 1rem;
-    }
-    .nav-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      white-space: nowrap;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: #ffffff;
-      padding: 0.75rem 1rem;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #0f172a;
-      box-shadow: 0 12px 30px rgba(15,23,42,0.05);
-      transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-    }
-    .nav-chip:hover {
-      border-color: rgba(0,97,58,0.18);
-      color: #00613a;
-      transform: translateY(-1px);
-    }
-    .summary-line {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    .summary-line dt {
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #94a3b8;
-    }
-    .summary-line dd {
-      text-align: right;
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: #0f172a;
-      word-break: break-word;
-    }
-    .choice-card {
-      position: relative;
-      display: flex;
-      min-height: 3.75rem;
-      align-items: center;
-      gap: 0.85rem;
-      border-radius: 1.1rem;
-      border: 1px solid rgba(148,163,184,0.20);
-      background: #f8faf8;
-      padding: 1rem;
-      color: #0f172a;
-      transition: all 0.2s ease;
-    }
-    .choice-card:hover {
-      border-color: rgba(0,97,58,0.24);
-      background: #ffffff;
-      transform: translateY(-1px);
-    }
-    .choice-card input {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
-    .choice-card.active {
-      border-color: rgba(0,97,58,0.35);
-      background: rgba(0,97,58,0.08);
-      box-shadow: 0 0 0 4px rgba(0,97,58,0.10);
-    }
-    .choice-card.accent-active {
-      border-color: rgba(255,130,0,0.42);
-      background: rgba(255,130,0,0.10);
-      box-shadow: 0 0 0 4px rgba(255,130,0,0.10);
-    }
-    @media (max-width: 1023px) {
-      .section-anchor { scroll-margin-top: 8rem; }
-    }
 
     .material-symbols-outlined {
       font-family: 'Material Symbols Outlined';
-      font-weight: normal;
-      font-style: normal;
-      font-size: 24px;
-      line-height: 1;
-      letter-spacing: normal;
-      text-transform: none;
-      display: inline-block;
-      white-space: nowrap;
-      word-wrap: normal;
-      direction: ltr;
-      -webkit-font-smoothing: antialiased;
-      font-feature-settings: 'liga';
+      font-weight: normal; font-style: normal; font-size: 24px;
+      line-height: 1; letter-spacing: normal; text-transform: none;
+      display: inline-block; white-space: nowrap; word-wrap: normal;
+      direction: ltr; -webkit-font-smoothing: antialiased; font-feature-settings: 'liga';
     }
+
+    /* ── Fields ── */
+    .field-label {
+      display: block; margin-bottom: 0.45rem;
+      font-size: 0.7rem; font-weight: 800;
+      letter-spacing: 0.2em; text-transform: uppercase; color: #64748b;
+    }
+    .field-base {
+      width: 100%; min-height: 3.1rem;
+      border-radius: 0.875rem; border: 1.5px solid #e2e8f0;
+      background: #f8faf8; padding: 0.75rem 1rem;
+      font-size: 0.94rem; font-weight: 600; color: #0f172a;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field-base::placeholder { color: #94a3b8; font-weight: 500; }
+    .field-base:focus {
+      outline: none; border-color: #00613a;
+      box-shadow: 0 0 0 3px rgba(0,97,58,0.13); background: #fff;
+    }
+    .field-base.is-error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+    textarea.field-base { min-height: 7rem; resize: vertical; padding-top: 0.85rem; }
+    select.field-base {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.8rem center;
+      background-size: 1.15rem; padding-right: 2.5rem;
+    }
+
+    /* ── Choice cards ── */
+    .choice-card {
+      position: relative; display: flex; align-items: center; gap: 0.75rem;
+      min-height: 3.25rem; border-radius: 0.875rem; border: 1.5px solid #e2e8f0;
+      background: #f8faf8; padding: 0.85rem 1rem; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .choice-card:hover { border-color: #00613a; background: #fff; }
+    .choice-card input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .choice-card.active { border-color: #00613a; background: rgba(0,97,58,0.07); box-shadow: 0 0 0 3px rgba(0,97,58,0.1); }
+    .choice-card.accent-active { border-color: #ff8200; background: rgba(255,130,0,0.07); box-shadow: 0 0 0 3px rgba(255,130,0,0.1); }
+
+    /* ── Steps ── */
+    .step-panel { display: none; }
+    .step-panel.active {
+      display: block;
+      animation: fadeUp 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .step-panel.active.reverse { animation: fadeUpReverse 0.3s cubic-bezier(0.4,0,0.2,1); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUpReverse {
+      from { opacity: 0; transform: translateY(-14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Step dots ── */
+    .step-dot {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%;
+      border: 2px solid #e2e8f0; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 800; color: #94a3b8;
+      transition: all 0.3s; flex-shrink: 0;
+    }
+    .step-dot.is-done { background: #00613a; border-color: #00613a; color: #fff; }
+    .step-dot.is-current {
+      background: #fff; border-color: #00613a; color: #00613a;
+      box-shadow: 0 0 0 4px rgba(0,97,58,0.15);
+    }
+    .step-line { flex: 1; height: 2px; background: #e2e8f0; transition: background 0.4s; }
+    .step-line.is-done { background: #00613a; }
+
+    /* ── Field error ── */
+    .field-err { color: #ef4444; font-size: 0.76rem; font-weight: 600; margin-top: 0.3rem; display: none; }
+    .field-err.show { display: flex; align-items: center; gap: 0.25rem; }
+
+    /* ── TomSelect overrides ── */
+    .ts-wrapper { width: 100%; }
+    .ts-wrapper .ts-control {
+      border: 1.5px solid #e2e8f0 !important; border-radius: 0.875rem !important;
+      background: #f8faf8 !important; min-height: 3.1rem !important;
+      padding: 0.6rem 2.5rem 0.6rem 1rem !important;
+      box-shadow: none !important; font-size: 0.94rem !important;
+      font-weight: 600 !important; color: #0f172a !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important; cursor: pointer !important;
+    }
+    .ts-wrapper.focus .ts-control {
+      border-color: #00613a !important;
+      box-shadow: 0 0 0 3px rgba(0,97,58,0.13) !important;
+      background: #fff !important;
+    }
+    .ts-wrapper .ts-control input {
+      all: unset !important; font-size: 0.94rem !important;
+      font-weight: 500 !important; color: #0f172a !important;
+      flex: 1 !important; min-width: 60px !important;
+    }
+    .ts-wrapper .ts-control input::placeholder { color: #94a3b8 !important; font-weight: 500 !important; }
+    .ts-wrapper .ts-control .item {
+      background: rgba(0,97,58,0.1) !important; color: #00613a !important;
+      border-radius: 0.5rem !important; padding: 0.15rem 0.55rem !important;
+      font-weight: 700 !important; font-size: 0.85rem !important; border: none !important;
+    }
+    .ts-dropdown {
+      border: 1.5px solid #e2e8f0 !important; border-radius: 0.875rem !important;
+      box-shadow: 0 12px 32px rgba(15,23,42,0.12) !important;
+      overflow: hidden !important; margin-top: 4px !important;
+      background: #fff !important;
+    }
+    .ts-dropdown .ts-dropdown-content { max-height: 200px !important; }
+    .ts-dropdown .option {
+      padding: 0.7rem 1rem !important; font-size: 0.88rem !important;
+      font-weight: 500 !important; color: #334155 !important;
+    }
+    .ts-dropdown .option:hover,
+    .ts-dropdown .option.active { background: rgba(0,97,58,0.07) !important; color: #00613a !important; }
+    .ts-dropdown .option.selected { background: rgba(0,97,58,0.12) !important; color: #00613a !important; font-weight: 700 !important; }
+    .ts-dropdown .no-results { padding: 0.85rem 1rem !important; font-size: 0.88rem !important; color: #94a3b8 !important; }
+    .ts-wrapper .clear-button { color: #94a3b8 !important; font-size: 1.1rem !important; right: 0.75rem !important; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-spinner {
+      display: inline-block; width: 1.1rem; height: 1.1rem;
+      border: 2.5px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+
+    /* ── Modal ── */
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-card { animation: modalIn 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+    /* ── Recap ── */
+    .recap-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(0,97,58,0.1);
+    }
+    .recap-row:last-child { border-bottom: none; }
+    .recap-key { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(0,97,58,0.6); }
+    .recap-val { font-size: 0.88rem; font-weight: 700; color: #0f172a; text-align: right; max-width: 60%; }
   </style>
 </head>
-<body class="bg-background-light font-body text-slate-900">
-  <header class="sticky top-0 z-50 border-b border-primary/10 bg-white/85 backdrop-blur-xl">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-      <a href="{% url 'website:accueil' %}" class="flex items-center gap-3">
-        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/20">
-          <span class="material-symbols-outlined">account_balance</span>
+
+<body class="min-h-screen">
+
+  <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+  <header class="sticky top-0 z-50 border-b border-primary/10 bg-white/92 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+      <a href="{% url 'website:accueil' %}" class="flex items-center gap-2.5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20">
+          <span class="material-symbols-outlined" style="font-size:18px;">account_balance</span>
         </div>
-        <div>
-          <p class="font-display text-lg font-extrabold leading-none text-primary">Olodio</p>
-          <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-accent">Pre-inscription citoyenne</p>
+        <div class="hidden sm:block">
+          <p class="font-display text-sm font-extrabold leading-none text-primary">Communauté TEPO</p>
+          <p class="text-[9px] font-bold uppercase tracking-[0.22em] text-accent">Pré-inscription</p>
         </div>
       </a>
-      <div class="flex items-center gap-2 sm:gap-3">
-        <a href="{% url 'website:accueil' %}" class="inline-flex h-10 items-center justify-center rounded-xl border border-primary/15 px-4 text-sm font-semibold text-primary transition hover:bg-primary/5">Retour accueil</a>
-        <a href="{% url 'accounts:login' %}" class="inline-flex h-10 items-center justify-center rounded-xl bg-accent px-4 text-sm font-bold text-white shadow-lg shadow-accent/20 transition hover:scale-[1.02]">Se connecter</a>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'website:accueil' %}" class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-primary/15 px-3 text-sm font-semibold text-primary transition hover:bg-primary/5">
+          <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+          <span class="hidden sm:inline">Accueil</span>
+        </a>
+        <a href="{% url 'accounts:login' %}" class="inline-flex h-9 items-center rounded-xl bg-accent px-3.5 text-sm font-bold text-white shadow-md shadow-accent/20 transition hover:opacity-90">
+          Connexion
+        </a>
       </div>
     </div>
   </header>
 
-  <main class="pb-16">
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-dark"></div>
-      <div class="absolute inset-0 opacity-90" style="background-image: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.16), transparent 28%), radial-gradient(circle at 85% 0%, rgba(255,130,0,0.22), transparent 24%), linear-gradient(120deg, rgba(255,255,255,0.04), transparent 65%);"></div>
-      <div class="absolute -left-20 bottom-0 h-56 w-56 rounded-full bg-white/10 blur-3xl"></div>
-      <div class="absolute -right-10 top-10 h-64 w-64 rounded-full bg-accent/20 blur-3xl"></div>
+  <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-dark">
+    <div class="absolute -left-12 -top-12 h-48 w-48 rounded-full bg-white/5 blur-3xl"></div>
+    <div class="absolute -right-8 bottom-0 h-44 w-44 rounded-full bg-accent/20 blur-3xl"></div>
+    <div class="relative mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-12 text-center text-white">
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] backdrop-blur">
+        <span class="material-symbols-outlined" style="font-size:14px;">app_registration</span>
+        Dossier public
+      </span>
+      <h1 class="font-display mt-4 text-2xl font-black leading-tight sm:text-3xl">
+        Pré-inscription au registre citoyen de TEPO
+      </h1>
+      <p class="mt-3 text-sm text-emerald-50/80 leading-relaxed">
+        Remplissez ce formulaire en 4 étapes simples.<br class="hidden sm:block"> Votre demande sera vérifiée avant validation définitive.
+      </p>
+      <div class="mt-4 flex flex-wrap justify-center gap-2 text-[11px] font-semibold">
+        <span class="rounded-full bg-white/10 px-3 py-1.5">4 étapes guidées</span>
+        <span class="rounded-full bg-white/10 px-3 py-1.5">Famille obligatoire</span>
+        <span class="rounded-full bg-white/10 px-3 py-1.5">Validation après contrôle</span>
+      </div>
+    </div>
+  </section>
 
-      <div class="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 text-white sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-16">
-        <div class="space-y-6">
-          <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-white/90 backdrop-blur">
-            <span class="material-symbols-outlined text-sm">app_registration</span>
-            Dossier public guide
-          </span>
+  <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+  <main class="mx-auto max-w-2xl px-4 py-8 sm:px-6">
 
-          <div class="space-y-4">
-            <h1 class="max-w-3xl font-display text-4xl font-black leading-[1.05] sm:text-5xl lg:text-6xl">Enregistrez une personne dans le registre citoyen d'Olodio.</h1>
-            <p class="max-w-2xl text-base leading-7 text-emerald-50/85 sm:text-lg">Cette interface reprend les donnees du registre officiel, mais dans un parcours plus clair, plus mobile et plus rassurant pour une saisie publique.</p>
-          </div>
+    {% if not familles %}
+    <div class="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+      <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:18px;">warning</span>
+      <span>Aucune famille disponible. La famille est obligatoire — l'inscription reste désactivée jusqu'à ce qu'une famille active soit créée.</span>
+    </div>
+    {% endif %}
 
-          <div class="flex flex-wrap gap-3">
-            <span class="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur">4 sections a completer</span>
-            <span class="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur">Rattachement familial obligatoire</span>
-            <span class="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur">Validation apres controle</span>
-          </div>
+    {% if messages %}
+    <div class="mb-5 space-y-3">
+      {% for message in messages %}
+      {% if 'success' not in message.tags %}
+      <div class="flex items-start gap-3 rounded-2xl border {% if 'error' in message.tags %}border-red-200 bg-red-50 text-red-700{% else %}border-amber-200 bg-amber-50 text-amber-700{% endif %} px-4 py-3.5 text-sm font-medium">
+        <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:18px;">{% if 'error' in message.tags %}error{% else %}warning{% endif %}</span>
+        <span>{{ message }}</span>
+      </div>
+      {% else %}
+      <div class="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-medium text-emerald-700">
+        <span class="material-symbols-outlined mt-0.5 flex-shrink-0 text-emerald-500" style="font-size:18px;">check_circle</span>
+        <span>{{ message }}</span>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
 
-          <div class="grid gap-4 sm:grid-cols-3">
-            <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">1. Identite</p>
-              <p class="mt-2 text-sm leading-6 text-emerald-50/85">Nom, prenom, genre, naissance et piece d'identite.</p>
-            </div>
-            <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">2. Residence</p>
-              <p class="mt-2 text-sm leading-6 text-emerald-50/85">Contact, lieu actuel et type de residence.</p>
-            </div>
-            <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">3. Lignage</p>
-              <p class="mt-2 text-sm leading-6 text-emerald-50/85">Famille, conjoint, pere, mere et notes utiles.</p>
-            </div>
-          </div>
+    <!-- ══ STEP INDICATOR ══ -->
+    <div class="mb-7">
+      <div class="flex items-center">
+        <div class="flex flex-col items-center gap-1">
+          <div class="step-dot is-current" id="dot-1">1</div>
+          <span class="hidden text-[9px] font-bold uppercase tracking-[0.15em] text-primary sm:block">État civil</span>
         </div>
+        <div class="step-line mx-1.5 sm:mx-2" id="line-12"></div>
+        <div class="flex flex-col items-center gap-1">
+          <div class="step-dot" id="dot-2">2</div>
+          <span class="hidden text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400 sm:block">Contact</span>
+        </div>
+        <div class="step-line mx-1.5 sm:mx-2" id="line-23"></div>
+        <div class="flex flex-col items-center gap-1">
+          <div class="step-dot" id="dot-3">3</div>
+          <span class="hidden text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400 sm:block">Généalogie</span>
+        </div>
+        <div class="step-line mx-1.5 sm:mx-2" id="line-34"></div>
+        <div class="flex flex-col items-center gap-1">
+          <div class="step-dot" id="dot-4">4</div>
+          <span class="hidden text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400 sm:block">Notes</span>
+        </div>
+      </div>
+      <div class="mt-3.5 h-1.5 rounded-full bg-slate-200">
+        <div id="progress-bar" class="h-1.5 rounded-full bg-primary transition-all duration-500" style="width:25%"></div>
+      </div>
+      <p class="mt-2 text-right text-xs font-semibold text-slate-500" id="step-label">Étape 1 / 4 — État civil et identité</p>
+    </div>
 
-        <div class="rounded-[2rem] border border-white/10 bg-white/10 p-6 shadow-hero backdrop-blur-xl sm:p-7">
-          <div class="flex items-start justify-between gap-4">
+    <!-- ══════════════════ FORM ══════════════════ -->
+    <form method="POST" enctype="multipart/form-data" id="form-personne" novalidate>
+      {% csrf_token %}
+
+      <!-- ─────────────── STEP 1 : ÉTAT CIVIL ─────────────── -->
+      <div class="step-panel active" id="step-1">
+        <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+          <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-transparent px-5 py-5 sm:px-6">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span class="material-symbols-outlined" style="font-size:22px;">person</span>
+            </div>
             <div>
-              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100/80">Vue d'ensemble</p>
-              <h2 class="mt-2 font-display text-2xl font-black text-white">Votre dossier en direct</h2>
-            </div>
-            <div class="rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90">Public</div>
-          </div>
-
-          <div class="mt-6 rounded-[1.5rem] bg-slate-950/20 p-5">
-            <div class="flex items-center justify-between gap-4">
-              <span class="text-sm font-semibold text-white/90">Progression indicative</span>
-              <span id="completion-percent" class="font-display text-3xl font-black text-white">0%</span>
-            </div>
-            <div class="mt-4 h-2 rounded-full bg-white/10">
-              <div id="completion-bar" class="h-2 w-0 rounded-full bg-accent transition-all duration-300"></div>
-            </div>
-            <p id="completion-hint" class="mt-4 text-sm leading-6 text-emerald-50/80">Commencez par l'identite puis choisissez une famille pour lancer le dossier.</p>
-          </div>
-
-          <div class="mt-4 grid gap-3 sm:grid-cols-2">
-            <div class="summary-kpi">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Villages</p>
-              <p class="mt-2 font-display text-3xl font-black text-white">{{ villages|length }}</p>
-              <p class="mt-1 text-sm text-emerald-50/80">Disponibles pour les familles.</p>
-            </div>
-            <div class="summary-kpi">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Familles</p>
-              <p class="mt-2 font-display text-3xl font-black text-white">{{ familles|length }}</p>
-              <p class="mt-1 text-sm text-emerald-50/80">Selectionnables dans ce formulaire.</p>
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Étape 1 / 4</p>
+              <h2 class="font-display text-xl font-black text-slate-900">État civil et identité</h2>
             </div>
           </div>
 
-          <div class="mt-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-            <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Rattachement courant</p>
-            <p id="geo-village-chip" class="mt-3 font-display text-2xl font-black text-white">En attente de selection...</p>
-            <p id="geo-family-chip" class="mt-2 text-sm leading-6 text-emerald-50/80">Aucune famille selectionnee.</p>
+          <div class="space-y-5 px-5 py-5 sm:px-6">
+
+            <!-- Photo -->
+            <div>
+              <label class="field-label">Photo officielle <span class="font-normal normal-case tracking-normal text-xs text-slate-400">(optionnelle)</span></label>
+              <div id="photo-zone" onclick="document.getElementById('id_photo').click()"
+                class="relative flex h-36 cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition hover:border-primary hover:bg-primary/5">
+                {% if personne.photo %}
+                <img id="photo-preview" src="{{ personne.photo }}" alt="" class="absolute inset-0 h-full w-full object-cover">
+                {% else %}
+                <img id="photo-preview" src="" alt="" class="absolute inset-0 hidden h-full w-full object-cover">
+                {% endif %}
+                <div id="photo-placeholder" class="flex flex-col items-center gap-1.5 {% if personne.photo %}hidden{% endif %}">
+                  <span class="material-symbols-outlined text-4xl">add_a_photo</span>
+                  <span class="text-[11px] font-bold uppercase tracking-[0.18em]">Ajouter une photo</span>
+                  <span class="text-xs">JPG, PNG — Max 5 Mo</span>
+                </div>
+              </div>
+              <input type="file" name="photo" id="id_photo" accept="image/*" class="hidden" onchange="previewPhoto(this)">
+            </div>
+
+            <!-- Nom + Prénom -->
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Nom <span class="text-red-400">*</span></label>
+                <input type="text" name="nom" id="inp-nom" value="{{ form_data.nom|default:personne.nom }}" placeholder="Nom de famille" class="field-base">
+                <p class="field-err" id="err-nom"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Le nom est requis.</p>
+              </div>
+              <div>
+                <label class="field-label">Prénom <span class="text-red-400">*</span></label>
+                <input type="text" name="prenom" id="inp-prenom" value="{{ form_data.prenom|default:personne.prenom }}" placeholder="Prénom" class="field-base">
+                <p class="field-err" id="err-prenom"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Le prénom est requis.</p>
+              </div>
+            </div>
+
+            <!-- Surnom -->
+            <div>
+              <label class="field-label">Surnom <span class="font-normal normal-case tracking-normal text-xs text-slate-400">(optionnel)</span></label>
+              <input type="text" name="surnom" value="{{ form_data.surnom|default:personne.surnom }}" placeholder="Alias ou surnom" class="field-base">
+            </div>
+
+            <!-- Genre -->
+            <div>
+              <label class="field-label">Genre <span class="text-red-400">*</span></label>
+              <div class="grid grid-cols-2 gap-3">
+                <label id="genre-card-m" class="choice-card">
+                  <input type="radio" name="genre" value="M" {% if form_data.genre == 'M' or personne.genre == 'M' %}checked{% endif %}>
+                  <span class="material-symbols-outlined text-2xl text-primary">man</span>
+                  <span>
+                    <span class="block text-sm font-bold text-slate-900">Masculin</span>
+                    <span class="block text-xs text-slate-500">Homme</span>
+                  </span>
+                </label>
+                <label id="genre-card-f" class="choice-card">
+                  <input type="radio" name="genre" value="F" {% if form_data.genre == 'F' or personne.genre == 'F' %}checked{% endif %}>
+                  <span class="material-symbols-outlined text-2xl text-accent">woman</span>
+                  <span>
+                    <span class="block text-sm font-bold text-slate-900">Féminin</span>
+                    <span class="block text-xs text-slate-500">Femme</span>
+                  </span>
+                </label>
+              </div>
+              <p class="field-err" id="err-genre"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Sélectionnez un genre.</p>
+            </div>
+
+            <!-- Date + Lieu naissance -->
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Date de naissance</label>
+                <input type="date" name="date_naissance" value="{{ form_data.date_naissance|default:personne.date_naissance }}" class="field-base">
+              </div>
+              <div>
+                <label class="field-label">Lieu de naissance</label>
+                <input type="text" name="lieu_naissance" value="{{ form_data.lieu_naissance|default:personne.lieu_naissance }}" placeholder="Ville ou village" class="field-base">
+              </div>
+            </div>
+
+            <!-- Nationalité + CNI -->
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Nationalité</label>
+                <select name="nationalite" class="field-base">
+                  <option value="Ivoirienne" {% if personne.nationalite == 'Ivoirienne' or not personne.nationalite %}selected{% endif %}>Ivoirienne</option>
+                  <option value="Francaise" {% if personne.nationalite == 'Francaise' %}selected{% endif %}>Française</option>
+                  <option value="Autre" {% if personne.nationalite == 'Autre' %}selected{% endif %}>Autre</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Numéro CNI</label>
+                <input type="text" name="numero_cni" value="{{ form_data.numero_cni|default:personne.numero_cni }}" placeholder="CI-XXXXXXXXXX" class="field-base font-mono tracking-wide">
+              </div>
+            </div>
+
+            <!-- Profession -->
+            <div>
+              <label class="field-label">Profession</label>
+              <input type="text" name="profession" value="{{ form_data.profession|default:personne.profession }}" placeholder="Ex. Enseignant, commerçant, infirmière" class="field-base">
+            </div>
+
+            <!-- Situation + Statut vital -->
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Situation matrimoniale</label>
+                <select name="situation_matrimoniale" class="field-base">
+                  <option value="celibataire" {% if personne.situation_matrimoniale == 'celibataire' or not personne.situation_matrimoniale %}selected{% endif %}>Célibataire</option>
+                  <option value="marie" {% if personne.situation_matrimoniale == 'marie' %}selected{% endif %}>Marié(e)</option>
+                  <option value="divorce" {% if personne.situation_matrimoniale == 'divorce' %}selected{% endif %}>Divorcé(e)</option>
+                  <option value="veuf" {% if personne.situation_matrimoniale == 'veuf' %}selected{% endif %}>Veuf / Veuve</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Statut vital</label>
+                <div class="field-base flex items-center justify-between gap-3" style="cursor:default;">
+                  <span class="text-sm font-semibold text-slate-700" id="vital-label">Vivant(e)</span>
+                  <button type="button" id="toggle-vivant" onclick="toggleVivant()"
+                    class="relative inline-flex h-7 flex-shrink-0 rounded-full border-2 border-transparent transition-all duration-300"
+                    style="width:3.25rem; background:#00613a;">
+                    <span id="toggle-thumb" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition-all duration-300 translate-x-6"></span>
+                  </button>
+                  <input type="hidden" name="est_vivant" id="input-vivant" value="{% if personne.est_vivant != False %}on{% endif %}">
+                </div>
+              </div>
+            </div>
+
+            <!-- Date décès -->
+            <div id="section-deces" class="transition-all duration-300 {% if personne.est_vivant != False %}pointer-events-none opacity-40{% endif %}">
+              <label class="field-label">Date de décès</label>
+              <input type="date" name="date_deces" id="input-date-deces"
+                value="{{ form_data.date_deces|default:personne.date_deces }}"
+                {% if personne.est_vivant != False %}disabled{% endif %}
+                class="field-base">
+            </div>
+
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="sticky top-[73px] z-40 border-b border-primary/10 bg-white/85 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-4 py-3 sm:px-6">
-        <a href="#etat-civil" class="nav-chip">
-          <span class="material-symbols-outlined text-base text-primary">badge</span>
-          Etat civil
-        </a>
-        <a href="#contact" class="nav-chip">
-          <span class="material-symbols-outlined text-base text-primary">home_pin</span>
-          Contact
-        </a>
-        <a href="#genealogie" class="nav-chip">
-          <span class="material-symbols-outlined text-base text-primary">account_tree</span>
-          Genealogie
-        </a>
-        <a href="#notes" class="nav-chip">
-          <span class="material-symbols-outlined text-base text-primary">notes</span>
-          Notes
-        </a>
-      </div>
-    </section>
+      <!-- ─────────────── STEP 2 : CONTACT ─────────────── -->
+      <div class="step-panel" id="step-2">
+        <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
 
-    <section class="floating-grid">
-      <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-      {% if not familles %}
-      <div class="mb-6 rounded-[1.5rem] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800 shadow-sm">Aucune famille n'est disponible pour le moment. La famille est obligatoire pour creer une personne, donc l'inscription publique restera desactivee tant qu'aucune famille active n'existe.</div>
-      {% endif %}
-
-      {% if messages %}
-      <div class="mb-6 space-y-3">
-        {% for message in messages %}
-        <div class="flex items-start gap-3 rounded-[1.5rem] border px-4 py-3 text-sm font-medium shadow-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-amber-200 bg-amber-50 text-amber-700{% endif %}">
-          <span class="material-symbols-outlined text-lg">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}warning{% endif %}</span>
-          <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-        <form method="POST" enctype="multipart/form-data" id="form-personne" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]" novalidate>
-          {% csrf_token %}
-          <div class="space-y-8">
-            <section id="etat-civil" class="section-anchor overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-soft backdrop-blur">
-              <div class="border-b border-slate-100 px-6 py-6 sm:px-8">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div class="flex items-start gap-4">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary/10 text-primary">
-                      <span class="material-symbols-outlined text-3xl">person</span>
-                    </div>
-                    <div>
-                      <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">Section 1</p>
-                      <h2 class="mt-2 font-display text-2xl font-black text-slate-950 sm:text-3xl">Etat civil et identite</h2>
-                    </div>
-                  </div>
-                  <div class="rounded-full bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Noyau du dossier</div>
-                </div>
-                <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">Commencez par les informations qui permettent d'identifier la personne avec precision. Les champs obligatoires sont signales par une etoile.</p>
-              </div>
-
-              <div class="px-6 py-6 sm:px-8 sm:py-8">
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
-                  <div class="md:col-span-4 lg:col-span-3">
-                    <div class="panel-card h-full bg-gradient-to-b from-white to-slate-50">
-                      <div class="flex items-start justify-between gap-3">
-                        <div>
-                          <label class="field-label mb-0">Photographie officielle</label>
-                          <p class="mt-2 text-sm leading-6 text-slate-500">Ajoutez une photo nette si vous en disposez pour faciliter la verification manuelle.</p>
-                        </div>
-                      </div>
-
-                      <div id="photo-zone" onclick="document.getElementById('id_photo').click()" class="relative mt-5 flex aspect-[3/4] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[1.4rem] border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition hover:border-primary hover:bg-primary/5">
-                        {% if personne.photo %}
-                        <img id="photo-preview" src="{{ personne.photo }}" alt="Photo actuelle" class="absolute inset-0 h-full w-full object-cover">
-                        {% else %}
-                        <img id="photo-preview" src="" alt="" class="absolute inset-0 hidden h-full w-full object-cover">
-                        {% endif %}
-                        <div id="photo-placeholder" class="flex flex-col items-center gap-2 {% if personne.photo %}hidden{% endif %}">
-                          <span class="material-symbols-outlined text-5xl">add_a_photo</span>
-                          <span class="text-[11px] font-bold uppercase tracking-[0.2em]">Televerser</span>
-                        </div>
-                      </div>
-
-                      <input type="file" name="photo" id="id_photo" accept="image/*" class="hidden" onchange="previewPhoto(this)">
-
-                      <div class="mt-4 rounded-2xl bg-primary/5 px-4 py-3 text-xs leading-6 text-slate-600">
-                        Formats acceptes : JPG, PNG. Taille maximale recommandee : 5 Mo.
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 gap-6 md:col-span-8 lg:col-span-9 sm:grid-cols-2">
-                    <div>
-                      <label class="field-label">Nom <span class="text-red-400">*</span></label>
-                      <input type="text" name="nom" value="{{ form_data.nom|default:personne.nom }}" placeholder="Entrez le nom" required class="field-base">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Prenom <span class="text-red-400">*</span></label>
-                      <input type="text" name="prenom" value="{{ form_data.prenom|default:personne.prenom }}" placeholder="Entrez le prenom" required class="field-base">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Surnom</label>
-                      <input type="text" name="surnom" value="{{ form_data.surnom|default:personne.surnom }}" placeholder="Alias eventuel" class="field-base">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Genre <span class="text-red-400">*</span></label>
-                      <div class="grid gap-3 sm:grid-cols-2">
-                        <label id="genre-card-m" class="choice-card text-primary">
-                          <input type="radio" name="genre" value="M" {% if form_data.genre == 'M' or personne.genre == 'M' %}checked{% endif %}>
-                          <span class="material-symbols-outlined text-2xl">man</span>
-                          <span>
-                            <span class="block text-sm font-bold text-slate-900">Masculin</span>
-                            <span class="block text-xs font-medium text-slate-500">Selection masculine</span>
-                          </span>
-                        </label>
-                        <label id="genre-card-f" class="choice-card text-accent">
-                          <input type="radio" name="genre" value="F" {% if form_data.genre == 'F' or personne.genre == 'F' %}checked{% endif %}>
-                          <span class="material-symbols-outlined text-2xl">woman</span>
-                          <span>
-                            <span class="block text-sm font-bold text-slate-900">Feminin</span>
-                            <span class="block text-xs font-medium text-slate-500">Selection feminine</span>
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="field-label">Date de naissance</label>
-                      <input type="date" name="date_naissance" value="{{ form_data.date_naissance|default:personne.date_naissance }}" class="field-base">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Lieu de naissance</label>
-                      <input type="text" name="lieu_naissance" value="{{ form_data.lieu_naissance|default:personne.lieu_naissance }}" placeholder="Ville ou village" class="field-base">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Nationalite</label>
-                      <select name="nationalite" class="field-base">
-                        <option value="Ivoirienne" {% if personne.nationalite == 'Ivoirienne' or not personne.nationalite %}selected{% endif %}>Ivoirienne</option>
-                        <option value="Francaise" {% if personne.nationalite == 'Francaise' %}selected{% endif %}>Francaise</option>
-                        <option value="Autre" {% if personne.nationalite == 'Autre' %}selected{% endif %}>Autre</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label class="field-label">Numero CNI</label>
-                      <input type="text" name="numero_cni" value="{{ form_data.numero_cni|default:personne.numero_cni }}" placeholder="CI-XXXXXXXXXX" class="field-base font-mono tracking-wide">
-                    </div>
-
-                    <div>
-                      <label class="field-label">Profession</label>
-                      <input type="text" name="profession" value="{{ form_data.profession|default:personne.profession }}" placeholder="Ex. Enseignant, commercant, infirmiere" class="field-base">
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-8 grid grid-cols-1 gap-4 border-t border-slate-100 pt-8 md:grid-cols-3">
-                  <div class="panel-card">
-                    <label class="field-label">Situation matrimoniale</label>
-                    <select name="situation_matrimoniale" class="field-base">
-                      <option value="celibataire" {% if personne.situation_matrimoniale == 'celibataire' %}selected{% endif %}>Celibataire</option>
-                      <option value="marie" {% if personne.situation_matrimoniale == 'marie' %}selected{% endif %}>Marie(e)</option>
-                      <option value="divorce" {% if personne.situation_matrimoniale == 'divorce' %}selected{% endif %}>Divorce(e)</option>
-                      <option value="veuf" {% if personne.situation_matrimoniale == 'veuf' %}selected{% endif %}>Veuf / Veuve</option>
-                    </select>
-                  </div>
-
-                  <div class="panel-card">
-                    <label class="field-label">Statut vital</label>
-                    <div class="flex flex-wrap items-center gap-3">
-                      <span class="text-sm font-semibold text-slate-700">Est vivant(e)</span>
-                      <button type="button" id="toggle-vivant" onclick="toggleVivant()" class="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition">
-                        <span id="toggle-thumb" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition"></span>
-                      </button>
-                      <span id="vital-state-pill" class="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Vivant</span>
-                      <input type="hidden" name="est_vivant" id="input-vivant" value="{% if personne.est_vivant != False %}on{% endif %}">
-                    </div>
-                  </div>
-
-                  <div class="panel-card" id="section-deces" {% if personne.est_vivant != False %}style="opacity:0.45;"{% endif %}>
-                    <label class="field-label">Date de deces</label>
-                    <input type="date" name="date_deces" id="input-date-deces" value="{{ form_data.date_deces|default:personne.date_deces }}" {% if personne.est_vivant != False %}disabled{% endif %} class="field-base">
-                  </div>
-                </div>
-              </div>
-            </section>
-            <section id="contact" class="section-anchor overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-soft backdrop-blur">
-              <div class="border-b border-slate-100 px-6 py-6 sm:px-8">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div class="flex items-start gap-4">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary/10 text-primary">
-                      <span class="material-symbols-outlined text-3xl">home_pin</span>
-                    </div>
-                    <div>
-                      <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">Section 2</p>
-                      <h2 class="mt-2 font-display text-2xl font-black text-slate-950 sm:text-3xl">Contact et residence</h2>
-                    </div>
-                  </div>
-                  <div class="rounded-full bg-accent/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Localisation</div>
-                </div>
-                <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">Ces informations servent a joindre la personne et a comprendre ou elle vit actuellement, tout en conservant son rattachement administratif.</p>
-              </div>
-
-              <div class="grid gap-6 px-6 py-6 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label class="field-label">Telephone</label>
-                    <input type="tel" name="telephone" value="{{ form_data.telephone|default:personne.telephone }}" placeholder="+225 07 00 00 00 00" class="field-base">
-                  </div>
-
-                  <div>
-                    <label class="field-label">Email</label>
-                    <input type="email" name="email" value="{{ form_data.email|default:personne.email }}" placeholder="nom@exemple.com" class="field-base">
-                  </div>
-
-                  <div>
-                    <label class="field-label">Type de residence</label>
-                    <select name="type_residence" class="field-base">
-                      <option value="village" {% if personne.type_residence == 'village' %}selected{% endif %}>Village</option>
-                      <option value="ci" {% if personne.type_residence == 'ci' %}selected{% endif %}>Cote d'Ivoire (hors village)</option>
-                      <option value="diaspora" {% if personne.type_residence == 'diaspora' %}selected{% endif %}>Diaspora (hors CI)</option>
-                      <option value="inconnu" {% if personne.type_residence == 'inconnu' %}selected{% endif %}>Inconnu</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="field-label">Lieu de residence actuel</label>
-                    <input type="text" name="lieu_residence" value="{{ form_data.lieu_residence|default:personne.lieu_residence }}" placeholder="Quartier, ville, pays" class="field-base">
-                  </div>
-                </div>
-
-                <div class="relative overflow-hidden rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-hero">
-                  <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-dark"></div>
-                  <div class="absolute -right-10 top-10 h-40 w-40 rounded-full bg-accent/25 blur-3xl"></div>
-                  <div class="relative flex h-full flex-col">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white">
-                      <span class="material-symbols-outlined text-2xl">map</span>
-                    </div>
-                    <h3 class="mt-5 font-display text-2xl font-black">Geolocalisation</h3>
-                    <p class="mt-3 text-sm leading-7 text-emerald-50/80">La personne peut vivre ailleurs, mais son dossier doit rester relie a une famille et a un village reconnus par la plateforme.</p>
-
-                    <div class="mt-6 space-y-3">
-                      <div class="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Village selectionne</p>
-                        <p id="geo-village-label" class="mt-2 text-sm font-semibold text-white">En attente de selection...</p>
-                      </div>
-                      <div class="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Famille choisie</p>
-                        <p id="geo-family-label" class="mt-2 text-sm font-semibold text-white">Aucune famille selectionnee.</p>
-                      </div>
-                    </div>
-
-                    <div class="mt-auto pt-6">
-                      <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-100/80">Conseil</p>
-                      <p class="mt-2 text-sm leading-6 text-emerald-50/80">Si vous ne trouvez pas la famille de rattachement, contactez l'administration avant l'envoi du dossier.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section id="genealogie" class="section-anchor overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-soft backdrop-blur">
-              <div class="border-b border-slate-100 px-6 py-6 sm:px-8">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div class="flex items-start gap-4">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary/10 text-primary">
-                      <span class="material-symbols-outlined text-3xl">account_tree</span>
-                    </div>
-                    <div>
-                      <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">Section 3</p>
-                      <h2 class="mt-2 font-display text-2xl font-black text-slate-950 sm:text-3xl">Lignage et genealogie</h2>
-                    </div>
-                  </div>
-                  <div class="rounded-full bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Rattachement familial</div>
-                </div>
-                <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">La famille est obligatoire. Les autres liens permettent de consolider la genealogie si l'information est disponible au moment de la saisie.</p>
-              </div>
-
-              <div class="grid gap-6 px-6 py-6 sm:px-8 sm:py-8 lg:grid-cols-3">
-                <div class="panel-card lg:col-span-3">
-                  <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
-                    <div class="space-y-3">
-                      <label class="field-label">Famille d'appartenance <span class="text-red-400">*</span></label>
-                      <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-300">search</span>
-                        <input type="search" id="search-famille" placeholder="Rechercher une famille ou un village..." class="field-base pl-11">
-                      </div>
-                      <select name="famille_id" id="select-famille" size="6" required onchange="updateGeoLabel(this)" data-empty-label="Aucune famille trouvee." class="field-base">
-                        <option value="">Selectionnez une famille...</option>
-                        {% for f in familles %}
-                        <option value="{{ f.id }}" data-village="{{ f.village.nom }}" data-search="famille {{ f.nom_famille }} {{ f.village.nom }}" {% if form_data.famille_id == f.id|stringformat:"s" or personne.famille_id == f.id|stringformat:"s" %}selected{% endif %}>Famille {{ f.nom_famille }} - {{ f.village.nom }}</option>
-                        {% endfor %}
-                      </select>
-                      <p class="text-sm leading-6 text-slate-500">Recherchez puis choisissez la famille a rattacher au registre.</p>
-                    </div>
-
-                    <div class="rounded-[1.35rem] bg-primary/5 p-5">
-                      <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Pourquoi ce choix</p>
-                      <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                        <li>Le dossier ne peut pas etre soumis sans famille de rattachement.</li>
-                        <li>Le village associe est recupere automatiquement depuis la famille choisie.</li>
-                        <li>Ce lien facilite la validation et la recherche future dans le registre.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="panel-card">
-                  <label class="field-label">Conjoint(e)</label>
-                  <div class="space-y-4">
-                    <div>
-                      <label class="field-label text-slate-400">Saisie libre hors registre</label>
-                      <input type="text" name="conjoint_nom_libre" id="input-conjoint-nom-libre" value="{{ form_data.conjoint_nom_libre|default:personne.conjoint_nom_libre }}" placeholder="Nom du conjoint non enregistre" class="field-base bg-white">
-                    </div>
-                    <p class="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-300">ou choisir dans le registre</p>
-                    <div class="relative">
-                      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-300">search</span>
-                      <input type="search" id="search-conjoint" placeholder="Rechercher un conjoint..." class="field-base bg-white pl-11">
-                    </div>
-                    <select name="conjoint_id" id="select-conjoint" size="6" data-empty-label="Aucune personne trouvee." class="field-base bg-white">
-                      <option value="">Selectionnez une personne...</option>
-                      {% for p in personnes %}
-                      <option value="{{ p.id }}" data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}" {% if form_data.conjoint_id == p.id|stringformat:"s" or personne.conjoint_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nom_complet }} - {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} - {{ p.code }}{% endif %}</option>
-                      {% endfor %}
-                    </select>
-                    <p class="text-sm leading-6 text-slate-500">Choisissez une personne enregistree ou saisissez un nom libre si elle est hors registre.</p>
-                  </div>
-                </div>
-
-                <div class="panel-card">
-                  <label class="field-label">Pere <span class="ml-1 text-[9px] font-normal normal-case tracking-normal text-primary">(Masculin uniquement)</span></label>
-                  <div class="space-y-4">
-                    <div>
-                      <label class="field-label text-slate-400">Saisie libre hors registre</label>
-                      <input type="text" name="pere_nom_libre" id="input-pere-nom-libre" value="{{ form_data.pere_nom_libre|default:personne.pere_nom_libre }}" placeholder="Nom du pere s'il n'est pas enregistre" class="field-base bg-white">
-                    </div>
-                    <p class="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-300">ou choisir dans le registre</p>
-                    <div class="relative">
-                      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-300">search</span>
-                      <input type="search" id="search-pere" placeholder="Rechercher l'ascendant paternel..." class="field-base bg-white pl-11">
-                    </div>
-                    <select name="pere_id" id="select-pere" size="6" data-empty-label="Aucun pere trouve." class="field-base bg-white">
-                      <option value="">Selectionnez une personne...</option>
-                      {% for p in peres_disponibles %}
-                      <option value="{{ p.id }}" data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}" {% if form_data.pere_id == p.id|stringformat:"s" or personne.pere_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nom_complet }} - {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} - {{ p.code }}{% endif %}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-
-                <div class="panel-card">
-                  <label class="field-label">Mere <span class="ml-1 text-[9px] font-normal normal-case tracking-normal text-accent">(Feminin uniquement)</span></label>
-                  <div class="space-y-4">
-                    <div>
-                      <label class="field-label text-slate-400">Saisie libre hors registre</label>
-                      <input type="text" name="mere_nom_libre" id="input-mere-nom-libre" value="{{ form_data.mere_nom_libre|default:personne.mere_nom_libre }}" placeholder="Nom de la mere si elle n'est pas enregistree" class="field-base bg-white">
-                    </div>
-                    <p class="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-300">ou choisir dans le registre</p>
-                    <div class="relative">
-                      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-300">search</span>
-                      <input type="search" id="search-mere" placeholder="Rechercher l'ascendante maternelle..." class="field-base bg-white pl-11">
-                    </div>
-                    <select name="mere_id" id="select-mere" size="6" data-empty-label="Aucune mere trouvee." class="field-base bg-white">
-                      <option value="">Selectionnez une personne...</option>
-                      {% for p in meres_disponibles %}
-                      <option value="{{ p.id }}" data-search="{{ p.nom_complet }} {{ p.famille.nom_famille }} {{ p.famille.village.nom }} {{ p.code|default:'' }}" {% if form_data.mere_id == p.id|stringformat:"s" or personne.mere_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nom_complet }} - {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} - {{ p.code }}{% endif %}</option>
-                      {% endfor %}
-                    </select>
-                    <p class="text-sm leading-6 text-slate-500">Utilisez la saisie libre si la mere n'appartient pas au registre familial d'Olodio.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <section id="notes" class="section-anchor overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-soft backdrop-blur">
-              <div class="border-b border-slate-100 px-6 py-6 sm:px-8">
-                <div class="flex items-start gap-4">
-                  <div class="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined text-3xl">notes</span>
-                  </div>
-                  <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">Section 4</p>
-                    <h2 class="mt-2 font-display text-2xl font-black text-slate-950 sm:text-3xl">Observations et notes</h2>
-                  </div>
-                </div>
-                <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">Ajoutez ici tout contexte utile pour l'administration : precision familiale, information sur la residence, surnom courant ou detail important.</p>
-              </div>
-
-              <div class="px-6 py-6 sm:px-8 sm:py-8">
-                <textarea name="notes" rows="5" placeholder="Informations complementaires, observations particulieres..." class="field-base">{{ form_data.notes|default:personne.notes }}</textarea>
-              </div>
-            </section>
-
-            <section class="overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-hero">
-              <div class="bg-gradient-to-r from-slate-950 via-primary-dark to-primary px-6 py-8 sm:px-8">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100/80">Finalisation</p>
-                    <h2 class="mt-2 font-display text-2xl font-black sm:text-3xl">Envoyer la demande d'inscription</h2>
-                    <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-200">Une fois soumise, la demande est controlee avant validation definitive dans la plateforme Olodio.</p>
-                    <a href="{% url 'website:accueil' %}" class="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-emerald-100/80 transition hover:text-white">
-                      <span class="material-symbols-outlined text-sm">arrow_back</span>
-                      Retour a l'accueil
-                    </a>
-                  </div>
-
-                  <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                    <button type="button" onclick="window.history.back()" class="h-14 rounded-2xl border border-white/20 px-8 text-xs font-bold uppercase tracking-[0.22em] text-white transition hover:bg-white/10">Retour</button>
-                    <button type="submit" {% if not familles %}disabled{% endif %} class="flex h-14 items-center justify-center gap-3 rounded-2xl bg-accent px-8 text-xs font-bold uppercase tracking-[0.22em] text-white shadow-lg shadow-black/20 transition hover:scale-[1.01] hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none">
-                      {% if action == 'create' %}Valider l'inscription{% else %}Enregistrer{% endif %}
-                      <span class="material-symbols-outlined">how_to_reg</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
+          <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-accent/5 to-transparent px-5 py-5 sm:px-6">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+              <span class="material-symbols-outlined" style="font-size:22px;">home_pin</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">Étape 2 / 4</p>
+              <h2 class="font-display text-xl font-black text-slate-900">Contact et résidence</h2>
+            </div>
           </div>
 
-          <aside class="space-y-6 lg:sticky lg:top-[145px] lg:self-start">
-            <div class="glass-card rounded-[1.75rem] border border-white/80 p-6 shadow-soft">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Synthese</p>
-              <h2 class="mt-2 font-display text-2xl font-black text-slate-950">Dossier en cours</h2>
-              <p class="mt-3 text-sm leading-7 text-slate-600">Un resume rapide pour verifier les informations essentielles avant l'envoi.</p>
+          <div class="space-y-5 px-5 py-5 sm:px-6">
+            <p class="text-sm leading-relaxed text-slate-500">Ces informations sont optionnelles. Elles permettent de contacter la personne et de mieux localiser son dossier.</p>
 
-              <dl class="mt-6 space-y-4">
-                <div class="summary-line">
-                  <dt>Nom complet</dt>
-                  <dd id="summary-name">Non renseigne</dd>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Téléphone</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" style="font-size:18px;">phone</span>
+                  <input type="tel" name="telephone" value="{{ form_data.telephone|default:personne.telephone }}" placeholder="+225 07 00 00 00" class="field-base pl-11">
                 </div>
-                <div class="summary-line">
-                  <dt>Contact</dt>
-                  <dd id="summary-contact">Telephone ou email</dd>
-                </div>
-                <div class="summary-line">
-                  <dt>Famille</dt>
-                  <dd id="summary-family">A selectionner</dd>
-                </div>
-                <div class="summary-line">
-                  <dt>Photo</dt>
-                  <dd id="summary-photo">Aucune photo</dd>
-                </div>
-              </dl>
-
-              <div class="mt-6 rounded-[1.3rem] bg-primary/6 p-4">
-                <div class="flex items-center justify-between gap-4 text-sm font-bold text-slate-800">
-                  <span>Avancement</span>
-                  <span id="summary-progress">0 / 7</span>
-                </div>
-                <div class="mt-3 h-2 rounded-full bg-white">
-                  <div id="summary-progress-bar" class="h-2 w-0 rounded-full bg-primary transition-all duration-300"></div>
+              </div>
+              <div>
+                <label class="field-label">Email</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" style="font-size:18px;">mail</span>
+                  <input type="email" name="email" value="{{ form_data.email|default:personne.email }}" placeholder="nom@exemple.com" class="field-base pl-11">
                 </div>
               </div>
             </div>
 
-            <div class="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-soft">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Navigation rapide</p>
-              <div class="mt-4 grid gap-3">
-                <a href="#etat-civil" class="nav-chip">
-                  <span class="material-symbols-outlined text-base text-primary">badge</span>
-                  Etat civil
-                </a>
-                <a href="#contact" class="nav-chip">
-                  <span class="material-symbols-outlined text-base text-primary">call</span>
-                  Contact et residence
-                </a>
-                <a href="#genealogie" class="nav-chip">
-                  <span class="material-symbols-outlined text-base text-primary">family_restroom</span>
-                  Lignage
-                </a>
-                <a href="#notes" class="nav-chip">
-                  <span class="material-symbols-outlined text-base text-primary">edit_note</span>
-                  Observations
-                </a>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="field-label">Type de résidence</label>
+                <select name="type_residence" class="field-base">
+                  <option value="village" {% if personne.type_residence == 'village' or not personne.type_residence %}selected{% endif %}>Village</option>
+                  <option value="ci" {% if personne.type_residence == 'ci' %}selected{% endif %}>Côte d'Ivoire (hors village)</option>
+                  <option value="diaspora" {% if personne.type_residence == 'diaspora' %}selected{% endif %}>Diaspora (hors CI)</option>
+                  <option value="inconnu" {% if personne.type_residence == 'inconnu' %}selected{% endif %}>Inconnu</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Lieu de résidence actuel</label>
+                <input type="text" name="lieu_residence" value="{{ form_data.lieu_residence|default:personne.lieu_residence }}" placeholder="Quartier, ville, pays" class="field-base">
               </div>
             </div>
 
-            <div class="rounded-[1.75rem] border border-white/80 bg-white/90 p-6 shadow-soft">
-              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Avant d'envoyer</p>
-              <ul class="mt-4 space-y-3 text-sm leading-7 text-slate-600">
-                <li class="flex gap-3">
-                  <span class="material-symbols-outlined mt-0.5 text-base text-primary">check_circle</span>
-                  Verifiez le nom, le prenom et le genre.
-                </li>
-                <li class="flex gap-3">
-                  <span class="material-symbols-outlined mt-0.5 text-base text-primary">check_circle</span>
-                  Confirmez la famille de rattachement avant validation.
-                </li>
-                <li class="flex gap-3">
-                  <span class="material-symbols-outlined mt-0.5 text-base text-primary">check_circle</span>
-                  Ajoutez un telephone ou un email si possible pour le suivi.
-                </li>
-              </ul>
+            <div class="flex gap-3 rounded-2xl bg-slate-50 border border-slate-100 p-4">
+              <span class="material-symbols-outlined mt-0.5 flex-shrink-0 text-primary" style="font-size:18px;">info</span>
+              <p class="text-sm text-slate-600 leading-relaxed">La personne peut vivre ailleurs, mais son dossier reste lié à une famille et un village de la plateforme. La famille sera sélectionnée à l'étape suivante.</p>
             </div>
-          </aside>
-        </form>
+          </div>
+        </div>
       </div>
-    </section>
+
+      <!-- ─────────────── STEP 3 : GÉNÉALOGIE ─────────────── -->
+      <div class="step-panel" id="step-3">
+        <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+          <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-transparent px-5 py-5 sm:px-6">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span class="material-symbols-outlined" style="font-size:22px;">account_tree</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Étape 3 / 4</p>
+              <h2 class="font-display text-xl font-black text-slate-900">Lignage et généalogie</h2>
+            </div>
+          </div>
+
+          <div class="space-y-5 px-5 py-5 sm:px-6">
+
+            <!-- Famille (obligatoire) -->
+            <div class="rounded-2xl bg-primary/5 border border-primary/15 p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary" style="font-size:18px;">family_restroom</span>
+                <label class="field-label mb-0 text-primary">Famille d'appartenance <span class="text-red-400">*</span></label>
+              </div>
+              <select name="famille_id" id="select-famille" required>
+                <option value="">Sélectionnez une famille...</option>
+                {% for f in familles %}
+                <option value="{{ f.id }}" data-village="{{ f.village.nom }}"
+                  {% if form_data.famille_id == f.id|stringformat:"s" or personne.famille_id == f.id|stringformat:"s" %}selected{% endif %}>
+                  Famille {{ f.nom_famille }} — {{ f.village.nom }}
+                </option>
+                {% endfor %}
+              </select>
+              <p class="field-err" id="err-famille"><span class="material-symbols-outlined" style="font-size:13px;">error</span>La famille est obligatoire.</p>
+              <!-- Village associé (affiché après sélection) -->
+              <div id="village-chip" class="hidden items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 border border-primary/20">
+                <span class="material-symbols-outlined text-primary" style="font-size:16px;">location_on</span>
+                <span class="text-sm font-semibold text-slate-700">Village associé : <span id="village-name" class="text-primary font-bold"></span></span>
+              </div>
+            </div>
+
+            <!-- Conjoint(e) -->
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-accent" style="font-size:18px;">favorite</span>
+                <label class="field-label mb-0">Conjoint(e) <span class="text-[10px] font-normal normal-case tracking-normal text-slate-400">(optionnel)</span></label>
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Nom libre si hors registre</label>
+                <input type="text" name="conjoint_nom_libre" id="input-conjoint-libre"
+                  value="{{ form_data.conjoint_nom_libre|default:personne.conjoint_nom_libre }}"
+                  placeholder="Nom du/de la conjoint(e) non enregistré(e)"
+                  class="field-base bg-white">
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Ou rechercher dans le registre</label>
+                <select name="conjoint_id" id="select-conjoint">
+                  <option value="">Rechercher un(e) conjoint(e)...</option>
+                  {% for p in personnes %}
+                  <option value="{{ p.id }}" data-code="{{ p.code|default:'' }}"
+                    {% if form_data.conjoint_id == p.id|stringformat:"s" or personne.conjoint_id == p.id|stringformat:"s" %}selected{% endif %}>
+                    {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Père -->
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary" style="font-size:18px;">man</span>
+                <label class="field-label mb-0">Père <span class="text-[10px] font-normal normal-case tracking-normal text-slate-400">(optionnel — masculin uniquement)</span></label>
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Nom libre si hors registre</label>
+                <input type="text" name="pere_nom_libre" id="input-pere-libre"
+                  value="{{ form_data.pere_nom_libre|default:personne.pere_nom_libre }}"
+                  placeholder="Nom du père s'il n'est pas enregistré"
+                  class="field-base bg-white">
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Ou rechercher dans le registre</label>
+                <select name="pere_id" id="select-pere">
+                  <option value="">Rechercher le père dans le registre...</option>
+                  {% for p in peres_disponibles %}
+                  <option value="{{ p.id }}" data-code="{{ p.code|default:'' }}"
+                    {% if form_data.pere_id == p.id|stringformat:"s" or personne.pere_id == p.id|stringformat:"s" %}selected{% endif %}>
+                    {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Mère -->
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-accent" style="font-size:18px;">woman</span>
+                <label class="field-label mb-0">Mère <span class="text-[10px] font-normal normal-case tracking-normal text-slate-400">(optionnel — féminin uniquement)</span></label>
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Nom libre si hors registre</label>
+                <input type="text" name="mere_nom_libre" id="input-mere-libre"
+                  value="{{ form_data.mere_nom_libre|default:personne.mere_nom_libre }}"
+                  placeholder="Nom de la mère si non enregistrée"
+                  class="field-base bg-white">
+              </div>
+              <div>
+                <label class="field-label text-slate-400 text-[10px]">Ou rechercher dans le registre</label>
+                <select name="mere_id" id="select-mere">
+                  <option value="">Rechercher la mère dans le registre...</option>
+                  {% for p in meres_disponibles %}
+                  <option value="{{ p.id }}" data-code="{{ p.code|default:'' }}"
+                    {% if form_data.mere_id == p.id|stringformat:"s" or personne.mere_id == p.id|stringformat:"s" %}selected{% endif %}>
+                    {{ p.nom_complet }} — {{ p.famille.nom_famille }} / {{ p.famille.village.nom }}{% if p.code %} — {{ p.code }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────── STEP 4 : NOTES ─────────────── -->
+      <div class="step-panel" id="step-4">
+        <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+          <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-transparent px-5 py-5 sm:px-6">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <span class="material-symbols-outlined" style="font-size:22px;">edit_note</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">Étape 4 / 4</p>
+              <h2 class="font-display text-xl font-black text-slate-900">Observations et notes</h2>
+            </div>
+          </div>
+
+          <div class="space-y-5 px-5 py-5 sm:px-6">
+
+            <div>
+              <label class="field-label">Notes complémentaires <span class="font-normal normal-case tracking-normal text-xs text-slate-400">(optionnel)</span></label>
+              <textarea name="notes" rows="4" placeholder="Informations complémentaires, précisions familiales, observations particulières..." class="field-base">{{ form_data.notes|default:personne.notes }}</textarea>
+            </div>
+
+            <!-- Récapitulatif -->
+            <div class="rounded-2xl bg-primary/5 border border-primary/15 p-4">
+              <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary mb-3">Récapitulatif avant envoi</p>
+              <div>
+                <div class="recap-row">
+                  <span class="recap-key">Identité</span>
+                  <span class="recap-val" id="recap-name">—</span>
+                </div>
+                <div class="recap-row">
+                  <span class="recap-key">Genre</span>
+                  <span class="recap-val" id="recap-genre">—</span>
+                </div>
+                <div class="recap-row">
+                  <span class="recap-key">Naissance</span>
+                  <span class="recap-val" id="recap-naissance">—</span>
+                </div>
+                <div class="recap-row">
+                  <span class="recap-key">Contact</span>
+                  <span class="recap-val" id="recap-contact">—</span>
+                </div>
+                <div class="recap-row">
+                  <span class="recap-key">Famille</span>
+                  <span class="recap-val" id="recap-famille">Non sélectionnée</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <ul class="space-y-2.5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <span class="material-symbols-outlined flex-shrink-0 text-primary" style="font-size:16px;">check_circle</span>
+                Vérifiez le nom, le prénom et le genre.
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <span class="material-symbols-outlined flex-shrink-0 text-primary" style="font-size:16px;">check_circle</span>
+                Confirmez la famille de rattachement (obligatoire).
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-slate-500">
+                <span class="material-symbols-outlined flex-shrink-0 text-slate-300" style="font-size:16px;">info</span>
+                La demande sera contrôlée avant validation définitive.
+              </li>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ NAVIGATION BUTTONS ══ -->
+      <div class="mt-4 flex items-center gap-3">
+        <button type="button" id="btn-prev" onclick="prevStep()"
+          class="hidden h-14 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]">
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+          Précédent
+        </button>
+        <button type="button" id="btn-next" onclick="nextStep()"
+          class="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary/90 active:scale-[0.98]">
+          Suivant
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+        </button>
+        <button type="submit" id="btn-submit"
+          {% if not familles %}disabled{% endif %}
+          class="hidden h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent text-sm font-bold text-white shadow-lg shadow-accent/25 transition hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none">
+          <span id="btn-submit-content" class="flex items-center gap-2">
+            {% if action == 'create' %}Valider l'inscription{% else %}Enregistrer{% endif %}
+            <span class="material-symbols-outlined" style="font-size:18px;">how_to_reg</span>
+          </span>
+        </button>
+      </div>
+
+    </form>
   </main>
 
+  <!-- ═══════════════════════════ SUCCESS MODAL ═══════════════════════════ -->
+  {% if messages %}{% for message in messages %}{% if message.tags == 'success' %}
+  <div id="success-overlay" class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 sm:p-6" style="background:rgba(15,23,42,0.65); backdrop-filter:blur(4px);">
+    <div class="modal-card w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <div class="bg-gradient-to-br from-primary to-primary-dark px-6 py-8 text-center text-white">
+        <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full" style="background:rgba(255,255,255,0.15);">
+          <span class="material-symbols-outlined" style="font-size:48px;">check_circle</span>
+        </div>
+        <h2 class="font-display text-2xl font-black">Demande envoyée !</h2>
+        <p class="mt-3 text-sm text-emerald-50/85 leading-relaxed">{{ message }}</p>
+      </div>
+      <div class="space-y-3 px-6 py-5">
+        <button onclick="closeSuccessModal()"
+          class="flex w-full h-13 items-center justify-center rounded-2xl bg-primary py-3.5 text-sm font-bold text-white transition hover:bg-primary/90">
+          Faire une nouvelle inscription
+        </button>
+        <a href="{% url 'website:accueil' %}"
+          class="flex w-full h-13 items-center justify-center rounded-2xl border-2 border-slate-200 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}{% endfor %}{% endif %}
+
+  <!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
   <script>
-    function setTextContent(ids, value) {
-      ids.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.textContent = value;
-        }
-      });
+  (function () {
+    'use strict';
+
+    // ── State ──
+    var currentStep = 1;
+    var totalSteps = 4;
+    var stepLabels = [
+      'État civil et identité',
+      'Contact et résidence',
+      'Lignage et généalogie',
+      'Observations et notes'
+    ];
+    var goingBack = false;
+
+    // ── Step navigation ──
+    function showStep(next) {
+      var oldPanel = document.getElementById('step-' + currentStep);
+      var newPanel = document.getElementById('step-' + next);
+      if (!oldPanel || !newPanel) return;
+
+      oldPanel.classList.remove('active', 'reverse');
+      oldPanel.classList.add('step-panel');
+
+      newPanel.classList.remove('step-panel');
+      newPanel.classList.add('step-panel', 'active');
+      if (goingBack) newPanel.classList.add('reverse');
+
+      currentStep = next;
+      updateStepIndicator();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function previewPhoto(input) {
+    function updateStepIndicator() {
+      for (var i = 1; i <= totalSteps; i++) {
+        var dot = document.getElementById('dot-' + i);
+        if (!dot) continue;
+        dot.className = 'step-dot';
+        if (i < currentStep) {
+          dot.classList.add('is-done');
+          dot.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">check</span>';
+        } else if (i === currentStep) {
+          dot.classList.add('is-current');
+          dot.textContent = i;
+        } else {
+          dot.textContent = i;
+        }
+      }
+      // Connectors
+      var pairs = [['line-12',1],['line-23',2],['line-34',3]];
+      pairs.forEach(function(p) {
+        var el = document.getElementById(p[0]);
+        if (el) el.classList.toggle('is-done', p[1] < currentStep);
+      });
+      // Progress bar
+      document.getElementById('progress-bar').style.width = ((currentStep / totalSteps) * 100) + '%';
+      // Label
+      document.getElementById('step-label').textContent =
+        'Étape ' + currentStep + ' / ' + totalSteps + ' — ' + stepLabels[currentStep - 1];
+      // Buttons
+      var btnPrev = document.getElementById('btn-prev');
+      var btnNext = document.getElementById('btn-next');
+      var btnSubmit = document.getElementById('btn-submit');
+
+      if (currentStep === 1) {
+        btnPrev.classList.remove('flex'); btnPrev.classList.add('hidden');
+      } else {
+        btnPrev.classList.remove('hidden'); btnPrev.classList.add('flex');
+      }
+      if (currentStep === totalSteps) {
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.remove('hidden'); btnSubmit.classList.add('flex');
+        updateRecap();
+      } else {
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden'); btnSubmit.classList.remove('flex');
+      }
+    }
+
+    // ── Validation ──
+    function validateStep(step) {
+      var ok = true;
+      if (step === 1) {
+        var nom = document.getElementById('inp-nom');
+        var prenom = document.getElementById('inp-prenom');
+        var genreOk = !!document.querySelector('input[name="genre"]:checked');
+        setFieldError(nom, 'err-nom', !nom.value.trim());
+        setFieldError(prenom, 'err-prenom', !prenom.value.trim());
+        setError('err-genre', !genreOk);
+        if (!nom.value.trim() || !prenom.value.trim() || !genreOk) ok = false;
+      }
+      if (step === 3) {
+        var fam = window._tsInstances && window._tsInstances.famille
+          ? window._tsInstances.famille.getValue()
+          : document.getElementById('select-famille').value;
+        setError('err-famille', !fam);
+        if (!fam) ok = false;
+      }
+      return ok;
+    }
+
+    function setFieldError(el, errId, hasError) {
+      if (!el) return;
+      el.classList.toggle('is-error', hasError);
+      setError(errId, hasError);
+    }
+
+    function setError(id, show) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('show', show);
+    }
+
+    window.nextStep = function () {
+      if (!validateStep(currentStep)) {
+        var btn = document.getElementById('btn-next');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(function () { btn.style.transform = ''; }, 150);
+        return;
+      }
+      goingBack = false;
+      if (currentStep < totalSteps) showStep(currentStep + 1);
+    };
+
+    window.prevStep = function () {
+      goingBack = true;
+      if (currentStep > 1) showStep(currentStep - 1);
+    };
+
+    // ── Recap ──
+    function updateRecap() {
+      var nom = val('nom'), prenom = val('prenom');
+      var genreEl = document.querySelector('input[name="genre"]:checked');
+      var genre = genreEl ? (genreEl.value === 'M' ? 'Masculin' : 'Féminin') : '—';
+      var dn = val('date_naissance');
+      var tel = val('telephone'), email = val('email');
+
+      setText('recap-name', [prenom, nom].filter(Boolean).join(' ') || '—');
+      setText('recap-genre', genre);
+      setText('recap-naissance', dn ? new Date(dn + 'T00:00:00').toLocaleDateString('fr-FR') : '—');
+      setText('recap-contact', tel || email || '—');
+
+      var ts = window._tsInstances && window._tsInstances.famille;
+      var famVal = ts ? ts.getValue() : document.getElementById('select-famille').value;
+      var famOpt = document.querySelector('#select-famille option[value="' + famVal + '"]');
+      setText('recap-famille', famOpt && famOpt.value ? famOpt.text : 'Non sélectionnée');
+    }
+
+    function val(name) {
+      var el = document.querySelector('[name="' + name + '"]');
+      return el ? el.value.trim() : '';
+    }
+
+    function setText(id, text) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    // ── Vital toggle ──
+    window.toggleVivant = function () {
+      var input = document.getElementById('input-vivant');
+      var btn   = document.getElementById('toggle-vivant');
+      var thumb = document.getElementById('toggle-thumb');
+      var sec   = document.getElementById('section-deces');
+      var dInp  = document.getElementById('input-date-deces');
+      var lbl   = document.getElementById('vital-label');
+
+      var isAlive = input.value === 'on';
+      input.value = isAlive ? '' : 'on';
+      var nowAlive = !isAlive;
+
+      btn.style.background = nowAlive ? '#00613a' : '#cbd5e1';
+      thumb.style.transform = nowAlive ? 'translateX(1.5rem)' : 'translateX(0)';
+      sec.classList.toggle('opacity-40', nowAlive);
+      sec.classList.toggle('pointer-events-none', nowAlive);
+      dInp.disabled = nowAlive;
+      if (lbl) lbl.textContent = nowAlive ? 'Vivant(e)' : 'Décédé(e)';
+    };
+
+    // ── Genre cards ──
+    function syncGenreCards() {
+      var mChecked = document.querySelector('input[name="genre"][value="M"]')?.checked;
+      var fChecked = document.querySelector('input[name="genre"][value="F"]')?.checked;
+      document.getElementById('genre-card-m')?.classList.toggle('active', !!mChecked);
+      document.getElementById('genre-card-f')?.classList.toggle('accent-active', !!fChecked);
+    }
+
+    // ── Photo preview ──
+    window.previewPhoto = function (input) {
       if (!input.files || !input.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = event => {
-        const preview = document.getElementById("photo-preview");
-        const placeholder = document.getElementById("photo-placeholder");
-        preview.src = event.target.result;
-        preview.classList.remove("hidden");
-        placeholder.classList.add("hidden");
-        updateRegistrationSummary();
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var prev = document.getElementById('photo-preview');
+        var ph   = document.getElementById('photo-placeholder');
+        prev.src = e.target.result;
+        prev.classList.remove('hidden');
+        ph.classList.add('hidden');
       };
       reader.readAsDataURL(input.files[0]);
-    }
+    };
 
-    function updateGenreCards() {
-      const maleCard = document.getElementById("genre-card-m");
-      const femaleCard = document.getElementById("genre-card-f");
-      const maleChecked = document.querySelector('input[name="genre"][value="M"]')?.checked;
-      const femaleChecked = document.querySelector('input[name="genre"][value="F"]')?.checked;
-
-      if (maleCard) {
-        maleCard.classList.toggle("active", Boolean(maleChecked));
-      }
-      if (femaleCard) {
-        femaleCard.classList.toggle("accent-active", Boolean(femaleChecked));
-      }
-    }
-
-    function syncDeathFieldState() {
-      const button = document.getElementById("toggle-vivant");
-      const thumb = document.getElementById("toggle-thumb");
-      const input = document.getElementById("input-vivant");
-      const section = document.getElementById("section-deces");
-      const deathInput = document.getElementById("input-date-deces");
-      const vitalPill = document.getElementById("vital-state-pill");
-      const isAlive = input && input.value === "on";
-
-      if (!button || !thumb || !section || !deathInput) return;
-
-      button.classList.toggle("bg-primary", isAlive);
-      button.classList.toggle("bg-slate-300", !isAlive);
-      thumb.classList.toggle("translate-x-5", isAlive);
-      thumb.classList.toggle("translate-x-0", !isAlive);
-      section.style.opacity = isAlive ? "0.45" : "1";
-      deathInput.disabled = isAlive;
-
-      if (vitalPill) {
-        vitalPill.textContent = isAlive ? "Vivant" : "Decede";
-        vitalPill.classList.toggle("bg-primary/10", isAlive);
-        vitalPill.classList.toggle("text-primary", isAlive);
-        vitalPill.classList.toggle("bg-slate-200", !isAlive);
-        vitalPill.classList.toggle("text-slate-700", !isAlive);
+    // ── Famille geo chip ──
+    function updateVillageChip(famVal) {
+      var opt = document.querySelector('#select-famille option[value="' + famVal + '"]');
+      var chip = document.getElementById('village-chip');
+      var nameEl = document.getElementById('village-name');
+      if (opt && opt.value && opt.dataset.village) {
+        chip.classList.remove('hidden'); chip.classList.add('flex');
+        nameEl.textContent = opt.dataset.village;
+      } else {
+        chip.classList.add('hidden'); chip.classList.remove('flex');
       }
     }
 
-    function toggleVivant() {
-      const input = document.getElementById("input-vivant");
-      if (!input) return;
-      input.value = input.value === "on" ? "" : "on";
-      syncDeathFieldState();
-    }
-
-    function updateGeoLabel(select) {
-      if (!select) return;
-      const option = select.options[select.selectedIndex];
-      const hasSelection = option && option.value;
-      const villageText = hasSelection && option.dataset.village ? option.dataset.village : "En attente de selection...";
-      const familyText = hasSelection ? option.text : "Aucune famille selectionnee.";
-
-      setTextContent(["geo-village-label", "geo-village-chip"], villageText);
-      setTextContent(["geo-family-label", "geo-family-chip", "summary-family"], familyText);
-      updateRegistrationSummary();
-    }
-
-    function getFieldValue(name) {
-      const field = document.querySelector(`[name="${name}"]`);
-      return field ? field.value.trim() : "";
-    }
-
-    function updateRegistrationSummary() {
-      const fullName = [getFieldValue("prenom"), getFieldValue("nom")].filter(Boolean).join(" ");
-      const contact = getFieldValue("telephone") || getFieldValue("email");
-      const photoPreview = document.getElementById("photo-preview");
-      const hasPhoto = photoPreview && !photoPreview.classList.contains("hidden") && photoPreview.getAttribute("src");
-      const hasGenre = Boolean(document.querySelector('input[name="genre"]:checked'));
-
-      setTextContent(["summary-name"], fullName || "Non renseigne");
-      setTextContent(["summary-contact"], contact || "Telephone ou email");
-      setTextContent(["summary-photo"], hasPhoto ? "Photo ajoutee" : "Aucune photo");
-
-      const checkpoints = [
-        Boolean(getFieldValue("nom")),
-        Boolean(getFieldValue("prenom")),
-        hasGenre,
-        Boolean(getFieldValue("date_naissance")),
-        Boolean(getFieldValue("telephone") || getFieldValue("email")),
-        Boolean(getFieldValue("lieu_residence") || getFieldValue("type_residence")),
-        Boolean(getFieldValue("famille_id"))
-      ];
-
-      const completed = checkpoints.filter(Boolean).length;
-      const total = checkpoints.length;
-      const percent = Math.round((completed / total) * 100);
-      const width = `${percent}%`;
-
-      setTextContent(["completion-percent"], `${percent}%`);
-      setTextContent(["summary-progress"], `${completed} / ${total}`);
-
-      const completionBar = document.getElementById("completion-bar");
-      const summaryBar = document.getElementById("summary-progress-bar");
-      if (completionBar) completionBar.style.width = width;
-      if (summaryBar) summaryBar.style.width = width;
-
-      let hint = "Le dossier est presque pret pour un controle administratif.";
-      if (!getFieldValue("nom") || !getFieldValue("prenom")) {
-        hint = "Commencez par renseigner l'identite principale de la personne.";
-      } else if (!hasGenre || !getFieldValue("date_naissance")) {
-        hint = "Ajoutez les reperes d'etat civil pour mieux identifier la personne.";
-      } else if (!getFieldValue("famille_id")) {
-        hint = "Choisissez une famille de rattachement pour pouvoir finaliser le dossier.";
-      } else if (!(getFieldValue("telephone") || getFieldValue("email"))) {
-        hint = "Ajoutez un moyen de contact pour faciliter le suivi apres envoi.";
+    // ── Success modal ──
+    window.closeSuccessModal = function () {
+      var overlay = document.getElementById('success-overlay');
+      if (overlay) {
+        overlay.style.transition = 'opacity 0.25s';
+        overlay.style.opacity = '0';
+        setTimeout(function () { overlay.remove(); document.body.style.overflow = ''; }, 260);
       }
+    };
 
-      setTextContent(["completion-hint"], hint);
-    }
-
-    function initSearchableSelect(searchId, selectId) {
-      const searchInput = document.getElementById(searchId);
-      const select = document.getElementById(selectId);
-      if (!searchInput || !select) return;
-
-      const originalOptions = Array.from(select.options).map(option => ({
-        value: option.value,
-        label: option.text,
-        searchText: `${option.dataset.search || ""} ${option.text}`.toLowerCase(),
-        disabled: option.disabled,
-        village: option.dataset.village || ""
-      }));
-
-      function renderOptions(query = "") {
-        const normalizedQuery = query.trim().toLowerCase();
-        const currentValue = select.value;
-        const placeholder = originalOptions.find(option => option.value === "");
-        const matchingOptions = originalOptions.filter(option => {
-          if (option.value === "") return false;
-          if (currentValue && option.value === currentValue) return true;
-          return !normalizedQuery || option.searchText.includes(normalizedQuery);
-        });
-
-        select.innerHTML = "";
-
-        if (placeholder) {
-          const placeholderOption = new Option(placeholder.label, placeholder.value);
-          placeholderOption.disabled = placeholder.disabled;
-          placeholderOption.dataset.village = placeholder.village;
-          select.add(placeholderOption);
-        }
-
-        if (!matchingOptions.length) {
-          const emptyOption = new Option(select.dataset.emptyLabel || "Aucun resultat trouve.", "");
-          emptyOption.disabled = true;
-          select.add(emptyOption);
-        } else {
-          matchingOptions.forEach(option => {
-            const nextOption = new Option(option.label, option.value);
-            nextOption.selected = option.value === currentValue;
-            if (option.village) nextOption.dataset.village = option.village;
-            select.add(nextOption);
-          });
-        }
-
-        if (currentValue && Array.from(select.options).some(option => option.value === currentValue)) {
-          select.value = currentValue;
-        } else if (placeholder) {
-          select.value = "";
-        }
-
-        if (selectId === "select-famille") {
-          updateGeoLabel(select);
-        } else {
-          updateRegistrationSummary();
-        }
-      }
-
-      searchInput.addEventListener("input", () => renderOptions(searchInput.value));
-      searchInput.addEventListener("keydown", event => {
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault();
-          select.focus();
-        }
+    // ── Submit loading ──
+    function initSubmitLoading() {
+      var form = document.getElementById('form-personne');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('btn-submit');
+        var content = document.getElementById('btn-submit-content');
+        if (!btn || btn.disabled) return;
+        btn.disabled = true;
+        if (content) content.innerHTML =
+          '<span class="btn-spinner"></span><span>Enregistrement en cours...</span>';
       });
-      select.addEventListener("change", () => {
-        if (selectId === "select-famille") {
-          updateGeoLabel(select);
-        } else {
-          updateRegistrationSummary();
-        }
-      });
-
-      renderOptions(searchInput.value);
     }
 
-    function initRelationshipFallback(textInputId, selectId) {
-      const textInput = document.getElementById(textInputId);
-      const select = document.getElementById(selectId);
-      if (!textInput || !select) return;
+    // ── TomSelect ──
+    function initTomSelect() {
+      window._tsInstances = {};
+      var base = {
+        allowEmptyOption: true,
+        plugins: ['clear_button'],
+        create: false,
+      };
 
-      function syncFromText() {
-        if (textInput.value.trim()) {
-          select.value = "";
-        }
-        updateRegistrationSummary();
-      }
-
-      textInput.addEventListener("input", syncFromText);
-      select.addEventListener("change", () => {
-        if (select.value) {
-          textInput.value = "";
-        }
-        updateRegistrationSummary();
-      });
-
-      syncFromText();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      syncDeathFieldState();
-      updateGenreCards();
-      updateGeoLabel(document.getElementById("select-famille"));
-      updateRegistrationSummary();
-
-      initSearchableSelect("search-famille", "select-famille");
-      initSearchableSelect("search-conjoint", "select-conjoint");
-      initSearchableSelect("search-pere", "select-pere");
-      initSearchableSelect("search-mere", "select-mere");
-      initRelationshipFallback("input-conjoint-nom-libre", "select-conjoint");
-      initRelationshipFallback("input-pere-nom-libre", "select-pere");
-      initRelationshipFallback("input-mere-nom-libre", "select-mere");
-
-      const form = document.getElementById("form-personne");
-      if (form) {
-        form.addEventListener("input", event => {
-          if (event.target && event.target.name === "genre") {
-            updateGenreCards();
+      // Famille
+      var famEl = document.getElementById('select-famille');
+      if (famEl) {
+        var tsF = new TomSelect('#select-famille', Object.assign({}, base, {
+          placeholder: 'Rechercher une famille ou un village...',
+          onChange: function (v) {
+            updateVillageChip(v);
+            setError('err-famille', false);
           }
-          updateRegistrationSummary();
-        });
+        }));
+        window._tsInstances.famille = tsF;
+        updateVillageChip(tsF.getValue());
+      }
 
-        form.addEventListener("change", event => {
-          if (event.target && event.target.name === "genre") {
-            updateGenreCards();
-          }
-          updateRegistrationSummary();
+      // Relation fields with libre mutual exclusion
+      function bindRelation(selectId, libreId) {
+        var selEl = document.getElementById(selectId);
+        var libEl = document.getElementById(libreId);
+        if (!selEl || !libEl) return;
+        var ts = new TomSelect('#' + selectId, Object.assign({}, base, {
+          placeholder: 'Rechercher par nom, famille ou code...',
+          searchField: ['text', 'code'],
+          onChange: function (v) { if (v) libEl.value = ''; }
+        }));
+        window._tsInstances[selectId] = ts;
+        libEl.addEventListener('input', function () {
+          if (this.value.trim()) ts.clear();
         });
       }
+
+      bindRelation('select-conjoint', 'input-conjoint-libre');
+      bindRelation('select-pere',     'input-pere-libre');
+      bindRelation('select-mere',     'input-mere-libre');
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', function () {
+      syncGenreCards();
+      document.querySelectorAll('input[name="genre"]').forEach(function (r) {
+        r.addEventListener('change', syncGenreCards);
+      });
+
+      // Restore vital state
+      var aliveInput = document.getElementById('input-vivant');
+      var isAlive = aliveInput && aliveInput.value === 'on';
+      var btn2  = document.getElementById('toggle-vivant');
+      var thumb = document.getElementById('toggle-thumb');
+      var sec   = document.getElementById('section-deces');
+      var dInp  = document.getElementById('input-date-deces');
+      var lbl   = document.getElementById('vital-label');
+      if (btn2)  btn2.style.background  = isAlive ? '#00613a' : '#cbd5e1';
+      if (thumb) thumb.style.transform  = isAlive ? 'translateX(1.5rem)' : 'translateX(0)';
+      if (sec)   { sec.classList.toggle('opacity-40', isAlive); sec.classList.toggle('pointer-events-none', isAlive); }
+      if (dInp)  dInp.disabled = isAlive;
+      if (lbl)   lbl.textContent = isAlive ? 'Vivant(e)' : 'Décédé(e)';
+
+      initTomSelect();
+      initSubmitLoading();
+      updateStepIndicator();
+
+      // Show success modal
+      var overlay = document.getElementById('success-overlay');
+      if (overlay) document.body.style.overflow = 'hidden';
     });
+
+  })();
   </script>
 </body>
 </html>

@@ -55,11 +55,9 @@ class AdminDashboardViewTests(TestCase):
 
         cls.village_1 = Village.objects.create(
             nom="Olodio Centre",
-            population_estimee=1200,
         )
         cls.village_2 = Village.objects.create(
             nom="Boka",
-            population_estimee=750,
         )
 
         cls.family_1 = Family.objects.create(
@@ -203,7 +201,6 @@ class VillageListViewTests(TestCase):
         for index in range(1, 13):
             Village.objects.create(
                 nom=f"Village {index:02d}",
-                population_estimee=index * 100,
             )
 
     def test_list_view_returns_only_requested_page(self):
@@ -274,7 +271,6 @@ class UserListViewTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Olodio Admin",
-            population_estimee=980,
         )
         cls.agent = user_model.objects.create_user(
             username="sarah",
@@ -359,7 +355,6 @@ class UserCreateViewTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Olodio Form",
-            population_estimee=1500,
         )
 
     def test_user_create_requires_admin_role(self):
@@ -430,7 +425,6 @@ class EventDashboardViewTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Olodio Event",
-            population_estimee=2100,
         )
         cls.family = Family.objects.create(
             nom_famille="Konan",
@@ -626,7 +620,6 @@ class CotisationDashboardViewTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Olodio Cotisation",
-            population_estimee=1300,
         )
         cls.family = Family.objects.create(
             nom_famille="Yao",
@@ -717,7 +710,6 @@ class VillageDetailViewTests(TestCase):
         cls.village = Village.objects.create(
             nom="Gbeke-Ouattara",
             description="Village de demonstration pour le detail.",
-            population_estimee=1240,
             chef_village="Kouadio N'Guessan",
             latitude=4.8521,
             longitude=-7.3842,
@@ -778,7 +770,6 @@ class VillageCreateViewTests(TestCase):
             {
                 "nom": "Village Infra",
                 "description": "Village avec infra detaillees",
-                "population_estimee": 900,
                 "chef_village": "Chef Infra",
                 "latitude": "5.1234",
                 "longitude": "-4.5678",
@@ -825,7 +816,6 @@ class VillageUpdateDeleteViewTests(TestCase):
         cls.village = Village.objects.create(
             nom="Village Editable",
             description="Version initiale",
-            population_estimee=300,
             chef_village="Chef Initial",
         )
 
@@ -847,7 +837,6 @@ class VillageUpdateDeleteViewTests(TestCase):
             {
                 "nom": "Village Editable",
                 "description": "Version modifiee",
-                "population_estimee": 450,
                 "chef_village": "Chef Modifie",
                 "latitude": "6.2000",
                 "longitude": "-5.4000",
@@ -868,7 +857,6 @@ class VillageUpdateDeleteViewTests(TestCase):
             reverse("dashbord:village-detail", args=[self.village.id]),
         )
         self.assertEqual(self.village.description, "Version modifiee")
-        self.assertEqual(self.village.population_estimee, 450)
         self.assertEqual(self.village.chef_village, "Chef Modifie")
         infrastructures = {
             infra.type_infrastructure: infra
@@ -928,7 +916,6 @@ class AgentSaisiePermissionsTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Village Agent",
-            population_estimee=640,
             created_by=cls.admin,
         )
         cls.family = Family.objects.create(
@@ -1094,7 +1081,6 @@ class ActionHistoryAuditTests(TestCase):
         )
         cls.village = Village.objects.create(
             nom="Village Historique",
-            population_estimee=500,
             created_by=cls.admin,
         )
 

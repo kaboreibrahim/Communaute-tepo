@@ -262,9 +262,9 @@
           {# Population #}
           <td class="px-6 py-4">
             <p class="text-sm font-semibold text-slate-800 dark:text-white">
-              {{ village.population_estimee|floatformat:0 }}
+              {{ village.nombre_habitants }}
             </p>
-            <p class="text-xs text-slate-400">estimée</p>
+            <p class="text-xs text-slate-400">enregistré{{ village.nombre_habitants|pluralize }}</p>
           </td>
 
           {# Familles #}

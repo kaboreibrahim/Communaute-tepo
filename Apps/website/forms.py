@@ -125,6 +125,11 @@ class PublicCotisationPaymentForm(forms.ModelForm):
             ).distinct()
 
         self.fields["personne"].queryset = person_qs
+        self.fields["personne"].label_from_instance = lambda obj: (
+            f"{obj.nom_complet}"
+            + (f" — {obj.famille.nom_famille} / {obj.famille.village.nom}" if getattr(obj, "famille_id", None) else "")
+            + (f" — {obj.code}" if obj.code else "")
+        )
         self.fields["cotisation"].queryset = cotisation_qs
         self.fields["cotisation"].empty_label = "Choisissez une cotisation ouverte"
         self.fields["personne"].empty_label = "Choisissez la personne concernee"

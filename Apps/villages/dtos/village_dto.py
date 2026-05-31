@@ -28,7 +28,6 @@ class VillageDTO:
     description:           str
     latitude:              Optional[float]
     longitude:             Optional[float]
-    population_estimee:    int
     chef_village:          str
     date_creation:         datetime
     nombre_familles:       int       = 0
@@ -55,7 +54,6 @@ class CreateVillageDTO:
     description:        str  = ''
     latitude:           Optional[float] = None
     longitude:          Optional[float] = None
-    population_estimee: int  = 0
     chef_village:       str  = ''
     infrastructure_types: List[str] = field(default_factory=list)
     created_by_id:      Optional[str] = None
@@ -69,6 +67,5 @@ class UpdateVillageDTO:
     description:        str  = ''
     latitude:           Optional[float] = None
     longitude:          Optional[float] = None
-    population_estimee: int  = 0
     chef_village:       str  = ''
     infrastructure_types: List[str] = field(default_factory=list)

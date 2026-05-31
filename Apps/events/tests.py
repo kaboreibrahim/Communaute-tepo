@@ -17,7 +17,6 @@ class EventModerationTests(TestCase):
     def setUpTestData(cls):
         cls.village = Village.objects.create(
             nom="Olodio Centre",
-            population_estimee=1200,
         )
         cls.family = Family.objects.create(
             nom_famille="Kouassi",

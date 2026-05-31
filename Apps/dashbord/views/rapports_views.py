@@ -228,7 +228,7 @@ def export_villages_excel(request):
     
     # En-têtes
     headers = [
-        'Nom du village', 'Description', 'Population estimée', 'Chef du village',
+        'Nom du village', 'Description', 'Membres enregistrés', 'Chef du village',
         'Latitude', 'Longitude', 'Nombre de familles', 'Nombre d\'habitants',
         'Nombre d\'écoles', 'Nombre d\'hôpitaux', 'Nombre de dispensaires',
         'Nombre de centres de santé', 'Total infrastructures', 'Date de création'
@@ -253,7 +253,7 @@ def export_villages_excel(request):
     for row_num, village in enumerate(villages, 2):
         ws.cell(row=row_num, column=1, value=village.nom)
         ws.cell(row=row_num, column=2, value=village.description)
-        ws.cell(row=row_num, column=3, value=village.population_estimee)
+        ws.cell(row=row_num, column=3, value=village.nombre_habitants)
         ws.cell(row=row_num, column=4, value=village.chef_village)
         ws.cell(row=row_num, column=5, value=village.latitude)
         ws.cell(row=row_num, column=6, value=village.longitude)

@@ -14,7 +14,6 @@ class PublicPersonRegistrationTests(TestCase):
     def setUpTestData(cls):
         cls.village = Village.objects.create(
             nom="Olodio Centre",
-            population_estimee=1200,
         )
         cls.family = Family.objects.create(
             nom_famille="Kouassi",
@@ -67,7 +66,6 @@ class PublicEventSubmissionTests(TestCase):
     def setUpTestData(cls):
         cls.village = Village.objects.create(
             nom="Dabolodio",
-            population_estimee=900,
         )
 
     def test_submission_page_renders(self):
@@ -116,7 +114,6 @@ class PublicCotisationPaymentTests(TestCase):
     def setUpTestData(cls):
         cls.village = Village.objects.create(
             nom="Olodio Mission",
-            population_estimee=750,
         )
         cls.family = Family.objects.create(
             nom_famille="Yao",

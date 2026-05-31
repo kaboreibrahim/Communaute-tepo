@@ -45,7 +45,7 @@ def _origin_from_url(value: str) -> str:
 
 
 shared_urls = _env_list("SHARED_BASE_URLS") or [
-    "https://ou3rxeus2icl.share.zrok.io",
+    "https://e57v1ujqs8m0.share.zrok.io",
 ]
 
 ALLOWED_HOSTS = list(dict.fromkeys([
@@ -180,6 +180,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 #     }
 # }
 
+#Database production
 
 DATABASES = {
     "default": {

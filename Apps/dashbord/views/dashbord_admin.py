@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.shortcuts import render
 
 from Apps.dashbord.security import (
@@ -7,6 +7,7 @@ from Apps.dashbord.security import (
     is_limited_data_entry_agent,
 )
 from Apps.families.models import Family
+from Apps.medias.models import Media
 from Apps.person.models import Person
 from Apps.villages.models import Village
 
@@ -350,6 +351,30 @@ def _build_dashboard_context(user) -> dict:
         },
     ]
 
+    media_qs = Media.objects.all()
+    media_stats = media_qs.aggregate(
+        total_images=Count("id", filter=Q(type_media="image")),
+        total_videos=Count("id", filter=Q(type_media="video")),
+        taille_totale=Sum("taille_fichier"),
+    )
+    total_images = media_stats["total_images"] or 0
+    total_videos = media_stats["total_videos"] or 0
+    taille_octets = media_stats["taille_totale"] or 0
+    if taille_octets >= 1024 ** 3:
+        taille_affichage = f"{taille_octets / 1024**3:.1f} Go"
+    elif taille_octets >= 1024 ** 2:
+        taille_affichage = f"{taille_octets / 1024**2:.1f} Mo"
+    elif taille_octets >= 1024:
+        taille_affichage = f"{taille_octets / 1024:.1f} Ko"
+    else:
+        taille_affichage = f"{taille_octets} o"
+
+    recent_images = list(
+        media_qs.filter(type_media="image")
+        .select_related("categorie")
+        .order_by("-date_creation")[:12]
+    )
+
     return {
         "title": "Tableau de bord administrateur",
         "dashboard_stats": dashboard_stats,
@@ -359,6 +384,10 @@ def _build_dashboard_context(user) -> dict:
         "gender_rows": gender_rows,
         "gender_circle_value": f"{female_percentage:.1f}",
         "recent_family_rows": _build_recent_family_rows(user),
+        "media_total_images": total_images,
+        "media_total_videos": total_videos,
+        "media_taille_affichage": taille_affichage,
+        "media_recent_images": recent_images,
     }
 
 

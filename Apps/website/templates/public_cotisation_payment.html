@@ -1,220 +1,716 @@
 {% extends "base.html" %}
-
 {% block content %}
-<section class="bg-background-light py-8 sm:py-12">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6">
-    <div class="mb-8 flex flex-col gap-6 rounded-[2rem] bg-gradient-to-br from-primary to-primary/85 px-6 py-8 text-white shadow-2xl sm:px-10 sm:py-10">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div class="max-w-3xl">
-          <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-white/90">
-            <span class="material-symbols-outlined text-sm">payments</span>
-            Cotisation publique
-          </span>
-          <h1 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Envoyer une demande de validation de paiement</h1>
-          <p class="mt-4 max-w-2xl text-sm leading-relaxed text-white/85 sm:text-base">
-            Faites votre depot via Wave, Orange Money, Moov, MTN, virement ou espece, puis soumettez ici la preuve. L'administration verifiera la demande avant de valider le paiement.
-          </p>
-        </div>
-        <a href="{% url 'website:accueil' %}" class="inline-flex items-center gap-2 self-start rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
-          <span class="material-symbols-outlined text-base">arrow_back</span>
-          Retour a l'accueil
-        </a>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 1</p>
-          <p class="mt-2 text-sm font-semibold">Vous choisissez la personne et la cotisation ouverte a regler.</p>
-        </div>
-        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 2</p>
-          <p class="mt-2 text-sm font-semibold">Vous ajoutez la reference ou un recu du depot effectue.</p>
-        </div>
-        <div class="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Etape 3</p>
-          <p class="mt-2 text-sm font-semibold">L'administration verifie puis valide le paiement dans la plateforme.</p>
-        </div>
-      </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+<style>
+  /* ── Step panels ── */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeUp .3s cubic-bezier(.4,0,.2,1); }
+  .step-panel.active.reverse { animation: fadeUpRev .3s cubic-bezier(.4,0,.2,1); }
+  @keyframes fadeUp    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUpRev { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── Step dots ── */
+  .sdot {
+    width:2.25rem; height:2.25rem; border-radius:50%;
+    border:2px solid #e2e8f0; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.82rem; font-weight:800; color:#94a3b8;
+    transition:all .3s; flex-shrink:0;
+  }
+  .sdot.done    { background:#00613a; border-color:#00613a; color:#fff; }
+  .sdot.current { background:#fff; border-color:#00613a; color:#00613a; box-shadow:0 0 0 4px rgba(0,97,58,.15); }
+  .sline { flex:1; height:2px; background:#e2e8f0; transition:background .4s; }
+  .sline.done { background:#00613a; }
+
+  /* ── Field error ── */
+  .ferr { color:#ef4444; font-size:.76rem; font-weight:600; margin-top:.3rem; display:none; align-items:center; gap:.25rem; }
+  .ferr.show { display:flex; }
+
+  /* ── Field base override (harmonisation) ── */
+  .f-base {
+    width:100%; min-height:3.1rem; border-radius:.875rem;
+    border:1.5px solid #e2e8f0; background:#f8faf8;
+    padding:.75rem 1rem; font-size:.94rem; font-weight:600; color:#0f172a;
+    transition:border-color .2s, box-shadow .2s, background .2s;
+    appearance:none; -webkit-appearance:none;
+  }
+  .f-base::placeholder { color:#94a3b8; font-weight:500; }
+  .f-base:focus { outline:none; border-color:#00613a; box-shadow:0 0 0 3px rgba(0,97,58,.13); background:#fff; }
+  .f-base.is-error { border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.1); }
+  select.f-base {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right .8rem center;
+    background-size:1.15rem; padding-right:2.5rem;
+  }
+  textarea.f-base { min-height:6rem; resize:vertical; padding-top:.85rem; }
+
+  /* ── TomSelect overrides ── */
+  .ts-wrapper { width:100%; }
+  .ts-wrapper .ts-control {
+    border:1.5px solid #e2e8f0 !important; border-radius:.875rem !important;
+    background:#f8faf8 !important; min-height:3.1rem !important;
+    padding:.6rem 2.5rem .6rem 1rem !important; box-shadow:none !important;
+    font-size:.94rem !important; font-weight:600 !important; color:#0f172a !important;
+    transition:border-color .2s,box-shadow .2s !important; cursor:pointer !important;
+  }
+  .ts-wrapper.focus .ts-control { border-color:#00613a !important; box-shadow:0 0 0 3px rgba(0,97,58,.13) !important; background:#fff !important; }
+  .ts-wrapper .ts-control input { all:unset !important; font-size:.94rem !important; font-weight:500 !important; color:#0f172a !important; flex:1 !important; min-width:60px !important; }
+  .ts-wrapper .ts-control input::placeholder { color:#94a3b8 !important; font-weight:500 !important; }
+  .ts-wrapper .ts-control .item { background:rgba(0,97,58,.1) !important; color:#00613a !important; border-radius:.5rem !important; padding:.15rem .55rem !important; font-weight:700 !important; font-size:.85rem !important; border:none !important; }
+  .ts-dropdown { border:1.5px solid #e2e8f0 !important; border-radius:.875rem !important; box-shadow:0 12px 32px rgba(15,23,42,.12) !important; overflow:hidden !important; margin-top:4px !important; background:#fff !important; }
+  .ts-dropdown .ts-dropdown-content { max-height:200px !important; }
+  .ts-dropdown .option { padding:.7rem 1rem !important; font-size:.88rem !important; font-weight:500 !important; color:#334155 !important; }
+  .ts-dropdown .option:hover, .ts-dropdown .option.active { background:rgba(0,97,58,.07) !important; color:#00613a !important; }
+  .ts-dropdown .option.selected { background:rgba(0,97,58,.12) !important; color:#00613a !important; font-weight:700 !important; }
+  .ts-dropdown .no-results { padding:.85rem 1rem !important; font-size:.88rem !important; color:#94a3b8 !important; }
+  .ts-wrapper .clear-button { color:#94a3b8 !important; font-size:1.1rem !important; right:.75rem !important; }
+
+  /* ── Mode paiement cards ── */
+  .mode-card {
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:.4rem;
+    padding:.85rem .5rem; border-radius:.875rem; border:1.5px solid #e2e8f0;
+    background:#f8faf8; cursor:pointer; transition:all .2s; text-align:center;
+  }
+  .mode-card:hover { border-color:#00613a; background:#fff; }
+  .mode-card input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+  .mode-card.selected { border-color:#00613a; background:rgba(0,97,58,.07); box-shadow:0 0 0 3px rgba(0,97,58,.1); }
+  .mode-card .mode-icon { width:2.5rem; height:2.5rem; border-radius:.65rem; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; color:#fff; }
+
+  /* ── Recap ── */
+  .recap-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; padding:.6rem 0; border-bottom:1px solid rgba(0,97,58,.1); }
+  .recap-row:last-child { border-bottom:none; }
+  .recap-key { font-size:.7rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:rgba(0,97,58,.6); }
+  .recap-val { font-size:.88rem; font-weight:700; color:#0f172a; text-align:right; max-width:60%; }
+
+  /* ── Spinner ── */
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .btn-spinner { display:inline-block; width:1.1rem; height:1.1rem; border:2.5px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; }
+
+  /* ── Modal ── */
+  @keyframes modalIn { from{opacity:0;transform:translateY(24px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .modal-card { animation:modalIn .35s cubic-bezier(.4,0,.2,1); }
+</style>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#00613a] via-[#00613a] to-[#0b2d20]">
+  <div class="absolute -left-12 -top-12 h-48 w-48 rounded-full bg-white/5 blur-3xl"></div>
+  <div class="absolute -right-8 bottom-0 h-44 w-44 rounded-full bg-[#ff8200]/20 blur-3xl"></div>
+  <div class="relative mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-12 text-center text-white">
+    <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] backdrop-blur">
+      <span class="material-symbols-outlined" style="font-size:14px;">payments</span>
+      Cotisation publique
+    </span>
+    <h1 class="font-display mt-4 text-2xl font-black leading-tight sm:text-3xl">
+      Soumettre une demande de paiement de cotisation
+    </h1>
+    <p class="mt-3 text-sm text-emerald-50/80 leading-relaxed max-w-lg mx-auto">
+      Effectuez votre dépôt via Wave, Orange Money ou tout autre moyen, puis soumettez ici la preuve. L'administration vérifiera avant de valider.
+    </p>
+    <div class="mt-4 flex flex-wrap justify-center gap-2 text-[11px] font-semibold">
+      <span class="rounded-full bg-white/10 px-3 py-1.5">3 étapes simples</span>
+      <span class="rounded-full bg-white/10 px-3 py-1.5">Vérification avant validation</span>
     </div>
-
-    {% if form.non_field_errors %}
-    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-      {% for error in form.non_field_errors %}
-      <p>{{ error }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <form method="post" enctype="multipart/form-data" class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-      {% csrf_token %}
-
-      <div class="space-y-6">
-        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
-          <div class="mb-6 flex items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined">smartphone</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-black text-slate-900">Numero de transaction</h2>
-              <p class="text-sm text-slate-500">Le nom et l'email sont recuperes automatiquement depuis la personne selectionnee. Indiquez seulement le numero ayant servi pour le paiement.</p>
-            </div>
-          </div>
-
-          <div class="grid gap-5">
-            <div>
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.telephone_soumetteur.label }}</label>
-              {{ form.telephone_soumetteur }}
-              {% if form.telephone_soumetteur.errors %}<p class="mt-1 text-xs text-red-600">{{ form.telephone_soumetteur.errors|join:", " }}</p>{% endif %}
-            </div>
-          </div>
-        </section>
-
-        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
-          <div class="mb-6 flex items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
-              <span class="material-symbols-outlined">badge</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-black text-slate-900">Cotisation a payer</h2>
-              <p class="text-sm text-slate-500">Choisissez d'abord la personne concernee, puis la cotisation ouverte applicable.</p>
-            </div>
-          </div>
-
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div class="sm:col-span-2">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.personne.label }}</label>
-              {{ form.personne }}
-              {% if form.personne.errors %}<p class="mt-1 text-xs text-red-600">{{ form.personne.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div class="sm:col-span-2">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.cotisation.label }}</label>
-              {{ form.cotisation }}
-              {% if form.cotisation.errors %}<p class="mt-1 text-xs text-red-600">{{ form.cotisation.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div>
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.montant.label }}</label>
-              {{ form.montant }}
-              {% if form.montant.errors %}<p class="mt-1 text-xs text-red-600">{{ form.montant.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div>
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.date_paiement.label }}</label>
-              {{ form.date_paiement }}
-              {% if form.date_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.date_paiement.errors|join:", " }}</p>{% endif %}
-            </div>
-          </div>
-        </section>
-
-        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
-          <div class="mb-6 flex items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined">receipt_long</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-black text-slate-900">Preuve du paiement</h2>
-              <p class="text-sm text-slate-500">Ajoutez le mode de paiement, le numero utilise et une preuve si possible.</p>
-            </div>
-          </div>
-
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.mode_paiement.label }}</label>
-              {{ form.mode_paiement }}
-              {% if form.mode_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.mode_paiement.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div>
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.compte_paiement.label }}</label>
-              {{ form.compte_paiement }}
-              {% if form.compte_paiement.errors %}<p class="mt-1 text-xs text-red-600">{{ form.compte_paiement.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div class="sm:col-span-2">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.reference_transaction.label }}</label>
-              {{ form.reference_transaction }}
-              {% if form.reference_transaction.errors %}<p class="mt-1 text-xs text-red-600">{{ form.reference_transaction.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div class="sm:col-span-2">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.notes.label }}</label>
-              {{ form.notes }}
-              {% if form.notes.errors %}<p class="mt-1 text-xs text-red-600">{{ form.notes.errors|join:", " }}</p>{% endif %}
-            </div>
-            <div class="sm:col-span-2">
-              <label class="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ form.recu.label }}</label>
-              <label class="group block cursor-pointer rounded-[1.5rem] border-2 border-dashed border-primary/15 bg-background-light px-6 py-10 text-center transition hover:border-primary/35 hover:bg-primary/5">
-                <span class="material-symbols-outlined text-5xl text-primary/60">cloud_upload</span>
-                <p class="mt-3 text-sm font-bold text-slate-700">Cliquez pour joindre un recu</p>
-                <p id="payment-upload-name" class="mt-1 text-xs text-slate-400">PNG, JPG ou JPEG</p>
-                {{ form.recu }}
-              </label>
-              {% if form.recu.errors %}<p class="mt-1 text-xs text-red-600">{{ form.recu.errors|join:", " }}</p>{% endif %}
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <aside class="space-y-6">
-        <section class="rounded-[2rem] bg-white p-6 shadow-xl sm:p-8">
-          <div class="mb-4 flex items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined">account_balance_wallet</span>
-            </div>
-            <div>
-              <h2 class="text-lg font-black text-slate-900">Numeros de depot</h2>
-              <p class="text-sm text-slate-500">Choisissez l'un de ces comptes actifs pour votre depot.</p>
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            {% for account in active_accounts %}
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="text-sm font-black text-slate-900">{{ account.get_mode_display }}</p>
-                  <p class="mt-1 text-sm font-semibold text-slate-700">{{ account.numero }}</p>
-                  <p class="mt-1 text-xs uppercase tracking-widest text-slate-400">{{ account.nom_titulaire }}</p>
-                </div>
-                {% if account.qr_code %}
-                <img src="{{ account.qr_code.url }}" alt="{{ account.nom_titulaire }}" class="h-14 w-14 rounded-xl border border-slate-200 object-cover">
-                {% endif %}
-              </div>
-              {% if account.instructions %}
-              <p class="mt-3 text-sm leading-6 text-slate-500">{{ account.instructions }}</p>
-              {% endif %}
-            </div>
-            {% empty %}
-            <div class="rounded-xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-500">
-              Aucun compte de paiement public n'est encore configure.
-            </div>
-            {% endfor %}
-          </div>
-        </section>
-
-        <section class="rounded-[2rem] bg-slate-900 p-6 text-white shadow-2xl sm:p-8">
-          <h2 class="text-lg font-black">Avant d'envoyer</h2>
-          <div class="mt-5 space-y-3 text-sm text-white/80">
-            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">verified_user</span> Votre paiement est d'abord enregistre en attente.</p>
-            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">visibility</span> Un administrateur verifie la reference et le recu avant validation.</p>
-            <p class="flex gap-2"><span class="material-symbols-outlined text-base text-accent">call</span> Le numero utilise pour la transaction aide l'administration a retrouver le depot plus vite.</p>
-          </div>
-
-          <button type="submit" class="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-4 text-sm font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-accent/30 transition hover:-translate-y-0.5 hover:bg-accent/90">
-            Envoyer la demande
-            <span class="material-symbols-outlined">send</span>
-          </button>
-        </section>
-      </aside>
-    </form>
   </div>
 </section>
 
-<script>
-  const paymentReceiptInput = document.getElementById("id_recu");
-  const paymentReceiptLabel = document.getElementById("payment-upload-name");
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="mx-auto max-w-2xl px-4 py-8 sm:px-6">
 
-  if (paymentReceiptInput && paymentReceiptLabel) {
-    paymentReceiptInput.addEventListener("change", () => {
-      const fileName = paymentReceiptInput.files && paymentReceiptInput.files[0]
-        ? paymentReceiptInput.files[0].name
-        : "PNG, JPG ou JPEG";
-      paymentReceiptLabel.textContent = fileName;
+  <!-- Messages Django -->
+  {% if messages %}
+  <div class="mb-5 space-y-3">
+    {% for message in messages %}
+    {% if 'success' in message.tags %}
+    <div class="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-medium text-emerald-700">
+      <span class="material-symbols-outlined mt-0.5 flex-shrink-0 text-emerald-500" style="font-size:18px;">check_circle</span>
+      <span>{{ message }}</span>
+    </div>
+    {% else %}
+    <div class="flex items-start gap-3 rounded-2xl border {% if 'error' in message.tags %}border-red-200 bg-red-50 text-red-700{% else %}border-amber-200 bg-amber-50 text-amber-700{% endif %} px-4 py-3.5 text-sm font-medium">
+      <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:18px;">{% if 'error' in message.tags %}error{% else %}warning{% endif %}</span>
+      <span>{{ message }}</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+  <div class="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm font-medium text-red-700">
+    <span class="material-symbols-outlined mt-0.5 flex-shrink-0" style="font-size:18px;">error</span>
+    <span>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</span>
+  </div>
+  {% endif %}
+
+  <!-- ══ STEP INDICATOR ══ -->
+  <div class="mb-7">
+    <div class="flex items-center">
+      <div class="flex flex-col items-center gap-1">
+        <div class="sdot current" id="dot-1">1</div>
+        <span class="hidden text-[9px] font-bold uppercase tracking-[.15em] text-[#00613a] sm:block">Bénéficiaire</span>
+      </div>
+      <div class="sline mx-1.5 sm:mx-2" id="line-12"></div>
+      <div class="flex flex-col items-center gap-1">
+        <div class="sdot" id="dot-2">2</div>
+        <span class="hidden text-[9px] font-bold uppercase tracking-[.15em] text-slate-400 sm:block">Paiement</span>
+      </div>
+      <div class="sline mx-1.5 sm:mx-2" id="line-23"></div>
+      <div class="flex flex-col items-center gap-1">
+        <div class="sdot" id="dot-3">3</div>
+        <span class="hidden text-[9px] font-bold uppercase tracking-[.15em] text-slate-400 sm:block">Confirmation</span>
+      </div>
+    </div>
+    <div class="mt-3.5 h-1.5 rounded-full bg-slate-200">
+      <div id="progress-bar" class="h-1.5 rounded-full bg-[#00613a] transition-all duration-500" style="width:33.3%"></div>
+    </div>
+    <p class="mt-2 text-right text-xs font-semibold text-slate-500" id="step-label">Étape 1 / 3 — Bénéficiaire &amp; cotisation</p>
+  </div>
+
+  <!-- ══════════ FORM ══════════ -->
+  <form method="post" enctype="multipart/form-data" id="form-cotisation" novalidate>
+    {% csrf_token %}
+
+    <!-- ───── STEP 1 : BÉNÉFICIAIRE ───── -->
+    <div class="step-panel active" id="step-1">
+      <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+        <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-[#00613a]/5 to-transparent px-5 py-5 sm:px-6">
+          <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#00613a]/10 text-[#00613a]">
+            <span class="material-symbols-outlined" style="font-size:22px;">badge</span>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[.22em] text-[#00613a]">Étape 1 / 3</p>
+            <h2 class="font-display text-xl font-black text-slate-900">Bénéficiaire &amp; cotisation</h2>
+          </div>
+        </div>
+
+        <div class="space-y-5 px-5 py-5 sm:px-6">
+          <p class="text-sm leading-relaxed text-slate-500">Sélectionnez la personne concernée puis la cotisation à régler.</p>
+
+          <!-- Personne -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.personne.label }} <span class="text-red-400">*</span>
+            </label>
+            {{ form.personne }}
+            <p class="ferr" id="err-personne"><span class="material-symbols-outlined" style="font-size:13px;">error</span>La personne est obligatoire.</p>
+            {% if form.personne.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.personne.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Cotisation -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.cotisation.label }} <span class="text-red-400">*</span>
+            </label>
+            {{ form.cotisation }}
+            <p class="ferr" id="err-cotisation"><span class="material-symbols-outlined" style="font-size:13px;">error</span>La cotisation est obligatoire.</p>
+            {% if form.cotisation.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.cotisation.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Montant + Date -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+                {{ form.montant.label }} <span class="text-red-400">*</span>
+              </label>
+              {{ form.montant }}
+              <p class="ferr" id="err-montant"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Le montant est obligatoire.</p>
+              {% if form.montant.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.montant.errors|join:", " }}</p>{% endif %}
+            </div>
+            <div>
+              <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+                {{ form.date_paiement.label }} <span class="text-red-400">*</span>
+              </label>
+              {{ form.date_paiement }}
+              {% if form.date_paiement.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.date_paiement.errors|join:", " }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── STEP 2 : PAIEMENT ───── -->
+    <div class="step-panel" id="step-2">
+      <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+        <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-[#ff8200]/5 to-transparent px-5 py-5 sm:px-6">
+          <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-[#ff8200]/10 text-[#ff8200]">
+            <span class="material-symbols-outlined" style="font-size:22px;">account_balance_wallet</span>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[.22em] text-[#ff8200]">Étape 2 / 3</p>
+            <h2 class="font-display text-xl font-black text-slate-900">Modalités de paiement</h2>
+          </div>
+        </div>
+
+        <div class="space-y-5 px-5 py-5 sm:px-6">
+
+          <!-- Mode de paiement (radio cards) -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.55rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              Mode de paiement <span class="text-red-400">*</span>
+            </label>
+            <!-- Hidden select (Django form field — keeps server-side validation) -->
+            <div class="hidden">{{ form.mode_paiement }}</div>
+            <!-- Visual radio cards -->
+            <div class="grid grid-cols-3 gap-2 sm:grid-cols-6" id="mode-cards">
+              <label class="mode-card" data-mode="wave" onclick="selectMode('wave')">
+                <input type="radio" name="_mode_ui" value="wave">
+                <div class="mode-icon" style="background:#00b6f0;">W</div>
+                <span class="text-[11px] font-bold text-slate-700">Wave</span>
+              </label>
+              <label class="mode-card" data-mode="orange_money" onclick="selectMode('orange_money')">
+                <input type="radio" name="_mode_ui" value="orange_money">
+                <div class="mode-icon" style="background:#ff6600;">OM</div>
+                <span class="text-[11px] font-bold text-slate-700">Orange</span>
+              </label>
+              <label class="mode-card" data-mode="moov" onclick="selectMode('moov')">
+                <input type="radio" name="_mode_ui" value="moov">
+                <div class="mode-icon" style="background:#0057a8;">MV</div>
+                <span class="text-[11px] font-bold text-slate-700">Moov</span>
+              </label>
+              <label class="mode-card" data-mode="mtn" onclick="selectMode('mtn')">
+                <input type="radio" name="_mode_ui" value="mtn">
+                <div class="mode-icon" style="background:#ffc107; color:#333;">MTN</div>
+                <span class="text-[11px] font-bold text-slate-700">MTN</span>
+              </label>
+              <label class="mode-card" data-mode="virement" onclick="selectMode('virement')">
+                <input type="radio" name="_mode_ui" value="virement">
+                <div class="mode-icon" style="background:#00613a;">
+                  <span class="material-symbols-outlined" style="font-size:14px;">swap_horiz</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-700">Virement</span>
+              </label>
+              <label class="mode-card" data-mode="espece" onclick="selectMode('espece')">
+                <input type="radio" name="_mode_ui" value="espece">
+                <div class="mode-icon" style="background:#64748b;">
+                  <span class="material-symbols-outlined" style="font-size:14px;">payments</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-700">Espèces</span>
+              </label>
+            </div>
+            <p class="ferr" id="err-mode"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Sélectionnez un mode de paiement.</p>
+            {% if form.mode_paiement.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.mode_paiement.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Téléphone soumetteur -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.telephone_soumetteur.label }} <span class="text-red-400">*</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300" style="font-size:18px;">smartphone</span>
+              {{ form.telephone_soumetteur }}
+            </div>
+            <p class="mt-1 text-xs text-slate-400">Le numéro ayant servi pour le dépôt (aide à retrouver la transaction).</p>
+            <p class="ferr" id="err-tel"><span class="material-symbols-outlined" style="font-size:13px;">error</span>Le numéro de transaction est requis.</p>
+            {% if form.telephone_soumetteur.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.telephone_soumetteur.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Compte paiement (conditionnel) -->
+          <div id="bloc-compte">
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.compte_paiement.label }}
+            </label>
+            {{ form.compte_paiement }}
+            {% if form.compte_paiement.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.compte_paiement.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Référence transaction -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.reference_transaction.label }}
+            </label>
+            {{ form.reference_transaction }}
+            {% if form.reference_transaction.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.reference_transaction.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Reçu upload -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.55rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.recu.label }}
+            </label>
+            <label id="upload-zone" class="flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-5 py-7 text-center transition hover:border-[#00613a] hover:bg-[#00613a]/5">
+              <span class="material-symbols-outlined text-4xl text-slate-300" id="upload-icon">cloud_upload</span>
+              <div>
+                <p class="text-sm font-bold text-slate-700">Joindre un reçu de dépôt</p>
+                <p class="mt-1 text-xs text-slate-400" id="upload-name">PNG, JPG ou PDF — optionnel</p>
+              </div>
+              {{ form.recu }}
+            </label>
+            {% if form.recu.errors %}<p class="ferr show"><span class="material-symbols-outlined" style="font-size:13px;">error</span>{{ form.recu.errors|join:", " }}</p>{% endif %}
+          </div>
+
+          <!-- Comptes actifs info -->
+          {% if active_accounts %}
+          <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-[.2em] text-slate-400 mb-3">Numéros de dépôt disponibles</p>
+            <div class="space-y-3">
+              {% for acc in active_accounts %}
+              <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#00613a]/10">
+                    <span class="material-symbols-outlined text-[#00613a]" style="font-size:16px;">account_balance_wallet</span>
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">{{ acc.get_mode_display }}</p>
+                    <p class="text-sm font-semibold text-[#00613a]">{{ acc.numero }}</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{{ acc.nom_titulaire }}</p>
+                  </div>
+                </div>
+                {% if acc.qr_code %}
+                <img src="{{ acc.qr_code.url }}" alt="{{ acc.nom_titulaire }}" class="h-12 w-12 flex-shrink-0 rounded-xl border border-slate-200 object-cover">
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── STEP 3 : CONFIRMATION ───── -->
+    <div class="step-panel" id="step-3">
+      <div class="overflow-hidden rounded-3xl border border-white/80 bg-white shadow-sm">
+
+        <div class="flex items-center gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-transparent px-5 py-5 sm:px-6">
+          <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+            <span class="material-symbols-outlined" style="font-size:22px;">edit_note</span>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[.22em] text-slate-400">Étape 3 / 3</p>
+            <h2 class="font-display text-xl font-black text-slate-900">Confirmation &amp; envoi</h2>
+          </div>
+        </div>
+
+        <div class="space-y-5 px-5 py-5 sm:px-6">
+
+          <!-- Notes -->
+          <div>
+            <label class="field-label" style="display:block;margin-bottom:.45rem;font-size:.7rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#64748b;">
+              {{ form.notes.label }} <span class="text-xs font-normal normal-case tracking-normal text-slate-400">(optionnel)</span>
+            </label>
+            {{ form.notes }}
+          </div>
+
+          <!-- Récapitulatif -->
+          <div class="rounded-2xl bg-[#00613a]/5 border border-[#00613a]/15 p-4">
+            <p class="text-[11px] font-bold uppercase tracking-[.2em] text-[#00613a] mb-3">Récapitulatif avant envoi</p>
+            <div>
+              <div class="recap-row">
+                <span class="recap-key">Bénéficiaire</span>
+                <span class="recap-val" id="recap-personne">—</span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-key">Cotisation</span>
+                <span class="recap-val" id="recap-cotisation">—</span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-key">Montant</span>
+                <span class="recap-val" id="recap-montant">—</span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-key">Date</span>
+                <span class="recap-val" id="recap-date">—</span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-key">Mode</span>
+                <span class="recap-val" id="recap-mode">—</span>
+              </div>
+              <div class="recap-row">
+                <span class="recap-key">Téléphone</span>
+                <span class="recap-val" id="recap-tel">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checklist -->
+          <ul class="space-y-2.5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <li class="flex items-center gap-2.5 text-sm text-slate-600">
+              <span class="material-symbols-outlined flex-shrink-0 text-[#00613a]" style="font-size:16px;">check_circle</span>
+              Votre paiement est enregistré en attente de vérification.
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-600">
+              <span class="material-symbols-outlined flex-shrink-0 text-[#00613a]" style="font-size:16px;">check_circle</span>
+              Un administrateur vérifie la référence et le reçu avant validation.
+            </li>
+            <li class="flex items-center gap-2.5 text-sm text-slate-500">
+              <span class="material-symbols-outlined flex-shrink-0 text-slate-300" style="font-size:16px;">info</span>
+              Le numéro de transaction aide à retrouver le dépôt plus rapidement.
+            </li>
+          </ul>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ NAVIGATION ══ -->
+    <div class="mt-4 flex items-center gap-3">
+      <button type="button" id="btn-prev" onclick="prevStep()"
+        class="hidden h-14 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-[.98]">
+        <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+        Précédent
+      </button>
+      <button type="button" id="btn-next" onclick="nextStep()"
+        class="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#00613a] text-sm font-bold text-white shadow-lg shadow-[#00613a]/25 transition hover:bg-[#00613a]/90 active:scale-[.98]">
+        Suivant
+        <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+      </button>
+      <button type="submit" id="btn-submit"
+        class="hidden h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#ff8200] text-sm font-bold text-white shadow-lg shadow-[#ff8200]/25 transition hover:bg-[#ff8200]/90 active:scale-[.98]">
+        <span id="btn-submit-content" class="flex items-center gap-2">
+          Envoyer la demande
+          <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+        </span>
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- ═══════════ SUCCESS MODAL ═══════════ -->
+{% if messages %}{% for message in messages %}{% if 'success' in message.tags %}
+<div id="success-overlay" class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 sm:p-6" style="background:rgba(15,23,42,.65);backdrop-filter:blur(4px);">
+  <div class="modal-card w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+    <div class="bg-gradient-to-br from-[#00613a] to-[#0b2d20] px-6 py-8 text-center text-white">
+      <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full" style="background:rgba(255,255,255,.15);">
+        <span class="material-symbols-outlined" style="font-size:48px;">check_circle</span>
+      </div>
+      <h2 class="font-display text-2xl font-black">Demande envoyée !</h2>
+      <p class="mt-3 text-sm text-emerald-50/85 leading-relaxed">{{ message }}</p>
+    </div>
+    <div class="space-y-3 px-6 py-5">
+      <button onclick="closeModal()"
+        class="flex w-full items-center justify-center rounded-2xl bg-[#00613a] py-3.5 text-sm font-bold text-white transition hover:bg-[#00613a]/90">
+        Faire un autre paiement
+      </button>
+      <a href="{% url 'website:accueil' %}"
+        class="flex w-full items-center justify-center rounded-2xl border-2 border-slate-200 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+        Retour à l'accueil
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}{% endfor %}{% endif %}
+
+<script>
+(function(){
+  'use strict';
+
+  var cur = 1, total = 3, goBack = false;
+  var stepLabels = ['Bénéficiaire & cotisation', 'Modalités de paiement', 'Confirmation & envoi'];
+  var modeLabels = { wave:'Wave', orange_money:'Orange Money', moov:'Moov Money', mtn:'MTN Mobile Money', virement:'Virement bancaire', espece:'Espèces' };
+  var selectedMode = '';
+
+  // ── Show step ──
+  function showStep(next) {
+    var old = document.getElementById('step-'+cur);
+    var nxt = document.getElementById('step-'+next);
+    if (!old || !nxt) return;
+    old.classList.remove('active','reverse'); old.classList.add('step-panel');
+    nxt.classList.remove('step-panel');
+    nxt.classList.add('step-panel','active');
+    if (goBack) nxt.classList.add('reverse');
+    cur = next;
+    updateUI();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function updateUI() {
+    for (var i = 1; i <= total; i++) {
+      var d = document.getElementById('dot-'+i);
+      if (!d) continue;
+      d.className = 'sdot';
+      if (i < cur) { d.classList.add('done'); d.innerHTML='<span class="material-symbols-outlined" style="font-size:14px;">check</span>'; }
+      else if (i === cur) { d.classList.add('current'); d.textContent = i; }
+      else d.textContent = i;
+    }
+    var lines = [['line-12',1],['line-23',2]];
+    lines.forEach(function(l){ var el=document.getElementById(l[0]); if(el) el.classList.toggle('done', l[1]<cur); });
+    document.getElementById('progress-bar').style.width = ((cur/total)*100)+'%';
+    document.getElementById('step-label').textContent = 'Étape '+cur+' / '+total+' — '+stepLabels[cur-1];
+    var bP=document.getElementById('btn-prev'), bN=document.getElementById('btn-next'), bS=document.getElementById('btn-submit');
+    if (cur===1) { bP.classList.remove('flex'); bP.classList.add('hidden'); }
+    else { bP.classList.remove('hidden'); bP.classList.add('flex'); }
+    if (cur===total) {
+      bN.classList.add('hidden');
+      bS.classList.remove('hidden'); bS.classList.add('flex');
+      buildRecap();
+    } else {
+      bN.classList.remove('hidden');
+      bS.classList.add('hidden'); bS.classList.remove('flex');
+    }
+  }
+
+  // ── Validation ──
+  function validateStep(s) {
+    var ok = true;
+    if (s === 1) {
+      var ts1 = window._ts && window._ts.personne  ? window._ts.personne.getValue()  : fval('personne');
+      var ts2 = window._ts && window._ts.cotisation ? window._ts.cotisation.getValue(): fval('cotisation');
+      var mt  = fval('montant');
+      toggleErr('err-personne',   !ts1);
+      toggleErr('err-cotisation', !ts2);
+      toggleErr('err-montant',    !mt);
+      if (!ts1||!ts2||!mt) ok=false;
+    }
+    if (s === 2) {
+      var tel  = fval('telephone_soumetteur');
+      var mode = fval('mode_paiement');
+      toggleErr('err-tel',  !tel);
+      toggleErr('err-mode', !mode);
+      if (!tel||!mode) ok=false;
+    }
+    return ok;
+  }
+
+  function toggleErr(id, show) { var el=document.getElementById(id); if(el) el.classList.toggle('show', show); }
+  function fval(name) { var el=document.querySelector('[name="'+name+'"]'); return el ? el.value.trim() : ''; }
+  function setText(id, t) { var el=document.getElementById(id); if(el) el.textContent=t; }
+
+  window.nextStep = function() {
+    if (!validateStep(cur)) {
+      var b=document.getElementById('btn-next'); b.style.transform='scale(.95)';
+      setTimeout(function(){b.style.transform='';},150); return;
+    }
+    goBack=false; if(cur<total) showStep(cur+1);
+  };
+  window.prevStep = function() { goBack=true; if(cur>1) showStep(cur-1); };
+
+  // ── Mode cards ──
+  window.selectMode = function(mode) {
+    selectedMode = mode;
+    document.querySelectorAll('.mode-card').forEach(function(c){ c.classList.toggle('selected', c.dataset.mode===mode); });
+    var sel = document.getElementById('id_mode_paiement');
+    if (sel) { sel.value = mode; }
+    toggleErr('err-mode', false);
+    // Show/hide compte bloc
+    var bloc = document.getElementById('bloc-compte');
+    if (bloc) bloc.style.display = (mode==='espece') ? 'none' : '';
+  };
+
+  // ── Recap ──
+  function buildRecap() {
+    var tsP = window._ts && window._ts.personne;
+    var tsC = window._ts && window._ts.cotisation;
+    var pVal = tsP ? tsP.getValue() : fval('personne');
+    var cVal = tsC ? tsC.getValue() : fval('cotisation');
+    var pOpt = pVal ? document.querySelector('#id_personne option[value="'+pVal+'"]') : null;
+    var cOpt = cVal ? document.querySelector('#id_cotisation option[value="'+cVal+'"]') : null;
+    setText('recap-personne',   pOpt && pOpt.value ? pOpt.text : '—');
+    setText('recap-cotisation', cOpt && cOpt.value ? cOpt.text : '—');
+    setText('recap-montant',    fval('montant') ? fval('montant')+' FCFA' : '—');
+    var dn = fval('date_paiement');
+    setText('recap-date', dn ? new Date(dn+'T00:00:00').toLocaleDateString('fr-FR') : '—');
+    setText('recap-mode', selectedMode ? (modeLabels[selectedMode]||selectedMode) : '—');
+    setText('recap-tel',  fval('telephone_soumetteur')||'—');
+  }
+
+  // ── File upload display ──
+  function initUpload() {
+    var input = document.querySelector('#id_recu');
+    var label = document.getElementById('upload-name');
+    var icon  = document.getElementById('upload-icon');
+    if (!input||!label) return;
+    input.addEventListener('change', function(){
+      if (this.files && this.files[0]) {
+        label.textContent = this.files[0].name;
+        if (icon) icon.textContent = 'attach_file';
+        document.getElementById('upload-zone') && document.getElementById('upload-zone').classList.add('border-[#00613a]','bg-[#00613a]/5');
+      }
     });
   }
+
+  // ── Submit loading ──
+  function initSubmit() {
+    var form = document.getElementById('form-cotisation');
+    if (!form) return;
+    form.addEventListener('submit', function(){
+      var btn = document.getElementById('btn-submit');
+      var content = document.getElementById('btn-submit-content');
+      if (!btn || btn.disabled) return;
+      btn.disabled = true;
+      if (content) content.innerHTML = '<span class="btn-spinner"></span><span>Envoi en cours...</span>';
+    });
+  }
+
+  // ── TomSelect init ──
+  function initTomSelect() {
+    window._ts = {};
+    var base = { allowEmptyOption:true, plugins:['clear_button'] };
+
+    function make(id, ph) {
+      var el = document.getElementById(id);
+      if (!el) return null;
+      return new TomSelect('#'+id, Object.assign({}, base, { placeholder: ph }));
+    }
+
+    window._ts.personne   = (function() {
+      var el = document.getElementById('id_personne');
+      if (!el) return null;
+      // Inject data-code from option text (format: "Nom — Famille — CODE")
+      Array.from(el.options).forEach(function(opt) {
+        if (!opt.value) return;
+        var parts = opt.text.split('—');
+        var last = parts[parts.length - 1] ? parts[parts.length - 1].trim() : '';
+        if (last) opt.dataset.code = last;
+      });
+      return new TomSelect('#id_personne', Object.assign({}, base, {
+        placeholder: 'Rechercher par nom, famille ou code...',
+        searchField: ['text', 'code'],
+      }));
+    })();
+    window._ts.cotisation = make('id_cotisation',  'Rechercher une cotisation...');
+    window._ts.compte     = make('id_compte_paiement', 'Choisir un compte...');
+  }
+
+  // ── Success modal ──
+  window.closeModal = function() {
+    var o = document.getElementById('success-overlay');
+    if (o) { o.style.transition='opacity .25s'; o.style.opacity='0'; setTimeout(function(){o.remove(); document.body.style.overflow='';},260); }
+  };
+
+  // ── Style Django form inputs ──
+  function styleInputs() {
+    var skip = ['id_mode_paiement','id_recu','id_personne','id_cotisation','id_compte_paiement'];
+    document.querySelectorAll('#form-cotisation input:not([type=hidden]):not([type=radio]):not([type=file]), #form-cotisation select, #form-cotisation textarea').forEach(function(el){
+      if (skip.indexOf(el.id) !== -1) return;
+      el.className = (el.tagName === 'TEXTAREA') ? 'f-base w-full' : 'f-base w-full';
+      // Phone field: padding-left for icon
+      if (el.name === 'telephone_soumetteur') el.style.paddingLeft = '2.75rem';
+    });
+  }
+
+  // ── Init ──
+  document.addEventListener('DOMContentLoaded', function(){
+    styleInputs();
+    initTomSelect();
+    initUpload();
+    initSubmit();
+    updateUI();
+
+    // Pre-select mode if form was submitted with errors
+    var modeSelect = document.getElementById('id_mode_paiement');
+    if (modeSelect && modeSelect.value) selectMode(modeSelect.value);
+
+    // Show modal + detect error step
+    var overlay = document.getElementById('success-overlay');
+    if (overlay) document.body.style.overflow = 'hidden';
+
+    // If Django form has errors in step 2 fields, jump to step 2
+    var step2Fields = ['id_telephone_soumetteur','id_mode_paiement','id_compte_paiement','id_reference_transaction','id_recu'];
+    var hasStep2Err = step2Fields.some(function(id){
+      return document.querySelector('[name="'+id.replace('id_','')+'"] + .ferr.show, [name="'+id.replace('id_','')+'"] ~ .ferr.show');
+    });
+    // Simple heuristic: if non_field_errors visible, jump to step 3
+    // For field errors we keep step 1 (default)
+  });
+
+})();
 </script>
 {% endblock %}

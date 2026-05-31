@@ -22,7 +22,7 @@ VILLAGES_DATA = [
     {
         "nom": "Olodio",
         "chef_village": "Koné Mamadou",
-        "population_estimee": 1200,
+        "pop_seed": 1200,
         "description": "Chef-lieu de la sous-préfecture d'Olodio",
         "latitude":  4.8521,
         "longitude": -7.3842,
@@ -30,7 +30,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpéhiri",
         "chef_village": "Bamba Seydou",
-        "population_estimee": 650,
+        "pop_seed": 650,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8734,
         "longitude": -7.4012,
@@ -38,7 +38,7 @@ VILLAGES_DATA = [
     {
         "nom": "Zégban",
         "chef_village": "Coulibaly Bakary",
-        "population_estimee": 480,
+        "pop_seed": 480,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8612,
         "longitude": -7.3654,
@@ -46,7 +46,7 @@ VILLAGES_DATA = [
     {
         "nom": "Gbalébré",
         "chef_village": "Diallo Moussa",
-        "population_estimee": 390,
+        "pop_seed": 390,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8445,
         "longitude": -7.3901,
@@ -54,7 +54,7 @@ VILLAGES_DATA = [
     {
         "nom": "Dakpadou",
         "chef_village": "Traoré Souleymane",
-        "population_estimee": 520,
+        "pop_seed": 520,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8289,
         "longitude": -7.4123,
@@ -62,7 +62,7 @@ VILLAGES_DATA = [
     {
         "nom": "Niéproyo",
         "chef_village": "Ouattara Drissa",
-        "population_estimee": 310,
+        "pop_seed": 310,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8901,
         "longitude": -7.3567,
@@ -70,7 +70,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpata",
         "chef_village": "Konaté Adama",
-        "population_estimee": 420,
+        "pop_seed": 420,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8156,
         "longitude": -7.4234,
@@ -78,7 +78,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpéhiri 2",
         "chef_village": "Camara Lamine",
-        "population_estimee": 280,
+        "pop_seed": 280,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8801,
         "longitude": -7.4067,
@@ -86,7 +86,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpanda",
         "chef_village": "Sanogo Issouf",
-        "population_estimee": 360,
+        "pop_seed": 360,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8034,
         "longitude": -7.3789,
@@ -94,7 +94,7 @@ VILLAGES_DATA = [
     {
         "nom": "Grihiri",
         "chef_village": "Fofana Abdoulaye",
-        "population_estimee": 440,
+        "pop_seed": 440,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8678,
         "longitude": -7.3456,
@@ -102,7 +102,7 @@ VILLAGES_DATA = [
     {
         "nom": "Bobouo",
         "chef_village": "Diabaté Mamadou",
-        "population_estimee": 510,
+        "pop_seed": 510,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8345,
         "longitude": -7.4345,
@@ -110,7 +110,7 @@ VILLAGES_DATA = [
     {
         "nom": "Niangoussou",
         "chef_village": "Dosso Yacouba",
-        "population_estimee": 290,
+        "pop_seed": 290,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8923,
         "longitude": -7.3678,
@@ -118,7 +118,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpoussoussou",
         "chef_village": "Silué Navigué",
-        "population_estimee": 380,
+        "pop_seed": 380,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8112,
         "longitude": -7.4456,
@@ -126,7 +126,7 @@ VILLAGES_DATA = [
     {
         "nom": "Zakoua",
         "chef_village": "Coulibaly Soungalo",
-        "population_estimee": 460,
+        "pop_seed": 460,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8567,
         "longitude": -7.3234,
@@ -134,7 +134,7 @@ VILLAGES_DATA = [
     {
         "nom": "Gnalégribouo",
         "chef_village": "Koné Drissa",
-        "population_estimee": 320,
+        "pop_seed": 320,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8789,
         "longitude": -7.4189,
@@ -142,7 +142,7 @@ VILLAGES_DATA = [
     {
         "nom": "Doussou",
         "chef_village": "Bamba Lacina",
-        "population_estimee": 270,
+        "pop_seed": 270,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8234,
         "longitude": -7.3567,
@@ -150,7 +150,7 @@ VILLAGES_DATA = [
     {
         "nom": "Gbaléguhé",
         "chef_village": "Konaté Seydou",
-        "population_estimee": 490,
+        "pop_seed": 490,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8456,
         "longitude": -7.4567,
@@ -158,7 +158,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpéhiri 3",
         "chef_village": "Diallo Ibrahim",
-        "population_estimee": 240,
+        "pop_seed": 240,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8845,
         "longitude": -7.4089,
@@ -166,7 +166,7 @@ VILLAGES_DATA = [
     {
         "nom": "N'goussouyo",
         "chef_village": "Traoré Moussa",
-        "population_estimee": 330,
+        "pop_seed": 330,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8067,
         "longitude": -7.3901,
@@ -174,7 +174,7 @@ VILLAGES_DATA = [
     {
         "nom": "Blibouo",
         "chef_village": "Ouattara Lassina",
-        "population_estimee": 410,
+        "pop_seed": 410,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8912,
         "longitude": -7.3345,
@@ -182,7 +182,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpado",
         "chef_village": "Koné Siaka",
-        "population_estimee": 350,
+        "pop_seed": 350,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8178,
         "longitude": -7.4678,
@@ -190,7 +190,7 @@ VILLAGES_DATA = [
     {
         "nom": "Zébréguhé",
         "chef_village": "Fofana Sekou",
-        "population_estimee": 280,
+        "pop_seed": 280,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8634,
         "longitude": -7.3123,
@@ -198,7 +198,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpoussouya",
         "chef_village": "Diabaté Souleymane",
-        "population_estimee": 390,
+        "pop_seed": 390,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8023,
         "longitude": -7.4012,
@@ -206,7 +206,7 @@ VILLAGES_DATA = [
     {
         "nom": "Gbalouyo",
         "chef_village": "Silué Dramane",
-        "population_estimee": 450,
+        "pop_seed": 450,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8756,
         "longitude": -7.3789,
@@ -214,7 +214,7 @@ VILLAGES_DATA = [
     {
         "nom": "Niézéko",
         "chef_village": "Coulibaly Adama",
-        "population_estimee": 300,
+        "pop_seed": 300,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8389,
         "longitude": -7.4234,
@@ -222,7 +222,7 @@ VILLAGES_DATA = [
     {
         "nom": "Kpéhiri 4",
         "chef_village": "Bamba Noufou",
-        "population_estimee": 260,
+        "pop_seed": 260,
         "description": "Village de la sous-préfecture d'Olodio",
         "latitude":  4.8867,
         "longitude": -7.4134,
@@ -403,20 +403,18 @@ class Command(BaseCommand):
             village, created = Village.objects.get_or_create(
                 nom=data["nom"],
                 defaults={
-                    "description":        data["description"],
-                    "chef_village":       data["chef_village"],
-                    "population_estimee": data["population_estimee"],
-                    "latitude":           data["latitude"],
-                    "longitude":          data["longitude"],
+                    "description":  data["description"],
+                    "chef_village": data["chef_village"],
+                    "latitude":     data["latitude"],
+                    "longitude":    data["longitude"],
                 }
             )
-            villages_objets.append(village)
+            villages_objets.append((village, data["pop_seed"]))
 
             if created:
                 villages_crees += 1
                 self.stdout.write(
-                    f"    ✅ {village.nom} "
-                    f"(pop. {village.population_estimee})"
+                    f"    ✅ {village.nom}"
                 )
             else:
                 villages_existants += 1
@@ -443,8 +441,7 @@ class Command(BaseCommand):
         self.stdout.write("  🏗️  Ajout des infrastructures...")
         total_infras = 0
 
-        for village in villages_objets:
-            pop  = village.population_estimee
+        for village, pop in villages_objets:
             infras_ajoutees = self._creer_infrastructures(village, pop)
             total_infras   += infras_ajoutees
             self.stdout.write(

@@ -17,7 +17,6 @@ class VillageAdminTests(TestCase):
         cls.village = Village.objects.create(
             nom="Olodio",
             chef_village="Chef Test",
-            population_estimee=1200,
         )
 
     def test_admin_add_view_renders_without_format_html_error(self):
