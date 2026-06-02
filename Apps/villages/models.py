@@ -51,7 +51,11 @@ class Village(SafeDeleteModel):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("villages:village-detail", kwargs={"slug": self.slug})
+        from django.urls import NoReverseMatch
+        try:
+            return reverse("villages:village-detail", kwargs={"slug": self.slug})
+        except NoReverseMatch:
+            return "/"
 
     def __str__(self):
         return self.nom

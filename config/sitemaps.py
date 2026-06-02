@@ -4,7 +4,6 @@ from django.utils import timezone
 
 from Apps.blog.models import Article
 from Apps.events.models import Event
-from Apps.villages.models import Village
 
 
 class ArticleSitemap(Sitemap):
@@ -46,18 +45,6 @@ class EventSitemap(Sitemap):
         return reverse("website:evenement-detail", kwargs={"pk": obj.pk})
 
 
-class VillageSitemap(Sitemap):
-    changefreq = "monthly"
-    priority = 0.5
-    protocol = "https"
-
-    def items(self):
-        return Village.objects.all().order_by("nom")
-
-    def lastmod(self, obj):
-        return obj.date_creation
-
-
 class StaticSitemap(Sitemap):
     changefreq = "weekly"
     priority = 1.0
@@ -83,5 +70,4 @@ sitemaps = {
     "static": StaticSitemap,
     "articles": ArticleSitemap,
     "evenements": EventSitemap,
-    "villages": VillageSitemap,
 }
