@@ -156,46 +156,46 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 
-DATABASES = {
+# DATABASES = {
 
-    'default': {
+#     'default': {
 
-        'ENGINE': 'django.db.backends.postgresql',
+#         'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'Olodio',
+#         'NAME': 'Olodio',
 
-        'USER': 'postgres',
+#         'USER': 'postgres',
 
-        'PASSWORD': '1234',
+#         'PASSWORD': '1234',
 
-        'HOST': 'localhost',  # Essayez 'localhost' au lieu de '127.0.0.1'
+#         'HOST': 'localhost',  # Essayez 'localhost' au lieu de '127.0.0.1'
 
-        'PORT': '5432',
+#         'PORT': '5432',
 
-        'OPTIONS': {
+#         'OPTIONS': {
 
-            'client_encoding': 'UTF8',
+#             'client_encoding': 'UTF8',
 
-        },
+#         },
 
-    }
-}
+#     }
+# }
 
 #Database production
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME":'c2805526c_tepov1',
-#         "USER":'c2805526c_user',
-#         "PASSWORD": "!-v&zd^&u(ZHGT-@",  # mettre le vrai mot de passe
-#         "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),   # ou l’host fourni par ton hébergeur
-#         "PORT": os.environ.get("MYSQL_PORT", "3306"),
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-#         },
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME":'c2805526c_tepov1',
+        "USER":'c2805526c_user',
+        "PASSWORD": "!-v&zd^&u(ZHGT-@",  # mettre le vrai mot de passe
+        "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),   # ou l’host fourni par ton hébergeur
+        "PORT": os.environ.get("MYSQL_PORT", "3306"),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        },
+    }
+}
 
 
 
