@@ -1,9 +1,13 @@
+
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pré-inscription — Communauté TEPO</title>
+  <link rel="icon" type="image/png" href="{% static 'logo-fon.png' %}"/>
+
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -191,9 +195,7 @@
   <header class="sticky top-0 z-50 border-b border-primary/10 bg-white/92 backdrop-blur-xl">
     <div class="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
       <a href="{% url 'website:accueil' %}" class="flex items-center gap-2.5">
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20">
-          <span class="material-symbols-outlined" style="font-size:18px;">account_balance</span>
-        </div>
+        <img src="{% static 'logo.png' %}" alt="Logo Olodio" class="h-9 w-9 object-contain rounded-xl shrink-0"/>
         <div class="hidden sm:block">
           <p class="font-display text-sm font-extrabold leading-none text-primary">Communauté TEPO</p>
           <p class="text-[9px] font-bold uppercase tracking-[0.22em] text-accent">Pré-inscription</p>

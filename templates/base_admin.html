@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="light">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>{% block title %}Olodio Census Platform{% endblock %} — Olodio</title>
+  <link rel="icon" type="image/png" href="{% static 'logo-fon.png' %}"/>
 
   {# ── Styles ── #}
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>

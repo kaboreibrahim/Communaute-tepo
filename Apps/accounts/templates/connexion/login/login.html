@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Connexion | Olodio Platform</title>
+<link rel="icon" type="image/png" href="{% static 'logo-fon.png' %}"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
@@ -118,11 +120,7 @@
 <div class="min-h-dvh flex flex-col">
   <header class="flex items-center justify-between px-4 pt-6 pb-3 mt-1">
     <div class="flex items-center gap-2.5">
-      <div class="text-primary w-7 h-7 shrink-0">
-        <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-          <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"/>
-        </svg>
-      </div>
+      <img src="{% static 'logo.png' %}" alt="Logo Olodio" class="w-7 h-7 object-contain shrink-0"/>
       <div>
         <p class="text-slate-800 text-[11px] font-bold leading-tight uppercase tracking-wider">Republique de Cote d'Ivoire</p>
         <p class="text-primary text-[9px] font-semibold tracking-wide">Commuanté Tepo</p>
@@ -141,9 +139,9 @@
           <div class="w-20 h-20 rounded-2xl bg-white shadow-xl shadow-primary/10 flex items-center justify-center border border-primary/10 overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-primary/8 to-transparent rounded-2xl"></div>
             <img
-              alt="Sceau officiel de la Sous-Prefecture"
+              alt="Logo Olodio"
               class="w-14 h-14 object-contain relative z-10"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDddqqrxvFEDfpty5b1AsSGS4lplCfStM7P0o4MLMihDeywLoQvBV_s2FGQvv_RkMc6su7JCLpcFAaFPp2MsThQgD9FoqUFogz24AHfrtHSWaNe_w7iQSJPZYF40EyDg9tMELwGEqU_oLn7BXdmDL4SfkVkAm9WdztRvGRcsI84i80UGbBAsxku4Xv6yl0cI_vBbgt-V97RERKKxvVlqa96i4erwaT6wtL7YSLEdvP0Bwn760XT9w3cajeH20LuZLqdCYvBmIcXq1k"
+              src="{% static 'logo.png' %}"
             />
           </div>
           <span class="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full border-2 border-white flex items-center justify-center">

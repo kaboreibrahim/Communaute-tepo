@@ -1,12 +1,11 @@
 {# partials/_sidebar.html #}
 {# Variables attendues : request.resolver_match.url_name (pour nav active) #}
+{% load static %}
 
 <aside id="sidebar" class="w-64 lg:w-72 bg-white dark:bg-slate-900 border-r border-primary/10 flex flex-col shrink-0 shadow-xl lg:shadow-none">
 
   <div class="p-5 flex items-center gap-3 border-b border-primary/10">
-    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
-      <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">analytics</span>
-    </div>
+    <img src="{% static 'logo.png' %}" alt="Olodio Logo" class="h-9 w-9 rounded-xl object-contain shrink-0"/>
     <div class="min-w-0">
       <h1 class="text-primary font-black text-lg leading-tight">Tepo</h1>
       <p class="text-[10px] text-primary/50 font-semibold uppercase tracking-wider truncate">Census Platform</p>
